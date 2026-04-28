@@ -1,0 +1,86 @@
+import { supabase } from "../../config/db.js";
+
+const API_BASE_URL = "http://localhost:3000";
+export const apiCalls = {
+  authService: {
+    async signUp({ email, password, handle }) {
+      try {
+        const { data: selectData, error: selectError } = await supabase
+          .from("utenti")
+          .select("*")
+          .eq("handle", handle);
+        if (selectError) throw selectError;
+        if (selectData.length > 0) {
+          return { data: null, error: { message: "Utente già registrato" } };
+        }
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async loginUser({ email, password }) {
+      console.log("email", email);
+      console.log("password", password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) return { error, data: null };
+      return { data, error: null };
+    },
+
+    async getSession() {
+      return await supabase.auth.getSession();
+    },
+  },
+  userService: {
+    async createProfile(userData: {
+      user_id: string;
+      email: string;
+      full_name: string;
+      handle: string;
+    }) {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(userData),
+      });
+      if (!response.ok) {
+        // Gestisci l'errore se il backend fallisce
+        const errorData = await response.json();
+        return { data: null, error: errorData.details || errorData.message };
+      }
+      return { data: await response.json(), error: null };
+    },
+  },
+  home: {
+    async getHomeFoldersAndFiles(session) {
+      console.log(session);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/documents/getall`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+        if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        return { data: await response.json(), error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+  },
+};
