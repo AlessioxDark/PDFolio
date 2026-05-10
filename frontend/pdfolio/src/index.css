@@ -1,4 +1,13 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @theme {
-  /* --font-body:"IUt" */
+  --font-inter: "Inter", sans-serif;
+  --color-accent: #9333ea;
+  --color-light-accent: #f3e8ff;
+  --color-neutral-1: #ffffff;
+  --color-neutral-2: #f8fafc;
+  --color-neutral-3: #f1f5f9;
+  --color-neutral-4: #cbd5e1;
+  --color-neutral-5: #f0f2f5;
+  --color-text-1: #94a3b8;
 }

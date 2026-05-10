@@ -1,6 +1,7 @@
 import React from "react";
 import { useProfile } from "../contexts/ProfileContext";
 import { Link, useLocation } from "react-router";
+import SidebarLink from "../features/sidebar/SidebarLink";
 
 const Sidebar = () => {
   const { profileData } = useProfile();
@@ -12,17 +13,13 @@ const Sidebar = () => {
   ];
   console.log(location.pathname.split("/"));
   return (
-    <div className="bg-gray-400 h-screen w-1/4 px-4 py-6 flex flex-col gap-3">
-      {sidebarLinks.map((l) => {
-        return (
-          <div
-            key={l.href}
-            className={`px-3 py-4 bg-white rounded-xl shadow-md border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200 ${location.pathname.split("/")[1] === l.href.split("/")[1] ? "ring-2 ring-purple-600 font-bold text-purple-600" : "ok"}`}
-          >
-            <Link to={l.href}>{l.label}</Link>
-          </div>
-        );
-      })}
+    <div className="bg-neutral-2 h-screen w-1/4 px-4 py-6 flex flex-col justify-between  border-r border-neutral-4 pt-20">
+      <div className="w-full flex flex-col gap-3">
+        {sidebarLinks.map((l) => {
+          return <SidebarLink key={l.href} label={l.label} href={l.href} />;
+        })}
+      </div>
+      <SidebarLink label="Profile" href="/profile" />
     </div>
   );
 };

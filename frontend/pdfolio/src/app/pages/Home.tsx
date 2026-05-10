@@ -29,6 +29,7 @@ const Home = () => {
         </div>
         {query == "" ? <div></div> : <span>Risultati della ricerca</span>}{" "}
       </div>
+      <h1 className="bg-purple-600">test</h1>
     </div>
   );
 };

@@ -56,16 +56,16 @@ const Login = () => {
       <div className="relative z-10 flex flex-col items-center border border-white/60 rounded-[2rem] px-6 py-8 sm:p-10 w-full max-w-md bg-white/70 backdrop-blur-xl shadow-2xl shadow-purple-900/10 gap-8">
         <div className="flex flex-col items-center text-center">
           {/* Fake Logo Placeholder */}
-          <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 mb-4">
+          <div className="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 mb-4">
             <span className="text-2xl font-bold text-white">P</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
             PDF
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+            <span className="bg-clip-text text-transparent bg-purple-600">
               olio
             </span>
           </h1>
-          <p className="text-slate-500 font-medium">
+          <p className="text-slate-500 font-medium font-roboto">
             Bentornato! Accedi al tuo spazio.
           </p>
         </div>
@@ -95,11 +95,11 @@ const Login = () => {
                 type="checkbox"
                 id="checkbox"
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                {...register("rememberMe")}
               />
               <label
                 htmlFor="checkbox"
                 className="text-sm text-slate-600 cursor-pointer select-none"
-                {...register("rememberMe")}
               >
                 Ricordati
               </label>
@@ -121,7 +121,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full py-4 mt-2 cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
+            className="w-full py-4 mt-2 cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
           >
             Entra in PDFolio
           </button>

@@ -22,7 +22,7 @@ const Step1 = ({ errors, register, onNext }) => {
       />
       <button
         type="button"
-        className="w-full py-4 mt-2 cursor-pointer bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
+        className="w-full py-4 mt-2 cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
         onClick={onNext}
       >
         Continua{" "}
