@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }) => {
   if (isAuthLoading) {
     return <div>Loading...</div>;
   }
-  return children;
+  return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;

@@ -11,3 +11,31 @@
   --color-neutral-5: #f0f2f5;
   --color-text-1: #94a3b8;
 }
+
+/* Il contenitore del testo deve ricalcare la pagina senza sbavature */
+.react-pdf__Page__textContent {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden !important;
+  line-height: 1 !important;
+  display: block !important;
+
+  /* Nascondiamo il testo ma lasciamo che il browser possa evidenziarlo */
+}
+
+.react-pdf__Page__textContent span {
+  position: absolute !important;
+  white-space: pre !important; /* Impedisce che il testo vada a capo ingrandendosi */
+  transform-origin: 0% 0% !important;
+  line-height: 1 !important;
+  cursor: text !important;
+}
+
+/* Gestisci l'aspetto dell'evidenziazione */
+.react-pdf__Page__textContent span::selection {
+  background: rgba(147, 51, 234, 0.3) !important;
+  color: transparent !important;
+}

@@ -77,7 +77,36 @@ export const apiCalls = {
           const errorData = await response.json();
           return { data: null, error: errorData.details || errorData.message };
         }
-        return { data: await response.json(), error: null };
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+  },
+  pdf: {
+    async getPdfFile(session, documentId: string) {
+      console.log("Documet", documentId);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
       } catch (err) {
         return { data: null, error: err };
       }
