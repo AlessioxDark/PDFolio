@@ -1,31 +1,85 @@
-import React from "react";
+import React, { useRef, useState } from "react";
+import CheckIcon from "../icons/CheckIcon";
 
 const NotesSidebarElement = ({ note }: { note: any }) => {
+  const chatInputRef = useRef<HTMLDivElement>(null);
+  const [noteInput, setNoteInput] = useState("");
+  const [isSent, setIsSent] = useState(false);
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    setNoteInput(e.currentTarget.textContent || "");
+  };
+
   return (
     <div
-      className={`w-full rounded-xl bg-neutral-1 px-4 py-3 border-l-[5px]   cursor-pointer transition-all group flex flex-col gap-2 ${note.type === "HIGHLIGHT" ? "border-accent" : "border-[rgba(147,51,234,0.4)]"}`}
+      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px]   cursor-pointer transition-all group flex flex-col gap-2 ${note.type === "HIGHLIGHT" ? "border-[#FDE047]" : "border-accent"} shadow-[0_20px_30px_rgba(0,0,0,0.10)]`}
     >
       <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center gap-2">
           <div
-            className={`aspect-square h-4 rounded-md ${note.type === "HIGHLIGHT" ? "bg-accent" : "bg-[rgba(253, 224, 71, 0.4)]"}`}
+            className={`aspect-square h-4 rounded-md ${note.type === "HIGHLIGHT" ? "bg-[#FDE047]" : "bg-accent"}`}
           />
           <span className="font-semibold text-[10px] font-inter text-text-1">
             Pagina {note.position.page}
           </span>
         </div>
-        <div
-          className="px-2 font-medium text-black text-xl truncate whitespace-break-spaces"
-          style={{
-            backgroundColor: `${
-              note.type === "HIGHLIGHT"
-                ? "rgba(253, 224, 71, 0.4)"
-                : "rgba(147, 51, 234, 0.3)"
-            }`,
-            // width: `${note.position.width * 1.2}px`,
-          }}
-        >
-          {note.text}
+        <div className="px-2 flex flex-col gap-2">
+          <div className="leading-relaxed">
+            <span
+              className={`font-medium break-words rounded-[2px] ${
+                note.type === "HIGHLIGHT"
+                  ? "text-text-1 text-sm"
+                  : "text-black text-xl"
+              }`}
+              style={{
+                // Colore di sfondo con opacità per simulare la selezione
+                backgroundColor:
+                  note.type === "HIGHLIGHT"
+                    ? "rgba(253, 224, 71, 0.5)"
+                    : "rgba(147, 51, 234, 0.4)",
+
+                // Il "trucco" per sembrare selezione Windows:
+                // Padding orizzontale ridotto, verticale quasi nullo
+                padding: "0px 2px",
+
+                // Serve a far sì che il background si spezzi correttamente a capo
+                WebkitBoxDecorationBreak: "clone",
+                boxDecorationBreak: "clone",
+
+                // Rimuove il distacco tra le linee per un look più compatto
+                lineHeight: "1.5",
+              }}
+            >
+              {note.text}
+            </span>
+          </div>
+          {note.type == "NOTE" && (note.content.length === 0 || !isSent) ? (
+            <div className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200">
+              <div
+                contentEditable={true}
+                ref={chatInputRef}
+                className="flex-1 min-h-[24px] max-h-24 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
+                onInput={handleInput}
+                data-placeholder="Inserisci testo nota"
+              ></div>
+              <button aria-label="Invia messaggio">
+                <CheckIcon
+                  iconColor="#ffffff"
+                  size={16}
+                  className={`${noteInput.trim().length > 0 ? "bg-accent" : ""} flex items-center justify-center
+                   rounded-full
+                  flex-shrink-0
+                  transition-all duration-150`}
+                  bgColor="#9333ea"
+                  onClick={() => {
+                    note.content = noteInput;
+                    setIsSent(true);
+                  }}
+                />
+              </button>
+            </div>
+          ) : (
+            <span>{note.content}</span>
+          )}
         </div>
       </div>
     </div>

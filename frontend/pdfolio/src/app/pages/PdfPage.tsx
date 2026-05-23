@@ -195,6 +195,7 @@ const PdfPage = () => {
       document_id: pdfId,
       type: "NOTE",
       text: selectionData.text,
+      content: "",
       position: {
         page: selectionData.pageNum,
         x: selectionData.textX,
@@ -203,6 +204,7 @@ const PdfPage = () => {
         height: selectionData.textHeight,
       },
     };
+    console.log(note);
     const newArray = [...notesArray, note];
     setNotesArray(newArray);
     window.getSelection()?.removeAllRanges();
