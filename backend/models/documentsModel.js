@@ -56,7 +56,19 @@ const addNote = async (req) => {
     return { data: null, error: error };
   }
 };
-
+const deleteNote = async (req) => {
+  try {
+    const { noteId } = req.body;
+    const { error: noteError } = await supabase
+      .from("note")
+      .delete()
+      .eq("note_id", noteId);
+    if (noteError) throw noteError;
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
 module.exports = {
   getAll,
   getSpecificDocument,

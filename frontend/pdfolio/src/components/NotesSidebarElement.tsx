@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import CheckIcon from "../icons/CheckIcon";
 import { apiCalls } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
+import TrashIcon from "../icons/TrashIcon";
+import { Pencil } from "lucide-react";
 
 const NotesSidebarElement = ({ note }: { note: any }) => {
   const chatInputRef = useRef<HTMLDivElement>(null);
@@ -56,6 +58,7 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
               {note.text}
             </span>
           </div>
+
           {note.type == "NOTE" &&
             (!isSent ? (
               <div className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200">
@@ -102,6 +105,15 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
                 "{savedContent}"
               </span>
             ))}
+          <div className="w-full flex justify-end items-center">
+            <div className="flex flex-row gap-4 items-center">
+              <Pencil className="text-text-1" size={18} />
+              <TrashIcon
+                className="text-text-1 hover:text-red-400 transition-colors duration-300"
+                size={20}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

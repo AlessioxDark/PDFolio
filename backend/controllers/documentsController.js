@@ -67,9 +67,27 @@ const getNotesByDocumentId = async (req, res) => {
     });
   }
 };
+const deleteNote = async (req, res) => {
+  try {
+    const { data, error } = await Documents.deleteNote(req);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "documento ottenuti con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'ottenimento del documento",
+      details: error.message,
+    });
+  }
+};
 module.exports = {
   getAllDocumentsAndFolders,
   getSpecificDocument,
   getNotesByDocumentId,
   addNote,
+  deleteNote,
 };
