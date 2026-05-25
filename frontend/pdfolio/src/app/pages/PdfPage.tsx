@@ -19,7 +19,7 @@ const PdfPage = () => {
   const { pdfId } = useParams();
   const { session } = useAuth();
   const [pdfData, setPdfData] = useState<any>({});
-  const { notesArray, setNotesArray } = useNotes();
+  const { notesArray, setNotesArray, fetchNotes } = useNotes();
   const [selectionData, setSelectionData] = useState<{
     menuX: number;
     menuY: number;
@@ -58,6 +58,7 @@ const PdfPage = () => {
 
   useEffect(() => {
     getPdfData();
+    fetchNotes(pdfId as string);
   }, []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -173,6 +174,7 @@ const PdfPage = () => {
     const highlight = {
       document_id: pdfId,
       type: "HIGHLIGHT",
+      content: "",
       text: selectionData.text,
       position: {
         page: selectionData.pageNum,
@@ -186,6 +188,14 @@ const PdfPage = () => {
     setNotesArray(newArray);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
+    const { error } = apiCalls.notes.SaveNoteToDB(
+      session?.access_token,
+      pdfId as string,
+      highlight,
+    );
+    if (error) {
+      console.log("err", error);
+    }
     setIsNotesSidebarOpen(true);
   };
 

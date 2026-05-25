@@ -29,8 +29,37 @@ const getSpecificDocument = async (req, res) => {
     return { data: null, error: error };
   }
 };
+const getNotesByDocumentId = async (req, res) => {
+  try {
+    const { pdfId } = req.params;
+    const { data: documentData, error: documentError } = await supabase
+      .from("note")
+      .select("*")
+      .eq("document_id", pdfId);
+    if (documentError) throw documentError;
+    return { data: documentData, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
+const addNote = async (req) => {
+  try {
+    const { pdfId } = req.params;
+    const { noteData } = req.body;
+    console.log("notedata", noteData, req.body);
+    const { error: noteError } = await supabase.from("note").insert([noteData]);
+    console.log("noteError", noteError);
+
+    if (noteError) throw noteError;
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
 
 module.exports = {
   getAll,
   getSpecificDocument,
+  getNotesByDocumentId,
+  addNote,
 };

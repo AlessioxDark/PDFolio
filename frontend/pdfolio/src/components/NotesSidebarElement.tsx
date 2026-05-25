@@ -1,10 +1,14 @@
 import React, { useRef, useState } from "react";
 import CheckIcon from "../icons/CheckIcon";
+import { apiCalls } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const NotesSidebarElement = ({ note }: { note: any }) => {
   const chatInputRef = useRef<HTMLDivElement>(null);
+  const { session } = useAuth();
   const [noteInput, setNoteInput] = useState("");
-  const [isSent, setIsSent] = useState(false);
+  const [savedContent, setSavedContent] = useState(note.content || "");
+  const [isSent, setIsSent] = useState(note.content.length > 0);
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
@@ -52,34 +56,52 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
               {note.text}
             </span>
           </div>
-          {note.type == "NOTE" && (note.content.length === 0 || !isSent) ? (
-            <div className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200">
-              <div
-                contentEditable={true}
-                ref={chatInputRef}
-                className="flex-1 min-h-[24px] max-h-24 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
-                onInput={handleInput}
-                data-placeholder="Inserisci testo nota"
-              ></div>
-              <button aria-label="Invia messaggio">
-                <CheckIcon
-                  iconColor="#ffffff"
-                  size={16}
-                  className={`${noteInput.trim().length > 0 ? "bg-accent" : ""} flex items-center justify-center
+          {note.type == "NOTE" &&
+            (!isSent ? (
+              <div className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200">
+                <div
+                  contentEditable={true}
+                  ref={chatInputRef}
+                  className="flex-1 min-h-[24px] max-h-24 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
+                  onInput={handleInput}
+                  data-placeholder="Inserisci testo nota"
+                ></div>
+                <button aria-label="Invia messaggio">
+                  <CheckIcon
+                    iconColor="#ffffff"
+                    size={16}
+                    className={`${noteInput.trim().length > 0 ? "bg-accent" : ""} flex items-center justify-center
                    rounded-full
                   flex-shrink-0
                   transition-all duration-150`}
-                  bgColor="#9333ea"
-                  onClick={() => {
-                    note.content = noteInput;
-                    setIsSent(true);
-                  }}
-                />
-              </button>
-            </div>
-          ) : (
-            <span>{note.content}</span>
-          )}
+                    bgColor="#9333ea"
+                    onClick={() => {
+                      if (noteInput.trim().length > 0) {
+                        const { error } = apiCalls.notes.SaveNoteToDB(
+                          session?.access_token,
+                          note.document_id,
+                          {
+                            ...note,
+                            content: noteInput,
+                          },
+                        );
+                        if (error) {
+                          console.log("err", error);
+                        }
+                        setSavedContent(noteInput);
+                        setIsSent(true);
+                      }
+                    }}
+                  />
+                </button>
+              </div>
+            ) : (
+              <span
+                className={`font-medium break-words rounded-[2px] ${"text-text-1 text-sm"} italic`}
+              >
+                "{savedContent}"
+              </span>
+            ))}
         </div>
       </div>
     </div>

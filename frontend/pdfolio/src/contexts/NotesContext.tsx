@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../../config/db.js";
 import { apiCalls } from "../services/api.js";
+import { useAuth } from "./AuthContext.js";
 export const NotesContext = createContext({
   notesArray: [],
   addNote: (note: any) => {},
@@ -14,9 +15,14 @@ export const useNotes = () => {
 
 export const NotesContextProvider = ({ children }) => {
   const [notesArray, setNotesArray] = useState([]);
+  const { session } = useAuth();
 
   const fetchNotes = async (pdfId: string) => {
-    const { data, error } = await apiCalls.notes.getNotes(pdfId);
+    console.log("pdf", pdfId);
+    const { data, error } = await apiCalls.notes.getNotesByDocumentId(
+      session?.access_token,
+      pdfId,
+    );
     if (error) {
       console.error("Errore nel caricamento delle note:", error);
       return;
@@ -32,10 +38,9 @@ export const NotesContextProvider = ({ children }) => {
   const deleteNote = (id: string) => {
     setNotesArray((prev) => prev.filter((note) => note.id !== id));
   };
-
   return (
     <NotesContext.Provider
-      value={{ notesArray, addNote, deleteNote, setNotesArray }}
+      value={{ notesArray, addNote, deleteNote, setNotesArray, fetchNotes }}
     >
       {children}
     </NotesContext.Provider>
