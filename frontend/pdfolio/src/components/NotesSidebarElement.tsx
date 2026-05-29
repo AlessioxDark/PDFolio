@@ -17,9 +17,9 @@ const NotesSidebarElement = ({
   const { deleteNote } = useNotes();
   const chatInputRef = useRef<HTMLDivElement>(null);
   const { session } = useAuth();
-  const [noteInput, setNoteInput] = useState("");
+  const [noteInput, setNoteInput] = useState(note.content || "");
   const [savedContent, setSavedContent] = useState(note.content || "");
-  const [isSent, setIsSent] = useState(note.content.length > 0);
+  const [isSent, setIsSent] = useState(note.content && note.content.length > 0);
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
@@ -79,22 +79,31 @@ const NotesSidebarElement = ({
               >
                 <div
                   contentEditable={true}
+                  suppressContentEditableWarning={true}
                   ref={chatInputRef}
                   className="flex-1 min-h-[24px] max-h-24 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
                   onInput={handleInput}
                   data-placeholder="Inserisci testo nota"
-                ></div>
-                <button aria-label="Invia messaggio">
-                  <CheckIcon
-                    iconColor="#ffffff"
-                    size={16}
-                    className={`${noteInput.trim().length > 0 ? "bg-accent" : ""} flex items-center justify-center
-                   rounded-full
-                  flex-shrink-0
-                  transition-all duration-150`}
-                    bgColor="#9333ea"
-                    onClick={() => {
-                      if (noteInput.trim().length > 0) {
+                >
+                  {savedContent}
+                </div>
+                <button
+                  type="button"
+                  aria-label="Invia messaggio"
+                  onClick={() => {
+                    if (noteInput.trim().length > 0) {
+                      const isModification =
+                        note.content && note.content.length > 0;
+                      if (isModification) {
+                        const { error } = apiCalls.notes.UpdateNoteInDB(
+                          session?.access_token,
+                          note.document_id,
+                          note.note_id,
+                          noteInput, // Il testo modificato
+                        );
+                        if (error)
+                          console.error("Errore durante la PATCH:", error);
+                      } else {
                         const { error } = apiCalls.notes.SaveNoteToDB(
                           session?.access_token,
                           note.document_id,
@@ -103,13 +112,21 @@ const NotesSidebarElement = ({
                             content: noteInput,
                           },
                         );
-                        if (error) {
-                          console.log("err", error);
-                        }
-                        setSavedContent(noteInput);
-                        setIsSent(true);
+                        if (error)
+                          console.error("Errore durante la PATCH:", error);
                       }
-                    }}
+                      setSavedContent(noteInput);
+                      setIsSent(true);
+                    }
+                  }}
+                >
+                  <CheckIcon
+                    iconColor="#ffffff"
+                    size={16}
+                    className={`${
+                      noteInput.trim().length > 0 ? "bg-accent" : ""
+                    } flex items-center justify-center rounded-full flex-shrink-0 transition-all duration-150`}
+                    bgColor="#9333ea"
                   />
                 </button>
               </div>
@@ -125,11 +142,15 @@ const NotesSidebarElement = ({
               onClick={(e) => e.stopPropagation()}
               className="flex flex-row gap-4 items-center"
             >
-              <Pencil className="text-text-1" size={18} />
-              {/* <TrashIcon
-                className="text-text-1 hover:text-red-400 transition-colors duration-300"
-                size={20}
-              /> */}
+              <Pencil
+                className="text-text-1"
+                size={18}
+                onClick={(e) => {
+                  e.stopPropagation(); // Evita lo scroll del PDF al click della matita
+                  setIsSent(false); // Riapre il box di input con il vecchio testo dentro
+                }}
+              />
+
               <AlertDialogComponent
                 icon={
                   <TrashIcon

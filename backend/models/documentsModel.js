@@ -72,10 +72,34 @@ const deleteNote = async (req) => {
     return { data: null, error: error };
   }
 };
+const updateNote = async (req, res) => {
+  try {
+    const { pdfId, noteId } = req.params;
+    const { updatedContent } = req.body;
+
+    // Aggiorna prima la nota base
+    const { error: noteError } = await supabase
+      .from("note")
+      .update({
+        content: updatedContent,
+        updated_at: new Date(),
+      })
+      .eq("note_id", noteId)
+      .eq("document_id", pdfId);
+
+    if (noteError) throw noteError;
+
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    console.error("Errore nell'aggiornamento della nota:", error);
+    return { data: null, error: error };
+  }
+};
 module.exports = {
   getAll,
   getSpecificDocument,
   getNotesByDocumentId,
   addNote,
   deleteNote,
+  updateNote,
 };

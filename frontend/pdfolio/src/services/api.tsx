@@ -187,5 +187,32 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async UpdateNoteInDB(
+      session,
+      documentId: string,
+      noteId: string,
+      updatedContent: string,
+    ) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}/notes/${noteId}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ updatedContent }), // Inviamo solo il testo aggiornato
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          const errorData = await response.json();
+          return { data: null, error: errorData.message };
+        }
+        return { data: await response.json(), error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
 };
