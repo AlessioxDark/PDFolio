@@ -58,11 +58,14 @@ const addNote = async (req) => {
 };
 const deleteNote = async (req) => {
   try {
-    const { noteId } = req.body;
+    const { pdfId, noteId } = req.params;
+
     const { error: noteError } = await supabase
       .from("note")
       .delete()
-      .eq("note_id", noteId);
+      .eq("note_id", noteId)
+      .eq("document_id", pdfId); // Sicurezza extra: cancella solo se la nota appartiene davvero a questo PDF
+
     if (noteError) throw noteError;
     return { data: { success: true }, error: null };
   } catch (error) {
@@ -74,4 +77,5 @@ module.exports = {
   getSpecificDocument,
   getNotesByDocumentId,
   addNote,
+  deleteNote,
 };

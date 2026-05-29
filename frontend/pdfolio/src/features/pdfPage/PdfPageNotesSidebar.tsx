@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import CrossIcon from "../../icons/CrossIcon";
 import Searchbar from "../../components/Searchbar";
 import FilterPill from "../home/FilterPill";
@@ -10,8 +10,12 @@ const FILTERS = ["Tutte", "Note", "Evidenziati"];
 
 const PdfPageNotesSidebar = ({
   toggleNotesSidebar,
+  notesContainerRef,
+  scrollToNoteInPdf,
 }: {
   toggleNotesSidebar: () => void;
+  notesContainerRef: React.RefObject<HTMLDivElement>;
+  scrollToNoteInPdf: (notePosition: any) => void;
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
@@ -37,7 +41,7 @@ const PdfPageNotesSidebar = ({
           />
         </div>
 
-        <div className="px-4 flex flex-col gap-3">
+        <div className="px-4 flex flex-col gap-3 overflow-y-hidden ">
           <Searchbar
             query={searchQuery}
             setQuery={setSearchQuery}
@@ -53,9 +57,18 @@ const PdfPageNotesSidebar = ({
               </div>
             ))}
           </div>
-          {notesArray.map((note, index) => (
-            <NotesSidebarElement key={index} note={note} />
-          ))}
+          <div
+            className="flex flex-col gap-2 overflow-y-scroll py-4"
+            ref={notesContainerRef}
+          >
+            {notesArray.map((note, index) => (
+              <NotesSidebarElement
+                key={index}
+                note={note}
+                scrollToNoteInPdf={scrollToNoteInPdf}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </motion.div>

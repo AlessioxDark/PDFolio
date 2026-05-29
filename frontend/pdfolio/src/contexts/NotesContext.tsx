@@ -15,10 +15,13 @@ export const useNotes = () => {
 
 export const NotesContextProvider = ({ children }) => {
   const [notesArray, setNotesArray] = useState([]);
+  const [currentPdfId, setCurrentPdfId] = useState(null);
   const { session } = useAuth();
 
   const fetchNotes = async (pdfId: string) => {
     console.log("pdf", pdfId);
+    setCurrentPdfId(pdfId);
+
     const { data, error } = await apiCalls.notes.getNotesByDocumentId(
       session?.access_token,
       pdfId,
@@ -35,12 +38,28 @@ export const NotesContextProvider = ({ children }) => {
   const addNote = (note: any) => {
     setNotesArray((prev) => [...prev, note]);
   };
-  const deleteNote = (id: string) => {
-    setNotesArray((prev) => prev.filter((note) => note.id !== id));
+  const deleteNote = async (id: string) => {
+    setNotesArray((prev) => prev.filter((note) => note.note_id !== id));
+
+    const { error } = await apiCalls.notes.deleteNoteFromDB(
+      session?.access_token,
+      currentPdfId,
+      id,
+    );
+    if (error) {
+      console.error("Errore nell'eliminazione della nota:", error);
+      return;
+    }
   };
   return (
     <NotesContext.Provider
-      value={{ notesArray, addNote, deleteNote, setNotesArray, fetchNotes }}
+      value={{
+        notesArray,
+        addNote,
+        deleteNote,
+        setNotesArray,
+        fetchNotes,
+      }}
     >
       {children}
     </NotesContext.Provider>

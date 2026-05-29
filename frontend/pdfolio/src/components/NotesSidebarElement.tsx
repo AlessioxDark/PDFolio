@@ -4,8 +4,17 @@ import { apiCalls } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import TrashIcon from "../icons/TrashIcon";
 import { Pencil } from "lucide-react";
+import { AlertDialogComponent } from "./AlertDialogComponent";
+import { useNotes } from "@/contexts/NotesContext";
 
-const NotesSidebarElement = ({ note }: { note: any }) => {
+const NotesSidebarElement = ({
+  note,
+  scrollToNoteInPdf,
+}: {
+  note: any;
+  scrollToNoteInPdf: (notePosition: any) => void;
+}) => {
+  const { deleteNote } = useNotes();
   const chatInputRef = useRef<HTMLDivElement>(null);
   const { session } = useAuth();
   const [noteInput, setNoteInput] = useState("");
@@ -18,6 +27,9 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
   return (
     <div
       className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px]   cursor-pointer transition-all group flex flex-col gap-2 ${note.type === "HIGHLIGHT" ? "border-[#FDE047]" : "border-accent"} shadow-[0_20px_30px_rgba(0,0,0,0.10)]`}
+      onClick={() => {
+        scrollToNoteInPdf(note.position);
+      }}
     >
       <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center gap-2">
@@ -61,7 +73,10 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
 
           {note.type == "NOTE" &&
             (!isSent ? (
-              <div className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200">
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200"
+              >
                 <div
                   contentEditable={true}
                   ref={chatInputRef}
@@ -106,11 +121,27 @@ const NotesSidebarElement = ({ note }: { note: any }) => {
               </span>
             ))}
           <div className="w-full flex justify-end items-center">
-            <div className="flex flex-row gap-4 items-center">
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-row gap-4 items-center"
+            >
               <Pencil className="text-text-1" size={18} />
-              <TrashIcon
+              {/* <TrashIcon
                 className="text-text-1 hover:text-red-400 transition-colors duration-300"
                 size={20}
+              /> */}
+              <AlertDialogComponent
+                icon={
+                  <TrashIcon
+                    className="text-text-1 hover:text-red-400 transition-colors duration-300"
+                    size={20}
+                  />
+                }
+                title={`Vuoi eliminare la ${note.type === "NOTE" ? "nota" : "evidenziazione"}?`}
+                desc={`Sei sicuro di voler eliminare la ${note.type === "NOTE" ? "nota" : "evidenziazione"}?`}
+                onAction={() => {
+                  deleteNote(note.note_id);
+                }}
               />
             </div>
           </div>

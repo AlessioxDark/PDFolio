@@ -4,10 +4,12 @@ const UnderlinedElement = ({
   sotto,
   pos,
   scale,
+  scrollToNote,
 }: {
   sotto: any;
   pos: any;
   scale: number;
+  scrollToNote: (note: any) => void;
 }) => {
   return (
     <div
@@ -27,6 +29,9 @@ const UnderlinedElement = ({
         pointerEvents: "auto",
         zIndex: 10,
         transition: "all 0.2s",
+      }}
+      onClick={() => {
+        scrollToNote(pos);
       }}
       onMouseEnter={(e) => (e.target.style.opacity = "0.8")}
       onMouseLeave={(e) => (e.target.style.opacity = "1")}

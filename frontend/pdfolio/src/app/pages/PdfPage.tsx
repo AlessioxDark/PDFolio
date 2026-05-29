@@ -36,6 +36,7 @@ const PdfPage = () => {
   const scale = 1.2;
   const [isNotesSidebarOpen, setIsNotesSidebarOpen] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const notesContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleNotesSidebar = () => {
     setIsNotesSidebarOpen(!isNotesSidebarOpen);
@@ -233,6 +234,36 @@ const PdfPage = () => {
     setSelectionData(null);
   };
 
+  const scrollToNoteInPdf = (notePosition: any) => {
+    const el = document.getElementById(`page-${notePosition.page}`);
+    if (el && scrollContainerRef.current) {
+      const targetScrollTop = el.offsetTop + notePosition.y * scale - 40;
+      scrollContainerRef.current.scrollTo({
+        top: targetScrollTop,
+        behavior: "smooth",
+      });
+      setPageNumber(notePosition.page);
+    }
+  };
+
+  const scrollToNoteInSidebar = (notePos: any) => {
+    setIsNotesSidebarOpen(true);
+    setTimeout(() => {
+      const index = notesArray.findIndex(
+        (n) =>
+          n.position &&
+          n.position.page === notePos.page &&
+          n.position.x === notePos.x &&
+          n.position.y === notePos.y,
+      );
+      if (index !== -1 && notesContainerRef.current) {
+        const child = notesContainerRef.current.children[index] as HTMLElement;
+        if (child) {
+          child.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+    }, 100);
+  };
   return (
     <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
       <PdfPageHeader
@@ -307,6 +338,7 @@ const PdfPage = () => {
                             sotto={sotto}
                             pos={pos}
                             scale={scale}
+                            scrollToNote={scrollToNoteInSidebar}
                           />
                         );
                       })}
@@ -360,7 +392,11 @@ const PdfPage = () => {
         </div>
         <AnimatePresence>
           {isNotesSidebarOpen && (
-            <PdfPageNotesSidebar toggleNotesSidebar={toggleNotesSidebar} />
+            <PdfPageNotesSidebar
+              toggleNotesSidebar={toggleNotesSidebar}
+              notesContainerRef={notesContainerRef}
+              scrollToNoteInPdf={scrollToNoteInPdf}
+            />
           )}
         </AnimatePresence>
       </div>

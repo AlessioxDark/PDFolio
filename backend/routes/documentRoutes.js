@@ -12,7 +12,7 @@ const {
 router.get("/getall", getAllDocumentsAndFolders);
 router.get("/:pdfId", getSpecificDocument);
 router.get("/:pdfId/notes", getNotesByDocumentId);
-router.post("/:pdfId/add/note", addNote);
-router.post("/:pdfId/delete/note", deleteNote);
+router.post("/:pdfId/notes", addNote);
+router.delete("/:pdfId/notes/:noteId", deleteNote);
 
 module.exports = router;
