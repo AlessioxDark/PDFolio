@@ -84,6 +84,31 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async globalSearch(session) {
+      console.log(session);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/search/global_search`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
   pdf: {
     async getPdfFile(session, documentId: string) {
@@ -100,6 +125,28 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async uploadPdfFile(session, pdfFile) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: pdfFile,
+        });
+        if (!response.ok) {
+          console.log("no ok", response);
           // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
           return { data: null, error: errorData.details || errorData.message };

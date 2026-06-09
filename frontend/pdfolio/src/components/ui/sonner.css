@@ -1,0 +1,16 @@
+[data-sonner-toast] [data-icon] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 20px !important; /* Dimensione minima dello slot icona */
+  min-height: 20px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Assicura che l'SVG dentro lo span non venga azzerato */
+[data-sonner-toast] [data-icon] svg {
+  display: block !important;
+  width: 20px !important; /* Corrisponde a size-5 di Tailwind */
+  height: 20px !important; /* Corrisponde a size-5 di Tailwind */
+}

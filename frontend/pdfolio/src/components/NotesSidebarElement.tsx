@@ -3,16 +3,24 @@ import CheckIcon from "../icons/CheckIcon";
 import { apiCalls } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import TrashIcon from "../icons/TrashIcon";
-import { Pencil } from "lucide-react";
+import {
+  Pencil,
+  ChevronDown,
+  ChevronUp,
+  LucideArrowRight,
+  MoveRight,
+} from "lucide-react"; // Importati i chevron per l'UI
 import { AlertDialogComponent } from "./AlertDialogComponent";
 import { useNotes } from "@/contexts/NotesContext";
 
 const NotesSidebarElement = ({
   note,
   scrollToNoteInPdf,
+  setActiveNote,
 }: {
   note: any;
   scrollToNoteInPdf: (notePosition: any) => void;
+  setActiveNote: (note: any) => void;
 }) => {
   const { deleteNote } = useNotes();
   const chatInputRef = useRef<HTMLDivElement>(null);
@@ -20,55 +28,93 @@ const NotesSidebarElement = ({
   const [noteInput, setNoteInput] = useState(note.content || "");
   const [savedContent, setSavedContent] = useState(note.content || "");
   const [isSent, setIsSent] = useState(note.content && note.content.length > 0);
+
+  // STATO PER GESTIRE L'ESPANSIONE DEI TESTI LUNGHI
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
 
+  // Soglia oltre la quale mostrare il "Vedi altro" (es. 200 caratteri)
+  const isLongText = note.text && note.text.length > 200;
+
   return (
     <div
-      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px]   cursor-pointer transition-all group flex flex-col gap-2 ${note.type === "HIGHLIGHT" ? "border-[#FDE047]" : "border-accent"} shadow-[0_20px_30px_rgba(0,0,0,0.10)]`}
+      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2 ${
+        note.type === "HIGHLIGHT" ? "border-[#FDE047]" : "border-accent"
+      } shadow-[0_12px_8px_rgba(0,0,0,0.08)]`}
       onClick={() => {
         scrollToNoteInPdf(note.position);
       }}
     >
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center gap-2">
-          <div
-            className={`aspect-square h-4 rounded-md ${note.type === "HIGHLIGHT" ? "bg-[#FDE047]" : "bg-accent"}`}
+        <div className="flex flex-row items-center w-full justify-between">
+          <div className="flex flex-row items-center gap-2">
+            <div
+              className={`aspect-square h-4 rounded-md ${
+                note.type === "HIGHLIGHT" ? "bg-[#FDE047]" : "bg-accent"
+              }`}
+            />
+            <span className="font-semibold text-[10px] font-inter text-text-1">
+              Pagina {note.position.page}
+            </span>
+          </div>
+          <MoveRight
+            size={24}
+            className="text-text-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveNote(note);
+            }}
           />
-          <span className="font-semibold text-[10px] font-inter text-text-1">
-            Pagina {note.position.page}
-          </span>
         </div>
+
         <div className="px-2 flex flex-col gap-2">
           <div className="leading-relaxed">
             <span
+              // MODIFICATO: Se isExpanded è true, rimuoviamo line-clamp per mostrare tutto il testo
               className={`font-medium break-words rounded-[2px] ${
+                isExpanded ? "" : "line-clamp-5"
+              } ${
                 note.type === "HIGHLIGHT"
                   ? "text-text-1 text-sm"
                   : "text-black text-xl"
               }`}
               style={{
-                // Colore di sfondo con opacità per simulare la selezione
                 backgroundColor:
                   note.type === "HIGHLIGHT"
                     ? "rgba(253, 224, 71, 0.5)"
                     : "rgba(147, 51, 234, 0.4)",
-
-                // Il "trucco" per sembrare selezione Windows:
-                // Padding orizzontale ridotto, verticale quasi nullo
                 padding: "0px 2px",
-
-                // Serve a far sì che il background si spezzi correttamente a capo
                 WebkitBoxDecorationBreak: "clone",
                 boxDecorationBreak: "clone",
-
-                // Rimuove il distacco tra le linee per un look più compatto
                 lineHeight: "1.5",
               }}
             >
               {note.text}
             </span>
+
+            {/* NUOVO: Pulsante "Vedi altro / meno" condizionale */}
+            {isLongText && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // FONDAMENTALE: Evita di far muovere il PDF se l'utente vuole solo leggere la nota
+                  setIsExpanded(!isExpanded);
+                }}
+                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-black mt-1 font-medium transition-colors"
+              >
+                {isExpanded ? (
+                  <>
+                    Mostra meno <ChevronUp size={14} />
+                  </>
+                ) : (
+                  <>
+                    Mostra tutto <ChevronDown size={14} />
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {note.type == "NOTE" &&
@@ -81,7 +127,8 @@ const NotesSidebarElement = ({
                   contentEditable={true}
                   suppressContentEditableWarning={true}
                   ref={chatInputRef}
-                  className="flex-1 min-h-[24px] max-h-24 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
+                  // Aggiunto max-h-32 per evitare che l'input della nota diventi gigantesco
+                  className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
                   onInput={handleInput}
                   data-placeholder="Inserisci testo nota"
                 >
@@ -90,30 +137,31 @@ const NotesSidebarElement = ({
                 <button
                   type="button"
                   aria-label="Invia messaggio"
-                  onClick={() => {
+                  onClick={async () => {
                     if (noteInput.trim().length > 0) {
-                      const isModification =
-                        note.content && note.content.length > 0;
+                      const isModification = savedContent !== note.content;
                       if (isModification) {
-                        const { error } = apiCalls.notes.UpdateNoteInDB(
+                        const { error } = await apiCalls.notes.UpdateNoteInDB(
                           session?.access_token,
                           note.document_id,
                           note.note_id,
-                          noteInput, // Il testo modificato
+                          noteInput,
                         );
                         if (error)
                           console.error("Errore durante la PATCH:", error);
                       } else {
-                        const { error } = apiCalls.notes.SaveNoteToDB(
-                          session?.access_token,
-                          note.document_id,
-                          {
-                            ...note,
-                            content: noteInput,
-                          },
-                        );
+                        const { data: noteData, error } =
+                          await apiCalls.notes.SaveNoteToDB(
+                            session?.access_token,
+                            note.document_id,
+                            {
+                              ...note,
+                              content: noteInput,
+                            },
+                          );
                         if (error)
-                          console.error("Errore durante la PATCH:", error);
+                          console.error("Errore durante la POST:", error);
+                        note.note_id = noteData?.noteId;
                       }
                       setSavedContent(noteInput);
                       setIsSent(true);
@@ -131,25 +179,33 @@ const NotesSidebarElement = ({
                 </button>
               </div>
             ) : (
-              <span
-                className={`font-medium break-words rounded-[2px] ${"text-text-1 text-sm"} italic`}
-              >
-                "{savedContent}"
-              </span>
+              // ANCHE PER IL COMMENTO SALVATO: Gestiamo i testi lunghi
+              <div className="flex flex-col gap-1">
+                <span
+                  className={`font-medium break-words rounded-[2px] text-text-1 text-sm italic ${
+                    isExpanded ? "" : "line-clamp-4"
+                  }`}
+                >
+                  "{savedContent}"
+                </span>
+              </div>
             ))}
-          <div className="w-full flex justify-end items-center">
+
+          <div className="w-full flex justify-end items-center mt-1">
             <div
               onClick={(e) => e.stopPropagation()}
               className="flex flex-row gap-4 items-center"
             >
-              <Pencil
-                className="text-text-1"
-                size={18}
-                onClick={(e) => {
-                  e.stopPropagation(); // Evita lo scroll del PDF al click della matita
-                  setIsSent(false); // Riapre il box di input con il vecchio testo dentro
-                }}
-              />
+              {note.type == "NOTE" && (
+                <Pencil
+                  className="text-text-1 cursor-pointer hover:text-black transition-colors"
+                  size={18}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSent(false);
+                  }}
+                />
+              )}
 
               <AlertDialogComponent
                 icon={
@@ -158,8 +214,12 @@ const NotesSidebarElement = ({
                     size={20}
                   />
                 }
-                title={`Vuoi eliminare la ${note.type === "NOTE" ? "nota" : "evidenziazione"}?`}
-                desc={`Sei sicuro di voler eliminare la ${note.type === "NOTE" ? "nota" : "evidenziazione"}?`}
+                title={`Vuoi eliminare la ${
+                  note.type === "NOTE" ? "nota" : "evidenziazione"
+                }?`}
+                desc={`Sei sicuro di voler eliminare la ${
+                  note.type === "NOTE" ? "nota" : "evidenziazione"
+                }?`}
                 onAction={() => {
                   deleteNote(note.note_id);
                 }}

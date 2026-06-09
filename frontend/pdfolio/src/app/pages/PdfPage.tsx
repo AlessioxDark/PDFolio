@@ -11,7 +11,6 @@ import PdfPageNotesSidebar from "../../features/pdfPage/PdfPageNotesSidebar";
 import SelectionMenu from "../../features/pdfPage/SelectionMenu";
 import { useNotes } from "../../contexts/NotesContext";
 import UnderlinedElement from "../../components/UnderlinedElement";
-
 // Imposta il worker di react-pdf usando unpkg per evitare problemi con Vite
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -170,9 +169,9 @@ const PdfPage = () => {
     });
   };
 
-  const handleUnderlineAction = () => {
+  const handleUnderlineAction = async () => {
     if (!selectionData) return;
-    const highlight = {
+    const highlight: any = {
       document_id: pdfId,
       type: "HIGHLIGHT",
       content: "",
@@ -185,19 +184,27 @@ const PdfPage = () => {
         height: selectionData.textHeight,
       },
     };
-    const newArray = [...notesArray, highlight];
-    setNotesArray(newArray);
+    // Aggiungi subito all'array locale per reattività immediata
+    setNotesArray((prev) => [...prev, highlight]);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
-    const { error } = apiCalls.notes.SaveNoteToDB(
+    setIsNotesSidebarOpen(true);
+
+    const { data: noteData, error } = await apiCalls.notes.SaveNoteToDB(
       session?.access_token,
       pdfId as string,
       highlight,
     );
     if (error) {
       console.log("err", error);
+    } else if (noteData?.noteId) {
+      // Aggiorna la nota appena inserita con il suo ID reale
+      setNotesArray((prev) =>
+        prev.map((n) =>
+          n === highlight ? { ...n, note_id: noteData.noteId } : n,
+        ),
+      );
     }
-    setIsNotesSidebarOpen(true);
   };
 
   const handleAddNoteAction = () => {
@@ -269,6 +276,7 @@ const PdfPage = () => {
       <PdfPageHeader
         nome={pdfData?.nome}
         toggleNotesSidebar={toggleNotesSidebar}
+        edited_at={pdfData?.edited_at}
       />
 
       <div className="flex-1 w-full flex flex-row overflow-hidden">
@@ -373,7 +381,7 @@ const PdfPage = () => {
                     if (e.key === "Enter") scrollToPage(pageNumber);
                   }}
                   onBlur={() => scrollToPage(pageNumber)}
-                  className="w-14 text-center border-2 border-neutral-4 rounded-md font-bold text-black py-1 focus:outline-none focus:border-black transition-colors"
+                  className="w-14 text-center border-2 border-neutral-4 rounded-md font-bold text-black py-1 focus:outline-none focus:border-accent transition-colors"
                   min={1}
                   max={numPages}
                 />

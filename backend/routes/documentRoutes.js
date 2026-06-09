@@ -7,9 +7,11 @@ const {
   addNote,
   deleteNote,
   updateNote,
+  uploadPdf,
 } = require("../controllers/documentsController");
-// POST /api/auth/register
-// Riceve i dati dal Context dopo la registrazione su Supabase
+const upload = require("../middlewares/multer");
+
+router.post("/upload", upload.single("pdfFile"), uploadPdf);
 router.get("/getall", getAllDocumentsAndFolders);
 router.get("/:pdfId", getSpecificDocument);
 router.get("/:pdfId/notes", getNotesByDocumentId);

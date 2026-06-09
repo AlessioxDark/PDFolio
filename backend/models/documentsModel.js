@@ -1,4 +1,5 @@
 const supabase = require("../config/db.js");
+const crypto = require("crypto");
 const getAll = async (req, res) => {
   try {
     // const { user_id, email, full_name, handle } = req.body;
@@ -47,11 +48,17 @@ const addNote = async (req) => {
     const { pdfId } = req.params;
     const { noteData } = req.body;
     console.log("notedata", noteData, req.body);
-    const { error: noteError } = await supabase.from("note").insert([noteData]);
+    const { data: noteSelect, error: noteError } = await supabase
+      .from("note")
+      .insert([noteData])
+      .select("*");
     console.log("noteError", noteError);
 
     if (noteError) throw noteError;
-    return { data: { success: true }, error: null };
+    return {
+      data: { success: true, noteId: noteSelect[0]?.note_id },
+      error: null,
+    };
   } catch (error) {
     return { data: null, error: error };
   }
@@ -72,8 +79,9 @@ const deleteNote = async (req) => {
     return { data: null, error: error };
   }
 };
-const updateNote = async (req, res) => {
+const updateNote = async (req) => {
   try {
+    console.log("req", req.params);
     const { pdfId, noteId } = req.params;
     const { updatedContent } = req.body;
 
@@ -95,6 +103,40 @@ const updateNote = async (req, res) => {
     return { data: null, error: error };
   }
 };
+
+const uploadPdf = async (req) => {
+  try {
+    console.log("oi");
+    const uploadedFile = req.file;
+    const document_id = crypto.randomUUID();
+
+    const percorsoCompleto = `${document_id}/${uploadedFile.originalname}`;
+    const { error: bucketError } = await supabase.storage
+      .from("file_pdf")
+      .upload(percorsoCompleto, uploadedFile.buffer, {
+        contentType: uploadedFile.mimetype,
+      });
+    if (bucketError) throw bucketError;
+
+    const { data: urlData } = supabase.storage
+      .from("file_pdf")
+      .getPublicUrl(percorsoCompleto);
+
+    const fileUrl = urlData.publicUrl;
+
+    const { error: insertError } = await supabase.from("documenti").insert({
+      document_id,
+      nome: uploadedFile.originalname,
+      file_url: fileUrl,
+    });
+    if (insertError) throw insertError;
+    console.log("arrivato senza problemi alla fine");
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    console.error("=== CRASH MODELLO DOCUMENTI ===", error);
+    return { data: null, error: error };
+  }
+};
 module.exports = {
   getAll,
   getSpecificDocument,
@@ -102,4 +144,5 @@ module.exports = {
   addNote,
   deleteNote,
   updateNote,
+  uploadPdf,
 };
