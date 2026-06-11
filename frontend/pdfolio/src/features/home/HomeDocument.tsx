@@ -13,32 +13,51 @@ const HomeDocument = ({
   document_id,
 }) => {
   const navigate = useNavigate();
+
   return (
     <div
-      className="w-fit flex flex-col gap-1 py-4 px-4 bg-white rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.15)] hover:shadow-[0_10px_20px_5px_rgba(0,0,0,0.25)] border border-transparent hover:border-gray-100"
+      // ⚡ Sostituito w-fit con w-full h-full per riempire stabilmente la griglia
+      className="w-full h-full flex flex-col justify-between gap-3 p-4 bg-white rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.11)] hover:shadow-[0_10px_25px_5px_rgba(0,0,0,0.18)] border border-neutral-100 hover:border-gray-200"
       onClick={() => {
         navigate(`/pdf/${document_id}`);
       }}
     >
-      <PdfThumbnail fileUrl={file_url} />
-      <span className=" font-inter text-black font-bold text-2xl">{nome}</span>
-      <FolderPill
-        folder_id={folder_id}
-        nome={cartelle?.nome}
-        colorIndex={colorIndex}
-      />
-      <span className="font-inter text-text-1 text-sm">
-        {new Date(edited_at).toLocaleTimeString("it-IT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-        {", "}
-        {new Date(edited_at).toLocaleDateString("it-IT", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })}
-      </span>
+      {/* Contenitore thumbnail controllato */}
+      <div className="w-full aspect-[3/4] overflow-hidden rounded-lg bg-neutral-50 flex items-center justify-center">
+        <PdfThumbnail fileUrl={file_url} />
+      </div>
+
+      {/* Info File */}
+      <div className="flex flex-col gap-1 w-full mt-1">
+        {/* ⚡ Cambiato text-2xl a text-base e aggiunto truncate per titoli lunghi */}
+        <span
+          className="font-inter text-neutral-900 font-bold text-base truncate"
+          title={nome}
+        >
+          {nome}
+        </span>
+
+        <div className="w-fit max-w-full">
+          <FolderPill
+            folder_id={folder_id}
+            nome={cartelle?.nome}
+            colorIndex={colorIndex}
+          />
+        </div>
+
+        <span className="font-inter text-neutral-400 text-xs mt-1 block">
+          {new Date(edited_at).toLocaleTimeString("it-IT", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          {", "}
+          {new Date(edited_at).toLocaleDateString("it-IT", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })}
+        </span>
+      </div>
     </div>
   );
 };

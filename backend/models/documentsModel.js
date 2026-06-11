@@ -1,5 +1,14 @@
 const supabase = require("../config/db.js");
-const crypto = require("crypto");
+const { createWorker } = require("tesseract.js");
+const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
+const { pdf } = require("pdf-to-img"); // Nuova libreria nativa JS
+// Funzione helper per trasformare un Buffer in uno Stream leggibile (richiesto da Google)
+const bufferToStream = (buffer) => {
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
+};
 const getAll = async (req, res) => {
   try {
     // const { user_id, email, full_name, handle } = req.body;
@@ -106,14 +115,16 @@ const updateNote = async (req) => {
 
 const uploadPdf = async (req) => {
   try {
-    console.log("oi");
-    const uploadedFile = req.file;
     const document_id = crypto.randomUUID();
+    const uploadedFile = req.file;
+
+    ù;
+    // 3. CARICAMENTO SU SUPABASE
 
     const percorsoCompleto = `${document_id}/${uploadedFile.originalname}`;
     const { error: bucketError } = await supabase.storage
       .from("file_pdf")
-      .upload(percorsoCompleto, uploadedFile.buffer, {
+      .upload(percorsoCompleto, uploadedFile, {
         contentType: uploadedFile.mimetype,
       });
     if (bucketError) throw bucketError;

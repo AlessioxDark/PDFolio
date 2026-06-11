@@ -3,6 +3,7 @@ backend/node_modules
 
 frontend/pdfolio/.env
 backend/.env
+backend/config/google_credentials.json
 
 # Dipendenze (Librerie)
 **/node_modules/

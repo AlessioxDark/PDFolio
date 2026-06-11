@@ -372,10 +372,10 @@ const Home = () => {
                 <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 w-full items-start">
+            {/* <div className="grid grid-cols-3 gap-4 w-full items-start">
               {" "}
               <div
-                className="max-h-40 aspect-square relative rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1"
+                className="max-h-60 aspect-square relative rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1"
                 onClick={() => {}}
               >
                 <input
@@ -391,26 +391,6 @@ const Home = () => {
                   Importa pdf
                 </span>
               </div>
-              {/* <div
-                className="w-full flex flex-col gap-1 py-4 px-4 bg-white hover:bg-neutral-3  rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.15)] border border-transparent hover:border-gray-100 items-center justify-center  max-h-60 aspect-square relative"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='8' ry='8' stroke='%23CBD5E1' stroke-width='2' stroke-dasharray='6%2c 4' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e")`,
-                }}
-                onClick={() => {}}
-              >
-                <input
-                  type="file"
-                  name=""
-                  id=""
-                  accept=".pdf .doc .docx"
-                  className="top-0 w-full h-full absolute opacity-0 cursor-pointer"
-                  onChange={uploadPdf}
-                />
-                <PlusIcon className="text-accent" size={102} />
-                <span className="font-inter text-accent text-sm">
-                  Importa pdf
-                </span>
-              </div> */}
               {isFileError && (
                 <ErrorDialogComponent
                   desc={"formato non accettato"}
@@ -435,6 +415,45 @@ const Home = () => {
                   <HomeDocument key={index} {...doc} colorIndex={colorIndex} />
                 );
               })}
+            </div> */}
+            <div className="w-full flex flex-col gap-4 mt-4">
+              <h2 className="text-xl font-semibold text-text-1">
+                I tuoi documenti
+              </h2>
+
+              <div className="grid grid-cols-4 gap-5 w-full items-stretch">
+                <div className="aspect-square w-full rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1 p-4 relative">
+                  <input
+                    type="file"
+                    accept=".pdf, .doc, .docx"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={uploadPdf}
+                  />
+                  <PlusIcon size={32} className="text-accent" />
+                  <span className="text-accent text-sm font-medium text-center">
+                    Importa pdf
+                  </span>
+                </div>
+
+                {/* Lista Documenti */}
+                {homeData?.documentsData.map((doc, index) => {
+                  const folderIndex = homeData?.foldersData?.findIndex(
+                    (f) =>
+                      f.folder_id === doc.folder_id || f.id === doc.folder_id,
+                  );
+                  const colorIndex =
+                    folderIndex !== -1 && folderIndex !== undefined
+                      ? folderIndex % FolderColors.length
+                      : 0;
+                  return (
+                    <HomeDocument
+                      key={index}
+                      {...doc}
+                      colorIndex={colorIndex}
+                    />
+                  );
+                })}
+              </div>
             </div>
             {/* 4. Separatore con Icona Animata */}
           </>
