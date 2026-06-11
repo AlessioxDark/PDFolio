@@ -149,7 +149,10 @@ export const apiCalls = {
           console.log("no ok", response);
           // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          return {
+            data: null,
+            error: { message: errorData.details || errorData.message },
+          };
         }
         const { data } = await response.json();
         console.log("data in api", data);

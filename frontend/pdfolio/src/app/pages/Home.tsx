@@ -50,7 +50,11 @@ const Home = () => {
   const [searchData, setSearchData] = useState(null);
   const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [isQueryLoading, setIsQueryLoading] = useState(false);
-  const [isFileError, setIsFileError] = useState(false);
+  const [fileError, setFileError] = useState({
+    isOpen: false,
+    title: "",
+    desc: "",
+  });
   const loadData = async () => {
     if (!session) return; // Evita chiamate se la sessione non è pronta
     setIsHomeLoading(true);
@@ -97,7 +101,11 @@ const Home = () => {
     if (file.type !== "application/pdf") {
       // Svuotiamo l'input per sicurezza
       e.target.value = "";
-      setIsFileError(true);
+      setFileError({
+        isOpen: true,
+        title: "Errore Formato",
+        desc: "Il file caricato non è in formato PDF DOC o DOCX",
+      });
       return;
     }
     const fileData = new FormData();
@@ -107,6 +115,16 @@ const Home = () => {
       session?.access_token,
       fileData,
     );
+    if (response.error) {
+      console.log("errore file");
+
+      setFileError({
+        isOpen: true,
+        title: "Errore Upload",
+        desc: response?.error?.message,
+      });
+    }
+    console.log("risposta", response);
   };
   // Controlla se la ricerca ha prodotto dei risultati visualizzabili
   const isSearching = query.trim().length > 0;
@@ -372,50 +390,7 @@ const Home = () => {
                 <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
               </div>
             </div>
-            {/* <div className="grid grid-cols-3 gap-4 w-full items-start">
-              {" "}
-              <div
-                className="max-h-60 aspect-square relative rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1"
-                onClick={() => {}}
-              >
-                <input
-                  type="file"
-                  name=""
-                  id=""
-                  accept=".pdf .doc .docx"
-                  className="top-0 w-full h-full absolute opacity-0 cursor-pointer"
-                  onChange={uploadPdf}
-                />
-                <PlusIcon size={40} className="text-accent" />
-                <span className="text-accent text-sm font-medium">
-                  Importa pdf
-                </span>
-              </div>
-              {isFileError && (
-                <ErrorDialogComponent
-                  desc={"formato non accettato"}
-                  title={"Errore"}
-                  isOpen={isFileError}
-                  setIsOpen={setIsFileError}
-                  onAction={() => {
-                    setIsFileError(false);
-                  }}
-                />
-              )}
-              {homeData?.documentsData.map((doc, index) => {
-                const folderIndex = homeData?.foldersData?.findIndex(
-                  (f: any) =>
-                    f.folder_id === doc.folder_id || f.id === doc.folder_id,
-                );
-                const colorIndex =
-                  folderIndex !== -1 && folderIndex !== undefined
-                    ? folderIndex % FolderColors.length
-                    : 0;
-                return (
-                  <HomeDocument key={index} {...doc} colorIndex={colorIndex} />
-                );
-              })}
-            </div> */}
+
             <div className="w-full flex flex-col gap-4 mt-4">
               <h2 className="text-xl font-semibold text-text-1">
                 I tuoi documenti
@@ -423,6 +398,9 @@ const Home = () => {
 
               <div className="grid grid-cols-4 gap-5 w-full items-stretch">
                 <div className="aspect-square w-full rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1 p-4 relative">
+                  {/* quando clicchi si deve aprire menu con dialog dove scegli con
+                  select cartella(anche nessuna) e informazioni sul file
+                  caricato */}
                   <input
                     type="file"
                     accept=".pdf, .doc, .docx"
@@ -453,6 +431,17 @@ const Home = () => {
                     />
                   );
                 })}
+                {fileError.isOpen && (
+                  <ErrorDialogComponent
+                    desc={fileError.desc}
+                    title={fileError.title}
+                    isOpen={fileError.isOpen}
+                    setIsOpen={setFileError}
+                    onAction={() => {
+                      setFileError({ isOpen: false, title: "", desc: "" });
+                    }}
+                  />
+                )}
               </div>
             </div>
             {/* 4. Separatore con Icona Animata */}

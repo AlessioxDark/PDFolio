@@ -22,7 +22,6 @@ const ErrorDialogComponent = ({ title, desc, onAction, setIsOpen, isOpen }) => {
           <AlertDialogAction
             onClick={() => {
               if (onAction) onAction();
-              setIsOpen(false); // Si chiude dopo aver cliccato
             }}
             className="bg-red-500 hover:bg-red-600 cursor-pointer"
           >
