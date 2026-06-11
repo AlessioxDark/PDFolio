@@ -4,14 +4,17 @@ import { useEffect } from "react";
 import AppRouter from "./AppRouter";
 import { AuthContextProvider } from "../contexts/AuthContext";
 import { NotesContextProvider } from "../contexts/NotesContext";
+import { DocumentsAndFoldersContextProvider } from "../contexts/DocumentsAndFolderContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthContextProvider>
-        <NotesContextProvider>
-          <AppRouter />
-        </NotesContextProvider>
+        <DocumentsAndFoldersContextProvider>
+          <NotesContextProvider>
+            <AppRouter />
+          </NotesContextProvider>
+        </DocumentsAndFoldersContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
   );

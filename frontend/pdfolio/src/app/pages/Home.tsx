@@ -12,6 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import HomeDocument from "../../features/home/HomeDocument";
 import { useNotes } from "@/contexts/NotesContext";
 import ErrorDialogComponent from "@/components/ErrorDialogComponent";
+import UploadButton from "@/components/UploadButton";
+import UploadDialog from "@/features/home/UploadDialog";
+import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 const FILTERS = ["Recenti", "Questa settimana", "Questo mese"];
 
 const FolderColors = [
@@ -43,6 +46,8 @@ const FolderColors = [
 const Home = () => {
   const { session } = useAuth();
   const { notesArray } = useNotes();
+  const { documentsData, foldersData, allDocumentsAndFoldersData } =
+    useDocumentsAndFolders();
   const [query, setQuery] = useState("");
   const [currentFilter, setCurrentFilter] = useState("");
   const [homeData, setHomeData] = useState();
@@ -55,25 +60,25 @@ const Home = () => {
     title: "",
     desc: "",
   });
-  const loadData = async () => {
-    if (!session) return; // Evita chiamate se la sessione non è pronta
-    setIsHomeLoading(true);
-    const { data, error } = await apiCalls.home.getHomeFoldersAndFiles(
-      session?.access_token,
-    );
-    if (error) {
-      console.error("Errore nel caricamento:", error);
-      setIsHomeLoading(false);
+  // const loadData = async () => {
+  //   if (!session) return; // Evita chiamate se la sessione non è pronta
+  //   setIsHomeLoading(true);
+  //   const { data, error } = await apiCalls.home.getHomeFoldersAndFiles(
+  //     session?.access_token,
+  //   );
+  //   if (error) {
+  //     console.error("Errore nel caricamento:", error);
+  //     setIsHomeLoading(false);
 
-      return;
-    }
+  //     return;
+  //   }
 
-    if (data) {
-      console.log("Dati ricevuti:", data);
-      setHomeData(data);
-      setIsHomeLoading(false);
-    }
-  };
+  //   if (data) {
+  //     console.log("Dati ricevuti:", data);
+  //     setHomeData(data);
+  //     setIsHomeLoading(false);
+  //   }
+  // };
 
   // ==========================================
   // 🔍 MOTORE DI RICERCA GLOBALE AVANZATO (Full-text & Relations)
@@ -129,9 +134,9 @@ const Home = () => {
   // Controlla se la ricerca ha prodotto dei risultati visualizzabili
   const isSearching = query.trim().length > 0;
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // useEffect(() => {
+  //   loadData();
+  // }, []);
 
   return isHomeLoading ? (
     <div className="w-full h-screen flex items-center justify-center font-medium text-neutral-500">
@@ -356,8 +361,8 @@ const Home = () => {
 
                 {/* 3. Mappatura dei dati con AnimatePresence per entrate fluide */}
                 <AnimatePresence>
-                  {homeData?.foldersData
-                    ?.slice(0, isShown ? homeData?.foldersData.length : 9)
+                  {foldersData
+                    ?.slice(0, isShown ? foldersData.length : 9)
                     .map((item, itemIndex) => {
                       const colorIndex = itemIndex % FolderColors.length;
                       return (
@@ -397,25 +402,11 @@ const Home = () => {
               </h2>
 
               <div className="grid grid-cols-4 gap-5 w-full items-stretch">
-                <div className="aspect-square w-full rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1 p-4 relative">
-                  {/* quando clicchi si deve aprire menu con dialog dove scegli con
-                  select cartella(anche nessuna) e informazioni sul file
-                  caricato */}
-                  <input
-                    type="file"
-                    accept=".pdf, .doc, .docx"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    onChange={uploadPdf}
-                  />
-                  <PlusIcon size={32} className="text-accent" />
-                  <span className="text-accent text-sm font-medium text-center">
-                    Importa pdf
-                  </span>
-                </div>
+                <UploadDialog icon={<UploadButton uploadPdf={uploadPdf} />} />
 
                 {/* Lista Documenti */}
-                {homeData?.documentsData.map((doc, index) => {
-                  const folderIndex = homeData?.foldersData?.findIndex(
+                {documentsData.map((doc, index) => {
+                  const folderIndex = foldersData?.findIndex(
                     (f) =>
                       f.folder_id === doc.folder_id || f.id === doc.folder_id,
                   );

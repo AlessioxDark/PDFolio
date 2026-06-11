@@ -2,18 +2,20 @@ import React from "react";
 import PdfThumbnail from "../../components/PdfThumbnail";
 import FolderPill from "../../components/FolderPill";
 import { useNavigate } from "react-router";
+import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 
 const HomeDocument = ({
   nome,
   file_url,
   folder_id,
   cartelle,
-  colorIndex,
+  colors,
   edited_at,
   document_id,
 }) => {
   const navigate = useNavigate();
-
+  const { foldersData } = useDocumentsAndFolders();
+  const folderColor = foldersData.find((f) => f.folder_id === folder_id);
   return (
     <div
       // ⚡ Sostituito w-fit con w-full h-full per riempire stabilmente la griglia
@@ -40,8 +42,8 @@ const HomeDocument = ({
         <div className="w-fit max-w-full">
           <FolderPill
             folder_id={folder_id}
-            nome={cartelle?.nome}
-            colorIndex={colorIndex}
+            nome={folderColor?.nome}
+            colors={folderColor?.colors}
           />
         </div>
 
