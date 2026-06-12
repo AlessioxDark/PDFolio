@@ -52,16 +52,29 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
   );
   const [documentsData, setDocumentsData] = useState([]);
   const [foldersData, setFoldersData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [unorganizedFolderData, setUnorganizedFolderData] = useState({
+    nome: "Non Organizzati",
+    documenti: [],
+    colors: {
+      bg: "bg-gray-400 hover:bg-gray-400/85",
+      text: "text-gray-700 group-hover:text-gray-700/85",
+    },
+  });
   const { session } = useAuth();
   const loadDocumentsAndFolders = async () => {
-    console.log("chiamo");
+    console.log("chiamo", session);
     if (!session) return;
+    console.log("chiamo pt2");
+    setIsLoading(true);
     const { data, error } = await apiCalls.home.getHomeFoldersAndFiles(session);
     if (error) {
+      setIsLoading(false);
       console.error("Errore nel caricamento:", error);
       return;
     }
     if (data) {
+      setIsLoading(false);
       console.log("Dati ricevuti:", data);
       const cartelleColorate = (data.foldersData || []).map(
         (folderData, folderIndex) => {
@@ -83,7 +96,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
 
   useEffect(() => {
     loadDocumentsAndFolders();
-  }, []);
+  }, [session]);
 
   useEffect;
   return (
@@ -92,9 +105,11 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         allDocumentsAndFoldersData,
         documentsData,
         foldersData,
+        isLoading,
         setAllDocumentsAndFoldersData,
         setDocumentsData,
         setFoldersData,
+        unorganizedFolderData,
       }}
     >
       {children}

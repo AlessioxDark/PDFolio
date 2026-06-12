@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import * as pdfjsLib from "pdfjs-dist";
+import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 const MOCK_FOLDERS = [
@@ -29,12 +30,13 @@ const MOCK_FOLDERS = [
   { folder_id: "3", nome: "Ricevute e Spese" },
 ];
 
-const UploadDialog = ({ icon, folders = MOCK_FOLDERS, onUpload }) => {
+const UploadDialog = ({ icon, onUpload }) => {
   const [file, setFile] = useState<File | null>(null);
   const [documentName, setDocumentName] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const { foldersData } = useDocumentsAndFolders();
 
   const uploadPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
@@ -230,7 +232,7 @@ const UploadDialog = ({ icon, folders = MOCK_FOLDERS, onUpload }) => {
                 <option value="">
                   📦 Nessuna cartella (Salva in "Non organizzati")
                 </option>
-                {folders.map((folder) => (
+                {foldersData.map((folder) => (
                   <option key={folder.folder_id} value={folder.folder_id}>
                     📁 {folder.nome}
                   </option>

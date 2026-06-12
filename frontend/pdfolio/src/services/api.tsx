@@ -63,6 +63,7 @@ export const apiCalls = {
   },
   home: {
     async getHomeFoldersAndFiles(session) {
+      console.log("oi");
       try {
         const response = await fetch(`${API_BASE_URL}/api/documents/getall`, {
           method: "GET",

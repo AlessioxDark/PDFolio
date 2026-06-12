@@ -9,16 +9,27 @@ const HomeDocument = ({
   file_url,
   folder_id,
   cartelle,
-  colors,
+
   edited_at,
   document_id,
 }) => {
   const navigate = useNavigate();
   const { foldersData } = useDocumentsAndFolders();
-  const folderColor = foldersData.find((f) => f.folder_id === folder_id);
+  let folderColor = foldersData.find(
+    (f) => f.folder_id === cartelle?.folder_id,
+  );
+  if (!folderColor) {
+    folderColor = {
+      nome: "ok",
+      colors: {
+        bg: "bg-blue-400 hover:bg-blue-400/85",
+        text: "text-blue-700 group-hover:text-blue-700/85",
+      },
+    };
+  }
+  console.log("col", folderColor, foldersData, cartelle?.folder_id);
   return (
     <div
-      // ⚡ Sostituito w-fit con w-full h-full per riempire stabilmente la griglia
       className="w-full h-full flex flex-col justify-between gap-3 p-4 bg-white rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.11)] hover:shadow-[0_10px_25px_5px_rgba(0,0,0,0.18)] border border-neutral-100 hover:border-gray-200"
       onClick={() => {
         navigate(`/pdf/${document_id}`);

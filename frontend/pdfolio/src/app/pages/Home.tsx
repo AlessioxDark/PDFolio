@@ -15,6 +15,9 @@ import ErrorDialogComponent from "@/components/ErrorDialogComponent";
 import UploadButton from "@/components/UploadButton";
 import UploadDialog from "@/features/home/UploadDialog";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
+import UnorganizedFolder from "@/components/UnorganizedFolder";
+import FolderSection from "@/features/home/FolderSection";
+import DocumentsSection from "@/features/home/DocumentsSection";
 const FILTERS = ["Recenti", "Questa settimana", "Questo mese"];
 
 const FolderColors = [
@@ -46,43 +49,12 @@ const FolderColors = [
 const Home = () => {
   const { session } = useAuth();
   const { notesArray } = useNotes();
-  const { documentsData, foldersData, allDocumentsAndFoldersData } =
-    useDocumentsAndFolders();
+  const { isLoading } = useDocumentsAndFolders();
   const [query, setQuery] = useState("");
   const [currentFilter, setCurrentFilter] = useState("");
-  const [homeData, setHomeData] = useState();
-  const [isShown, setIsShown] = useState(false);
   const [searchData, setSearchData] = useState(null);
-  const [isHomeLoading, setIsHomeLoading] = useState(false);
   const [isQueryLoading, setIsQueryLoading] = useState(false);
-  const [fileError, setFileError] = useState({
-    isOpen: false,
-    title: "",
-    desc: "",
-  });
-  // const loadData = async () => {
-  //   if (!session) return; // Evita chiamate se la sessione non è pronta
-  //   setIsHomeLoading(true);
-  //   const { data, error } = await apiCalls.home.getHomeFoldersAndFiles(
-  //     session?.access_token,
-  //   );
-  //   if (error) {
-  //     console.error("Errore nel caricamento:", error);
-  //     setIsHomeLoading(false);
 
-  //     return;
-  //   }
-
-  //   if (data) {
-  //     console.log("Dati ricevuti:", data);
-  //     setHomeData(data);
-  //     setIsHomeLoading(false);
-  //   }
-  // };
-
-  // ==========================================
-  // 🔍 MOTORE DI RICERCA GLOBALE AVANZATO (Full-text & Relations)
-  // ==========================================
   const searchResults = async () => {
     setIsQueryLoading(true);
     const { data, error } = await apiCalls.home.globalSearch(
@@ -100,45 +72,10 @@ const Home = () => {
       setIsQueryLoading(false);
     }
   };
-  const uploadPdf = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      // Svuotiamo l'input per sicurezza
-      e.target.value = "";
-      setFileError({
-        isOpen: true,
-        title: "Errore Formato",
-        desc: "Il file caricato non è in formato PDF DOC o DOCX",
-      });
-      return;
-    }
-    const fileData = new FormData();
-    fileData.append("pdfFile", file);
 
-    const response = await apiCalls.pdf.uploadPdfFile(
-      session?.access_token,
-      fileData,
-    );
-    if (response.error) {
-      console.log("errore file");
-
-      setFileError({
-        isOpen: true,
-        title: "Errore Upload",
-        desc: response?.error?.message,
-      });
-    }
-    console.log("risposta", response);
-  };
-  // Controlla se la ricerca ha prodotto dei risultati visualizzabili
   const isSearching = query.trim().length > 0;
 
-  // useEffect(() => {
-  //   loadData();
-  // }, []);
-
-  return isHomeLoading ? (
+  return isLoading ? (
     <div className="w-full h-screen flex items-center justify-center font-medium text-neutral-500">
       Caricamento in corso...
     </div>
@@ -230,22 +167,7 @@ const Home = () => {
                     <div className="flex flex-col gap-2">
                       {searchResults.documents.map(
                         (doc: any, index: number) => {
-                          const folderIndex = homeData?.foldersData?.findIndex(
-                            (f: any) =>
-                              f.folder_id === doc.folder_id ||
-                              f.id === doc.folder_id,
-                          );
-                          const colorIndex =
-                            folderIndex !== -1 && folderIndex !== undefined
-                              ? folderIndex % FolderColors.length
-                              : 0;
-                          return (
-                            <HomeDocument
-                              key={index}
-                              {...doc}
-                              colorIndex={colorIndex}
-                            />
-                          );
+                          return <HomeDocument key={index} {...doc} />;
                         },
                       )}
                     </div>
@@ -335,107 +257,9 @@ const Home = () => {
           )
         ) : (
           <>
-            <div className="w-full flex justify-between items-end mb-[-10px]">
-              <h2 className="text-xl font-semibold text-text-1">
-                Le tue cartelle
-              </h2>
-            </div>
+            <FolderSection />
 
-            <div className="w-full">
-              <motion.div
-                layout
-                initial={false}
-                animate={{ height: isShown ? "auto" : "150px" }}
-                className="grid grid-cols-6 w-full overflow-hidden gap-y-4 justify-items-center content-start"
-              >
-                {/* Pulsante Crea Cartella (sempre visibile) */}
-                <div
-                  className="w-30 h-30 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1"
-                  onClick={() => {}}
-                >
-                  <PlusIcon size={24} className="text-accent" />
-                  <span className="text-accent text-sm font-medium">
-                    Crea cartella
-                  </span>
-                </div>
-
-                {/* 3. Mappatura dei dati con AnimatePresence per entrate fluide */}
-                <AnimatePresence>
-                  {foldersData
-                    ?.slice(0, isShown ? foldersData.length : 9)
-                    .map((item, itemIndex) => {
-                      const colorIndex = itemIndex % FolderColors.length;
-                      return (
-                        <Folder
-                          nome={item.nome}
-                          length={item.documenti.length}
-                          bgColor={`${FolderColors[colorIndex].bg}`}
-                          iconColor={`${FolderColors[colorIndex].text} `}
-                        />
-                      );
-                    })}
-                </AnimatePresence>
-              </motion.div>
-
-              <div
-                className="w-full flex items-center gap-4 py-2 cursor-pointer group"
-                onClick={() => setIsShown(!isShown)}
-              >
-                <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
-                <motion.div
-                  animate={{ rotate: isShown ? 0 : 180 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                >
-                  <ChevronUpIcon
-                    size={24}
-                    className="text-neutral-4 group-hover:text-accent transition-colors duration-300"
-                    onClick={() => {}}
-                  />
-                </motion.div>
-                <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
-              </div>
-            </div>
-
-            <div className="w-full flex flex-col gap-4 mt-4">
-              <h2 className="text-xl font-semibold text-text-1">
-                I tuoi documenti
-              </h2>
-
-              <div className="grid grid-cols-4 gap-5 w-full items-stretch">
-                <UploadDialog icon={<UploadButton uploadPdf={uploadPdf} />} />
-
-                {/* Lista Documenti */}
-                {documentsData.map((doc, index) => {
-                  const folderIndex = foldersData?.findIndex(
-                    (f) =>
-                      f.folder_id === doc.folder_id || f.id === doc.folder_id,
-                  );
-                  const colorIndex =
-                    folderIndex !== -1 && folderIndex !== undefined
-                      ? folderIndex % FolderColors.length
-                      : 0;
-                  return (
-                    <HomeDocument
-                      key={index}
-                      {...doc}
-                      colorIndex={colorIndex}
-                    />
-                  );
-                })}
-                {fileError.isOpen && (
-                  <ErrorDialogComponent
-                    desc={fileError.desc}
-                    title={fileError.title}
-                    isOpen={fileError.isOpen}
-                    setIsOpen={setFileError}
-                    onAction={() => {
-                      setFileError({ isOpen: false, title: "", desc: "" });
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-            {/* 4. Separatore con Icona Animata */}
+            <DocumentsSection />
           </>
         )}
       </div>
