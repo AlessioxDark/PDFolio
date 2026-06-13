@@ -41,6 +41,7 @@ const FolderSection = () => {
               .map((item) => {
                 return (
                   <Folder
+                    folder={item}
                     nome={item.nome}
                     length={item.documenti.length}
                     colors={item.colors}

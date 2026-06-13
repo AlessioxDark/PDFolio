@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,22 +22,23 @@ import {
 
 import * as pdfjsLib from "pdfjs-dist";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
+import { apiCalls } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-const MOCK_FOLDERS = [
-  { folder_id: "1", nome: "Università" },
-  { folder_id: "2", nome: "Lavoro" },
-  { folder_id: "3", nome: "Ricevute e Spese" },
-];
-
-const UploadDialog = ({ icon, onUpload }) => {
+const UploadDialog = ({ icon, chosenFolder }) => {
   const [file, setFile] = useState<File | null>(null);
+  const { session } = useAuth();
   const [documentName, setDocumentName] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const { foldersData } = useDocumentsAndFolders();
-
+  useEffect(() => {
+    if (chosenFolder && chosenFolder !== "UNORGANIZED") {
+      setSelectedFolder(chosenFolder);
+    }
+  }, [chosenFolder]);
   const uploadPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
     if (e.target.files && e.target.files[0]) {
@@ -108,11 +109,15 @@ const UploadDialog = ({ icon, onUpload }) => {
       const fileRinominato = new File([file], `${documentName.trim()}.pdf`, {
         type: file.type,
       });
-
-      if (onUpload) {
-        await onUpload(fileRinominato, selectedFolder || null);
-      }
-
+      const fileData = new FormData();
+      fileData.append("pdfFile", fileRinominato);
+      fileData.append("folder_id", selectedFolder || null);
+      const { data, error } = await apiCalls.pdf.uploadPdfFile(
+        session?.access_token,
+        fileData,
+      );
+      console.log("data", data);
+      console.log("error", error);
       resetStato();
       document.getElementById("btn-close-dialog")?.click();
     } catch (error) {
@@ -218,31 +223,33 @@ const UploadDialog = ({ icon, onUpload }) => {
           )}
 
           {/* SELEZIONE CARTELLA (Custom Select Stilizzato) */}
-          <div className="flex flex-col gap-2">
-            <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
-              Cartella di Destinazione
-            </label>
-            <div className="relative">
-              <select
-                value={selectedFolder}
-                onChange={(e) => setSelectedFolder(e.target.value)}
-                disabled={isAnalyzing}
-                className="w-full appearance-none rounded-xl border border-neutral-200 p-3 pr-10 text-sm font-semibold text-neutral-800 bg-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent focus:ring-offset-0 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  📦 Nessuna cartella (Salva in "Non organizzati")
-                </option>
-                {foldersData.map((folder) => (
-                  <option key={folder.folder_id} value={folder.folder_id}>
-                    📁 {folder.nome}
+          {!chosenFolder && (
+            <div className="flex flex-col gap-2">
+              <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+                Cartella di Destinazione
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedFolder}
+                  onChange={(e) => setSelectedFolder(e.target.value)}
+                  disabled={isAnalyzing}
+                  className="w-full appearance-none rounded-xl border border-neutral-200 p-3 pr-10 text-sm font-semibold text-neutral-800 bg-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent focus:ring-offset-0 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    📦 Nessuna cartella (Salva in "Non organizzati")
                   </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400">
-                <ChevronDownIcon size={16} />
+                  {foldersData.map((folder) => (
+                    <option key={folder.folder_id} value={folder.folder_id}>
+                      📁 {folder.nome}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400">
+                  <ChevronDownIcon size={16} />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* ERROR ALERT */}
           {errorMessage && (

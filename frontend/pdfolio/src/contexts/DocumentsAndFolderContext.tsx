@@ -50,10 +50,12 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
   const [allDocumentsAndFoldersData, setAllDocumentsAndFoldersData] = useState(
     [],
   );
+  const [activeFolder, setActiveFolder] = useState(null);
   const [documentsData, setDocumentsData] = useState([]);
   const [foldersData, setFoldersData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [unorganizedFolderData, setUnorganizedFolderData] = useState({
+    folder_id: null,
     nome: "Non Organizzati",
     documenti: [],
     colors: {
@@ -91,6 +93,11 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
       setDocumentsData(documenti);
 
       setAllDocumentsAndFoldersData([...documenti, ...cartelleColorate]);
+
+      setUnorganizedFolderData((prev) => ({
+        ...prev,
+        documenti: documenti.filter((doc) => doc.folder_id === null),
+      }));
     }
   };
 
@@ -110,6 +117,8 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         setDocumentsData,
         setFoldersData,
         unorganizedFolderData,
+        activeFolder,
+        setActiveFolder,
       }}
     >
       {children}

@@ -18,6 +18,7 @@ import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import UnorganizedFolder from "@/components/UnorganizedFolder";
 import FolderSection from "@/features/home/FolderSection";
 import DocumentsSection from "@/features/home/DocumentsSection";
+import FolderPage from "./FolderPage";
 const FILTERS = ["Recenti", "Questa settimana", "Questo mese"];
 
 const FolderColors = [
@@ -49,7 +50,7 @@ const FolderColors = [
 const Home = () => {
   const { session } = useAuth();
   const { notesArray } = useNotes();
-  const { isLoading } = useDocumentsAndFolders();
+  const { isLoading, activeFolder } = useDocumentsAndFolders();
   const [query, setQuery] = useState("");
   const [currentFilter, setCurrentFilter] = useState("");
   const [searchData, setSearchData] = useState(null);
@@ -257,9 +258,14 @@ const Home = () => {
           )
         ) : (
           <>
-            <FolderSection />
-
-            <DocumentsSection />
+            {activeFolder ? (
+              <FolderPage />
+            ) : (
+              <>
+                <FolderSection />
+                <DocumentsSection />
+              </>
+            )}
           </>
         )}
       </div>

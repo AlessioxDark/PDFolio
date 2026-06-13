@@ -1,1 +1,3 @@
-- aggiungere shiow password nel login
+sistemare visione ok quando in non organizzati
+permettere aprire non organizzati
+poyer creare file direttamnete dentro la cartella
