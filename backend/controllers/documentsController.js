@@ -118,6 +118,24 @@ const uploadPdf = async (req, res) => {
     });
   }
 };
+const deletePdfFile = async (req, res) => {
+  try {
+    console.log("arrivato");
+    const { data, error } = await Documents.deletePdfFile(req);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "documento eliminato con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'eliminazione del documento",
+      details: error.message,
+    });
+  }
+};
 module.exports = {
   getAllDocumentsAndFolders,
   getSpecificDocument,
@@ -126,4 +144,5 @@ module.exports = {
   deleteNote,
   updateNote,
   uploadPdf,
+  deletePdfFile,
 };

@@ -24,16 +24,23 @@ import * as pdfjsLib from "pdfjs-dist";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 const UploadDialog = ({ icon, chosenFolder }) => {
   const [file, setFile] = useState<File | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const { session } = useAuth();
   const [documentName, setDocumentName] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const { foldersData } = useDocumentsAndFolders();
+  const {
+    foldersData,
+    setDocumentsData,
+    setFoldersData,
+    setUnorganizedFolderData,
+  } = useDocumentsAndFolders();
   useEffect(() => {
     if (chosenFolder && chosenFolder !== "UNORGANIZED") {
       setSelectedFolder(chosenFolder);
@@ -109,6 +116,7 @@ const UploadDialog = ({ icon, chosenFolder }) => {
       const fileRinominato = new File([file], `${documentName.trim()}.pdf`, {
         type: file.type,
       });
+      const folderIdDestinazione = selectedFolder ? selectedFolder : null;
       const fileData = new FormData();
       fileData.append("pdfFile", fileRinominato);
       fileData.append("folder_id", selectedFolder || null);
@@ -118,8 +126,50 @@ const UploadDialog = ({ icon, chosenFolder }) => {
       );
       console.log("data", data);
       console.log("error", error);
+
+      console.log("FOLDER SELECTED", selectedFolder);
+      const newDocument = {
+        document_id: data.document_id,
+        nome: fileRinominato.name,
+        file_url: URL.createObjectURL(fileRinominato),
+        folder_id: folderIdDestinazione,
+        created_at: new Date().toISOString(),
+        edited_at: new Date().toISOString(),
+      };
+      setDocumentsData((prev) => {
+        return [...prev, newDocument];
+      });
+      if (!folderIdDestinazione) {
+        // Caso: Non organizzati
+        setUnorganizedFolderData((prev) => {
+          const documentiPreesistenti = prev?.documenti || [];
+          return {
+            ...prev,
+            documenti: [...documentiPreesistenti, newDocument],
+          };
+        });
+      } else {
+        // Caso: Cartella Specifica
+        setFoldersData((prev) =>
+          prev.map((folder) => {
+            const isTargetFolder =
+              String(folder.folder_id) === String(folderIdDestinazione);
+
+            if (isTargetFolder) {
+              const documentiPreesistenti = folder.documenti || [];
+              return {
+                ...folder,
+                documenti: [...documentiPreesistenti, newDocument],
+              };
+            }
+            return folder;
+          }),
+        );
+      }
+      // aggiornare stato
+      toast.success("PDF caricato con successo");
+      setIsOpen(false);
       resetStato();
-      document.getElementById("btn-close-dialog")?.click();
     } catch (error) {
       console.error(error);
       setErrorMessage(
@@ -132,7 +182,10 @@ const UploadDialog = ({ icon, chosenFolder }) => {
 
   return (
     <AlertDialog
+      open={isOpen}
       onOpenChange={(open) => {
+        if (isAnalyzing) return;
+        setIsOpen(open);
         if (!open) resetStato();
       }}
     >
@@ -264,7 +317,7 @@ const UploadDialog = ({ icon, chosenFolder }) => {
         <div className="pt-4 border-t border-neutral-100 mt-4 flex flex-row sm:justify-end gap-2.5">
           <AlertDialogCancel
             id="btn-close-dialog"
-            onClick={resetStato}
+            onClick={() => setIsOpen(false)}
             disabled={isAnalyzing}
             className="flex-1 sm:flex-none px-5 h-11 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 hover:text-neutral-900 font-semibold rounded-xl cursor-pointer transition-colors text-sm"
           >

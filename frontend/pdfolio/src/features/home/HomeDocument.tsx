@@ -3,6 +3,7 @@ import PdfThumbnail from "../../components/PdfThumbnail";
 import FolderPill from "../../components/FolderPill";
 import { useNavigate } from "react-router";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
+import UnorganizedFolder from "@/components/UnorganizedFolder";
 
 const HomeDocument = ({
   nome,
@@ -14,18 +15,12 @@ const HomeDocument = ({
   document_id,
 }) => {
   const navigate = useNavigate();
-  const { foldersData } = useDocumentsAndFolders();
+  const { foldersData, unorganizedFolderData } = useDocumentsAndFolders();
   let folderColor = foldersData.find(
     (f) => f.folder_id === cartelle?.folder_id,
   );
   if (!folderColor) {
-    folderColor = {
-      nome: "ok",
-      colors: {
-        bg: "bg-blue-400 hover:bg-blue-400/85",
-        text: "text-blue-700 group-hover:text-blue-700/85",
-      },
-    };
+    folderColor = unorganizedFolderData;
   }
   console.log("col", folderColor, foldersData, cartelle?.folder_id);
   return (

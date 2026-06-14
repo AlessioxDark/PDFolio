@@ -1,6 +1,7 @@
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const documentRoutes = require("./routes/documentRoutes");
+const folderRoutes = require("./routes/folderRoutes");
 const cors = require("cors");
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ limit: "25mb", extended: true }));
 // Rotte API
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/folders", folderRoutes);
 
 app.get("/", (req, res) => {
   res.send("<h1>Funziona!</h1>");

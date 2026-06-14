@@ -8,12 +8,14 @@ const {
   deleteNote,
   updateNote,
   uploadPdf,
+  deletePdfFile,
 } = require("../controllers/documentsController");
 const upload = require("../middlewares/multer");
 
 router.post("/upload", upload.single("pdfFile"), uploadPdf);
 router.get("/getall", getAllDocumentsAndFolders);
 router.get("/:pdfId", getSpecificDocument);
+router.delete("/:pdfId", deletePdfFile);
 router.get("/:pdfId/notes", getNotesByDocumentId);
 router.post("/:pdfId/notes", addNote);
 router.delete("/:pdfId/notes/:noteId", deleteNote);

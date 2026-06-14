@@ -7,20 +7,61 @@ import { useNavigate } from "react-router";
 import { AlertDialogComponent } from "@/components/AlertDialogComponent";
 import { toast } from "sonner";
 import { LucideAArrowDown, LucideCable } from "lucide-react";
+import { apiCalls } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 
 const PdfPageHeader = ({
   nome,
   toggleNotesSidebar,
   edited_at,
+  documentId,
 }: {
   nome: string;
   edited_at: string;
   toggleNotesSidebar: () => void;
+  documentId: string;
 }) => {
+  const { session } = useAuth();
   const navigate = useNavigate();
-  const handlePdfDelete = () => {
-    console.log("ei");
-    toast("Il file è stato eliminato");
+  const { setDocumentsData, setFoldersData, setUnorganizedFolderData } =
+    useDocumentsAndFolders();
+  const handlePdfDelete = async () => {
+    const { data, error } = await apiCalls.pdf.deletePdfFile(
+      session,
+      documentId,
+    );
+    if (error) console.error("ERRORE", error);
+    if (data) {
+      console.log("DATA", data);
+      setDocumentsData((prev) =>
+        prev.filter((doc) => doc.document_id !== documentId),
+      );
+      setUnorganizedFolderData((prev) => {
+        const filteredDocs = prev.documenti.filter(
+          (doc) => doc.document_id !== documentId,
+        );
+        return {
+          ...prev,
+          documenti: filteredDocs,
+        };
+      });
+      setFoldersData((prev) =>
+        prev.map((folder) => {
+          return {
+            ...folder,
+            documenti: folder.documenti.filter(
+              (doc) => doc.document_id !== documentId,
+            ),
+          };
+        }),
+      );
+      toast("Il file è stat WWo eliminato");
+
+      setTimeout(() => {
+        navigate(-1);
+      }, 100);
+    }
   };
   const handlePdfShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -78,12 +119,7 @@ const PdfPageHeader = ({
           desc={`Sei sicuro di voler rimuovere il documento dalla piattaforma?`}
           onAction={handlePdfDelete}
         />
-        {/* <div
-          className="cursor-pointer rounded-full bg-neutral-3 p-1.5 border-2 border-neutral-4"
-          onClick={handlePdfDelete}
-        >
-          <TrashIcon size={23} className={"text-black"} />
-        </div> */}
+
         <div
           className="cursor-pointer rounded-full bg-neutral-3 p-1.5 border-2 border-neutral-4"
           onClick={handlePdfShare}

@@ -1,3 +1,5 @@
-sistemare visione ok quando in non organizzati
-permettere aprire non organizzati
-poyer creare file direttamnete dentro la cartella
+aggiungere dropdown documento ed eliminazione da li
+aggiungere creazione ed eliminazione cartella
+
+
+search

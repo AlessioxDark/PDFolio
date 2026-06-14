@@ -55,8 +55,8 @@ const DocumentsSection = ({}: {}) => {
         <UploadDialog icon={<UploadButton uploadPdf={uploadPdf} />} />
 
         {/* Lista Documenti */}
-        {documentsData.map((doc, index) => {
-          return <HomeDocument key={index} {...doc} />;
+        {documentsData.map((doc) => {
+          return <HomeDocument key={doc.document_id} {...doc} />;
         })}
         {fileError.isOpen && (
           <ErrorDialogComponent

@@ -161,6 +161,83 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async deletePdfFile(session, documentId) {
+      try {
+        console.log("faccio richiesta");
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          console.log("no ok", response);
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: { message: errorData.details || errorData.message },
+          };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+  },
+  folder: {
+    async createFolder(session, folderData: object) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/folders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(folderData),
+        });
+        if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async uploadPdfFile(session, pdfFile) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: pdfFile,
+        });
+        if (!response.ok) {
+          console.log("no ok", response);
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: { message: errorData.details || errorData.message },
+          };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
   notes: {
     async getNotesByDocumentId(session, documentId: string) {

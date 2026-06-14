@@ -277,6 +277,7 @@ const PdfPage = () => {
         nome={pdfData?.nome}
         toggleNotesSidebar={toggleNotesSidebar}
         edited_at={pdfData?.edited_at}
+        documentId={pdfId}
       />
 
       <div className="flex-1 w-full flex flex-row overflow-hidden">

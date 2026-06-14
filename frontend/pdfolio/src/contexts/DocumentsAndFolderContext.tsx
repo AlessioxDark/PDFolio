@@ -9,12 +9,10 @@ import React, {
 import { useAuth } from "./AuthContext";
 
 const DocumentsAndFolderContext = createContext({
-  allDocumentsAndFoldersData: [],
   documentsData: [],
   foldersData: [],
-  setAllDocumentsAndFoldersData: () => {},
-  setDocumentsData: () => {},
-  setFoldersData: () => {},
+  setDocumentsData: (arg) => {},
+  setFoldersData: (arg) => {},
 });
 export const useDocumentsAndFolders = () => {
   const context = useContext(DocumentsAndFolderContext);
@@ -46,10 +44,8 @@ const FolderColors = [
     text: "text-amber-700 group-hover:text-amber-700/85",
   },
 ];
+
 export const DocumentsAndFoldersContextProvider = ({ children }) => {
-  const [allDocumentsAndFoldersData, setAllDocumentsAndFoldersData] = useState(
-    [],
-  );
   const [activeFolder, setActiveFolder] = useState(null);
   const [documentsData, setDocumentsData] = useState([]);
   const [foldersData, setFoldersData] = useState([]);
@@ -78,21 +74,16 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     if (data) {
       setIsLoading(false);
       console.log("Dati ricevuti:", data);
-      const cartelleColorate = (data.foldersData || []).map(
-        (folderData, folderIndex) => {
-          const colorIndex = folderIndex % FolderColors.length;
-          return {
-            ...folderData,
-            colors: FolderColors[colorIndex],
-          };
-        },
-      );
+      const cartelleColorate = (data.foldersData || []).map((folderData) => {
+        return {
+          ...folderData,
+          colors: FolderColors[folderData.color_index],
+        };
+      });
       const documenti = data.documentsData || [];
 
       setFoldersData(cartelleColorate);
       setDocumentsData(documenti);
-
-      setAllDocumentsAndFoldersData([...documenti, ...cartelleColorate]);
 
       setUnorganizedFolderData((prev) => ({
         ...prev,
@@ -105,20 +96,29 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     loadDocumentsAndFolders();
   }, [session]);
 
+  // useEffect(() => {
+  //   if (foldersData)
+  //     setFoldersData((prev) => ({
+  //       ...prev,
+  //       documents:
+  //         foldersData.find((folder) => folder.id === null)?.documenti || [],
+  //     }));
+  // }, [foldersData]);
+
   useEffect;
   return (
     <DocumentsAndFolderContext.Provider
       value={{
-        allDocumentsAndFoldersData,
         documentsData,
         foldersData,
         isLoading,
-        setAllDocumentsAndFoldersData,
         setDocumentsData,
         setFoldersData,
         unorganizedFolderData,
         activeFolder,
         setActiveFolder,
+        setUnorganizedFolderData,
+        FolderColors,
       }}
     >
       {children}

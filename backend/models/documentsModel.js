@@ -108,46 +108,7 @@ const uploadPdf = async (req) => {
   try {
     const document_id = crypto.randomUUID();
     const uploadedFile = req.file;
-    // const pdfDoc = await PDFDocument.load(uploadedFile.buffer);
-    // const pages = pdfDoc.getPages();
 
-    // if (pages.length === 0) {
-    //   throw { message: "Il documento PDF è vuoto." };
-    // }
-
-    // // --- NUOVO CONTROLLO OCR ROBUSTO ---
-    // let hasFonts = false;
-
-    // // 1. Controllo standard sulla prima pagina
-    // const firstPageResources = pages[0].node.Resources();
-    // if (firstPageResources && firstPageResources.get?.("Font")) {
-    //   hasFonts = true;
-    // }
-
-    // // 2. Fallback: Controllo nel catalogo globale del PDF se il primo fallisce
-    // if (!hasFonts) {
-    //   const form = pdfDoc.getForm();
-    //   // Se il PDF ha dei campi di testo editabili o font registrati globalmente nel form
-    //   if (form && form.getFields().length > 0) {
-    //     hasFonts = true;
-    //   }
-    // }
-
-    // // 3. Ultima spiaggia: Verifichiamo se esistono riferimenti a font indiretti nella struttura
-    // if (!hasFonts) {
-    //   const context = pdfDoc.context;
-    //   // Cerchiamo l'esplicita menzione di un oggetto di tipo /Font dentro la mappa dei nodi del PDF
-    //   for (const [key, value] of context.indirectObjects.entries()) {
-    //     if (value && value.toString().includes("/Font")) {
-    //       hasFonts = true;
-    //       break;
-    //     }
-    //   }
-    // }
-    // if (!hasFonts) {
-    //   throw { message: "Il documento deve avere OCR integrato!" };
-    // }
-    console.log("body", req.body);
     const percorsoCompleto = `${document_id}/${uploadedFile.originalname}`;
     const { error: bucketError } = await supabase.storage
       .from("file_pdf")
@@ -168,18 +129,54 @@ const uploadPdf = async (req) => {
         : null;
     const { error: insertError } = await supabase.from("documenti").insert({
       document_id,
-      nome: uploadedFile.originalname,
+      nome: uploadedFile.name.replace(".pdf", ""),
       file_url: fileUrl,
       folder_id: cleanFolderId,
     });
     if (insertError) throw insertError;
     console.log("arrivato senza problemi alla fine");
-    return { data: { success: true }, error: null };
+    return { data: { success: true, document_id: document_id }, error: null };
   } catch (error) {
     console.error("=== CRASH MODELLO DOCUMENTI ===", error);
     return { data: null, error: error };
   }
 };
+
+const deletePdfFile = async (req) => {
+  try {
+    const { pdfId } = req.params;
+
+    // 1. Rimuovi il documento dal database
+    const { error: dbError } = await supabase
+      .from("documenti")
+      .delete()
+      .eq("document_id", pdfId);
+
+    if (dbError) throw dbError;
+    const { data: bucketFiles, error: listError } = await supabase.storage
+      .from("file_pdf") // Nome del tuo bucket
+      .list(pdfId, {
+        // Il percorso della "cartella" (l'ID del documento)
+        limit: 1, // Numero massimo di file da ritornare
+        offset: 0, // Per la paginazione
+        sortBy: { column: "name", order: "asc" },
+      });
+    if (listError) throw listError;
+    const pathToFile = `${pdfId}/${bucketFiles[0].name}`;
+
+    // Cancella il file dal bucket
+    const { error: deleteError } = await supabase.storage
+      .from("file_pdf")
+      .remove([pathToFile]);
+
+    if (deleteError) throw deleteError;
+
+    return { data: { success: true, deletedPdfId: pdfId }, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
+
 module.exports = {
   getAll,
   getSpecificDocument,
@@ -188,4 +185,5 @@ module.exports = {
   deleteNote,
   updateNote,
   uploadPdf,
+  deletePdfFile,
 };
