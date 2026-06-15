@@ -47,7 +47,6 @@ const FolderSection = () => {
       console.log(error);
     }
   };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleSaveFolder();
@@ -128,6 +127,8 @@ const FolderSection = () => {
             {foldersData
               ?.slice(0, isShown ? foldersData.length : 9)
               .map((item) => {
+                console.log("item", item);
+
                 return (
                   <Folder
                     folder={item}

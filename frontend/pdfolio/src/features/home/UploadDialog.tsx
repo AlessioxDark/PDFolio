@@ -40,6 +40,7 @@ const UploadDialog = ({ icon, chosenFolder }) => {
     setDocumentsData,
     setFoldersData,
     setUnorganizedFolderData,
+    setActiveFolder,
   } = useDocumentsAndFolders();
   useEffect(() => {
     if (chosenFolder && chosenFolder !== "UNORGANIZED") {
@@ -166,6 +167,12 @@ const UploadDialog = ({ icon, chosenFolder }) => {
           }),
         );
       }
+      setActiveFolder((prev) => {
+        return {
+          ...prev,
+          documenti: [newDocument, ...prev.documenti],
+        };
+      });
       // aggiornare stato
       toast.success("PDF caricato con successo");
       setIsOpen(false);

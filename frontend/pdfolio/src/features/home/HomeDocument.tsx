@@ -16,9 +16,7 @@ const HomeDocument = ({
 }) => {
   const navigate = useNavigate();
   const { foldersData, unorganizedFolderData } = useDocumentsAndFolders();
-  let folderColor = foldersData.find(
-    (f) => f.folder_id === cartelle?.folder_id,
-  );
+  let folderColor = foldersData.find((f) => f.folder_id === folder_id);
   if (!folderColor) {
     folderColor = unorganizedFolderData;
   }

@@ -16,7 +16,24 @@ const createFolder = async (req, res) => {
     });
   }
 };
-
+const deleteFolder = async (req, res) => {
+  try {
+    const { data, error } = await Folder.deleteFolder(req, res);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "cartella eliminata con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'eliminazione della cartella",
+      details: error.message,
+    });
+  }
+};
 module.exports = {
   createFolder,
+  deleteFolder,
 };

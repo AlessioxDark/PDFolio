@@ -213,15 +213,17 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async uploadPdfFile(session, pdfFile) {
+    async deleteFolder(session, folderId: string) {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
+        const response = await fetch(
+          `${API_BASE_URL}/api/folders/${folderId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
           },
-          body: pdfFile,
-        });
+        );
         if (!response.ok) {
           console.log("no ok", response);
           // Gestisci l'errore se il backend fallisce

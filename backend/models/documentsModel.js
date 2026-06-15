@@ -120,7 +120,6 @@ const uploadPdf = async (req) => {
     const { data: urlData } = supabase.storage
       .from("file_pdf")
       .getPublicUrl(percorsoCompleto);
-
     const fileUrl = urlData.publicUrl;
     const rawFolderId = req.body.folder_id;
     const cleanFolderId =
@@ -129,7 +128,7 @@ const uploadPdf = async (req) => {
         : null;
     const { error: insertError } = await supabase.from("documenti").insert({
       document_id,
-      nome: uploadedFile.name.replace(".pdf", ""),
+      nome: uploadedFile.originalname.replace(".pdf", ""),
       file_url: fileUrl,
       folder_id: cleanFolderId,
     });
