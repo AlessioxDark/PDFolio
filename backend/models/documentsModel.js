@@ -108,7 +108,20 @@ const uploadPdf = async (req) => {
   try {
     const document_id = crypto.randomUUID();
     const uploadedFile = req.file;
-
+    const authHeader = req.headers["authorization"];
+    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Accesso negato. Token mancante o formato non valido.",
+      });
+    }
+    const token = authHeader.split(" ")[1];
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+    if (userError) throw userError;
     const percorsoCompleto = `${document_id}/${uploadedFile.originalname}`;
     const { error: bucketError } = await supabase.storage
       .from("file_pdf")
@@ -133,7 +146,53 @@ const uploadPdf = async (req) => {
       folder_id: cleanFolderId,
     });
     if (insertError) throw insertError;
+
+    // carichiamo pagine sul db per ricerca
+    const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const uint8ArrayData = new Uint8Array(uploadedFile.buffer);
+    const loadingTask = pdfjsLib.getDocument({ data: uint8ArrayData });
+    const pdfDoc = await loadingTask.promise;
+    const totalPages = pdfDoc.numPages;
+
+    const pagesData = [];
+
+    async function extractTextFromPage(pdf, pageNumber) {
+      try {
+        const page = await pdf.getPage(pageNumber);
+        const textContent = await page.getTextContent();
+
+        // Unisce i frammenti di testo della pagina inserendo uno spazio
+        return textContent.items.map((item) => item.str).join(" ");
+      } catch (error) {
+        console.error(
+          `Errore durante l'estrazione del testo dalla pagina ${pageNumber}:`,
+          error,
+        );
+        return "";
+      }
+    }
+
+    for (let i = 0; i < totalPages; i++) {
+      const pageNumber = i + 1;
+      const pageText = await extractTextFromPage(pdfDoc, pageNumber);
+      const cleanText = pageText.replace(/\s+/g, " ").trim();
+
+      pagesData.push({
+        document_id: document_id,
+        page_number: pageNumber,
+        text: cleanText,
+        user_id: user.id,
+      });
+    }
+    const { error: pagesError } = await supabase
+      .from("pagine_documenti")
+      .insert(pagesData);
+
+    if (pagesError) throw pagesError;
+
+    console.log(`[OK] Inserite correttamente ${totalPages} pagine nel DB.`);
     console.log("arrivato senza problemi alla fine");
+
     return { data: { success: true, document_id: document_id }, error: null };
   } catch (error) {
     console.error("=== CRASH MODELLO DOCUMENTI ===", error);

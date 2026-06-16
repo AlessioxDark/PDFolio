@@ -1,2 +1,4 @@
-
-search
+finire global search mettendo bene nel frontend tutte le ricerche e assicurandoci che cerchi tutto il necessario
+sistemare cambiamento pagine_documenti in eliminazione documento
+implementare local search
+creare pagina filtri in home

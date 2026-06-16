@@ -84,16 +84,15 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async globalSearch(session) {
-      console.log(session);
+    async globalSearch(token, query) {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/search/global_search`,
+          `${API_BASE_URL}/api/search/global?q=${query}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
+              Authorization: `Bearer ${token}`,
             },
           },
         );
@@ -136,12 +135,12 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async uploadPdfFile(session, pdfFile) {
+    async uploadPdfFile(token, pdfFile) {
       try {
         const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: pdfFile,
         });
@@ -200,11 +199,14 @@ export const apiCalls = {
               Authorization: `Bearer ${session?.access_token}`,
             },
             body: JSON.stringify(updateData),
-          }
+          },
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: { message: errorData.message || errorData.details } };
+          return {
+            data: null,
+            error: { message: errorData.message || errorData.details },
+          };
         }
         const { data } = await response.json();
         return { data, error: null };

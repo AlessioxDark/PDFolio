@@ -2,6 +2,8 @@ const express = require("express");
 const authRoutes = require("./routes/authRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const folderRoutes = require("./routes/folderRoutes");
+const searchRoutes = require("./routes/searchRoutes");
+
 const cors = require("cors");
 const app = express();
 
@@ -19,6 +21,7 @@ app.use(express.urlencoded({ limit: "25mb", extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/folders", folderRoutes);
+app.use("/api/search", searchRoutes);
 
 app.get("/", (req, res) => {
   res.send("<h1>Funziona!</h1>");

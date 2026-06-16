@@ -27,7 +27,6 @@ const HomeDocument = ({
   if (!folderColor) {
     folderColor = unorganizedFolderData;
   }
-  console.log("col", folderColor, foldersData, cartelle?.folder_id);
   return (
     <div
       className="w-full h-full flex flex-col relative justify-between gap-3 p-4 pr-1.5 bg-white rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.11)] hover:shadow-[0_10px_25px_5px_rgba(0,0,0,0.18)] border border-neutral-100 hover:border-gray-200"

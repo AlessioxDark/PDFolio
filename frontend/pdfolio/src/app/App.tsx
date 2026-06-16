@@ -5,16 +5,19 @@ import AppRouter from "./AppRouter";
 import { AuthContextProvider } from "../contexts/AuthContext";
 import { NotesContextProvider } from "../contexts/NotesContext";
 import { DocumentsAndFoldersContextProvider } from "../contexts/DocumentsAndFolderContext";
+import { SearchContextProvider } from "@/contexts/SearchContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthContextProvider>
-        <DocumentsAndFoldersContextProvider>
-          <NotesContextProvider>
-            <AppRouter />
-          </NotesContextProvider>
-        </DocumentsAndFoldersContextProvider>
+        <SearchContextProvider>
+          <DocumentsAndFoldersContextProvider>
+            <NotesContextProvider>
+              <AppRouter />
+            </NotesContextProvider>
+          </DocumentsAndFoldersContextProvider>
+        </SearchContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
   );
