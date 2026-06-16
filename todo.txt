@@ -1,10 +1,2 @@
-aggiungere dropdown documento ed eliminazione da li
-aggiungere creazione ed eliminazione cartella
-spostare FILE tra cartelle
 
 search
-
-
-
-stato non aggiornate creazione file in cartella
-cartella sbagliata salvataggio

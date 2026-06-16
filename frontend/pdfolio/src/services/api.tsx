@@ -189,6 +189,29 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async updatePdf(session, documentId, updateData) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify(updateData),
+          }
+        );
+        if (!response.ok) {
+          const errorData = await response.json();
+          return { data: null, error: { message: errorData.message || errorData.details } };
+        }
+        const { data } = await response.json();
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
   folder: {
     async createFolder(session, folderData: object) {

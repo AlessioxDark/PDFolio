@@ -6,6 +6,7 @@ import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import UnorganizedFolder from "@/components/UnorganizedFolder";
 import KebabIcon from "@/icons/KebabIcon";
 import { AlertDialogComponent } from "@/components/AlertDialogComponent";
+import EditDocumentDialog from "./EditDocumentDialog";
 
 const HomeDocument = ({
   nome,
@@ -20,6 +21,8 @@ const HomeDocument = ({
   const { foldersData, unorganizedFolderData, handlePdfDelete } =
     useDocumentsAndFolders();
   const [showMenu, setShowMenu] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editMode, setEditMode] = useState<"rename" | "move">("rename");
   let folderColor = foldersData.find((f) => f.folder_id === folder_id);
   if (!folderColor) {
     folderColor = unorganizedFolderData;
@@ -29,21 +32,33 @@ const HomeDocument = ({
     <div
       className="w-full h-full flex flex-col relative justify-between gap-3 p-4 pr-1.5 bg-white rounded-xl cursor-pointer transition-all duration-300 shadow-[0_4px_20px_5px_rgba(0,0,0,0.11)] hover:shadow-[0_10px_25px_5px_rgba(0,0,0,0.18)] border border-neutral-100 hover:border-gray-200"
       onClick={() => {
-        navigate(`/pdf/${document_id}`);
+        if (!showMenu && !isEditOpen) {
+          navigate(`/pdf/${document_id}`);
+        }
       }}
     >
       {showMenu && (
-        <div className="absolute top-10 right-0 z-20 w-48 bg-white rounded-xl flex flex-col">
+        <div
+          className="absolute top-10 right-0 z-20 w-48 bg-white rounded-xl flex flex-col"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
           <button
-            className="text-black p-2 hover:bg-neutral-100 border-b border-neutral-100"
-            onClick={() => setShowMenu(false)}
+            className="text-black p-2 hover:bg-neutral-100 border-b border-neutral-100 text-left w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditMode("rename");
+              setIsEditOpen(true);
+              setShowMenu(false);
+            }}
           >
             Rinomina
           </button>
           <AlertDialogComponent
             icon={
               <button
-                className="w-full text-black p-2 hover:bg-neutral-100 border-b border-neutral-100"
+                className="w-full text-black p-2 hover:bg-neutral-100 border-b border-neutral-100 text-left"
                 onClick={(e) => {
                   e.stopPropagation();
                 }}
@@ -59,13 +74,26 @@ const HomeDocument = ({
             }}
           />
           <button
-            className="text-black p-2 hover:bg-neutral-100"
-            onClick={() => setShowMenu(false)}
+            className="text-black p-2 hover:bg-neutral-100 text-left w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditMode("move");
+              setIsEditOpen(true);
+              setShowMenu(false);
+            }}
           >
             Sposta
           </button>
         </div>
       )}
+      <EditDocumentDialog
+        isOpen={isEditOpen}
+        setIsOpen={setIsEditOpen}
+        documentId={document_id}
+        currentNome={nome}
+        currentFolderId={folder_id}
+        defaultMode={editMode}
+      />
       {/* Contenitore thumbnail controllato */}
       <div className="w-full flex flex-row gap-1">
         <div className="w-full aspect-[3/4] overflow-hidden rounded-lg bg-neutral-50 flex items-center justify-center">

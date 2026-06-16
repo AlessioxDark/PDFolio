@@ -14,6 +14,10 @@ const DocumentsAndFolderContext = createContext({
   foldersData: [],
   setDocumentsData: (arg) => {},
   setFoldersData: (arg) => {},
+  handlePdfUpdate: async (
+    documentId: string,
+    updatedFields: { nome?: string; folder_id?: string | null },
+  ) => ({ success: false }),
 });
 export const useDocumentsAndFolders = () => {
   const context = useContext(DocumentsAndFolderContext);
@@ -129,18 +133,113 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
       // }, 100);
     }
   };
+  const handlePdfUpdate = async (
+    documentId: string,
+    updatedFields: { nome?: string; folder_id?: string | null },
+  ) => {
+    const { data, error } = await apiCalls.pdf.updatePdf(
+      session,
+      documentId,
+      updatedFields,
+    );
+    if (error) {
+      console.error("ERRORE AGGIORNAMENTO PDF", error);
+      toast.error(
+        error.message || "Errore durante l'aggiornamento del documento",
+      );
+      return { success: false, error };
+    }
+    if (data) {
+      const prevFolderId = documentsData.find(
+        (doc) => doc.document_id === documentId,
+      )?.folder_id;
+      console.log("PDF AGGIORNATO DATA:", data);
+      const updatedDoc = data;
+
+      // Update documentsData list
+      setDocumentsData((prev) =>
+        prev.map((doc) =>
+          doc.document_id === documentId ? { ...doc, ...updatedDoc } : doc,
+        ),
+      );
+      if (prevFolderId === null || prevFolderId === undefined) {
+        // Era in "Non organizzati", lo togliamo da lì
+        setUnorganizedFolderData((prev) => ({
+          ...prev,
+          documenti: (prev?.documenti || []).filter(
+            (doc) => doc.document_id !== documentId,
+          ),
+        }));
+      } else {
+        // Era in una cartella, lo togliamo da quella cartella
+        setFoldersData((prev) =>
+          prev.map((folder) =>
+            folder.folder_id === prevFolderId
+              ? {
+                  ...folder,
+                  documenti: (folder.documenti || []).filter(
+                    (doc) => doc.document_id !== documentId,
+                  ),
+                }
+              : folder,
+          ),
+        );
+      }
+
+      if (updatedDoc.folder_id === null) {
+        // Va in "Non organizzati"
+        setUnorganizedFolderData((prev) => ({
+          ...prev,
+          documenti: [
+            ...(prev?.documenti || []).filter(
+              (doc) => doc.document_id !== documentId,
+            ),
+            updatedDoc,
+          ],
+        }));
+      } else {
+        // Va in una cartella reale
+        setFoldersData((prev) =>
+          prev.map((folder) =>
+            folder.folder_id === updatedDoc.folder_id
+              ? {
+                  ...folder,
+                  documenti: [
+                    ...(folder.documenti || []).filter(
+                      (doc) => doc.document_id !== documentId,
+                    ),
+                    updatedDoc,
+                  ],
+                }
+              : folder,
+          ),
+        );
+      }
+
+      // 2. Rimuovi e aggiungi in foldersData
+
+      // 3. Rinfresca activeFolder se presente+
+
+      if (activeFolder?.folder_id == prevFolderId) {
+        setActiveFolder((prev) => {
+          const docs = (prev.documenti || []).filter(
+            (doc) => doc.document_id !== documentId,
+          );
+
+          return {
+            ...prev,
+            documenti: docs,
+          };
+        });
+      }
+
+      return { success: true };
+    }
+    return { success: false };
+  };
   useEffect(() => {
     loadDocumentsAndFolders();
   }, [session]);
-
-  // useEffect(() => {
-  //   if (foldersData)
-  //     setFoldersData((prev) => ({
-  //       ...prev,
-  //       documents:
-  //         foldersData.find((folder) => folder.id === null)?.documenti || [],
-  //     }));
-  // }, [foldersData]);
 
   useEffect;
   return (
@@ -154,6 +253,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         unorganizedFolderData,
         activeFolder,
         handlePdfDelete,
+        handlePdfUpdate,
         setActiveFolder,
         setUnorganizedFolderData,
         FolderColors,

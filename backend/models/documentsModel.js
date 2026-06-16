@@ -176,6 +176,28 @@ const deletePdfFile = async (req) => {
   }
 };
 
+const updatePdf = async (req) => {
+  try {
+    const { pdfId } = req.params;
+    const { nome, folder_id } = req.body;
+    const cleanFolderId = folder_id && folder_id !== "null" ? folder_id : null;
+    const { data, error } = await supabase
+      .from("documenti")
+      .update({
+        edited_at: new Date(),
+        folder_id: cleanFolderId,
+        nome,
+      })
+      .eq("document_id", pdfId)
+      .select("*");
+
+    if (error) throw error;
+    return { data: data[0], error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
+
 module.exports = {
   getAll,
   getSpecificDocument,
@@ -185,4 +207,5 @@ module.exports = {
   updateNote,
   uploadPdf,
   deletePdfFile,
+  updatePdf,
 };

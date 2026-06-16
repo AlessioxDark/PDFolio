@@ -21,7 +21,12 @@ export function AlertDialogComponent({ icon, title, desc, onAction }) {
           <AlertDialogDescription>{desc}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="cursor-pointer">
+          <AlertDialogCancel
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             Annulla
           </AlertDialogCancel>
           <AlertDialogAction
