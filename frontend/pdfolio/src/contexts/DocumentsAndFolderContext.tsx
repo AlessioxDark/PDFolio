@@ -220,16 +220,31 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
 
       // 3. Rinfresca activeFolder se presente+
 
-      if (activeFolder?.folder_id == prevFolderId) {
+      if (activeFolder) {
         setActiveFolder((prev) => {
-          const docs = (prev.documenti || []).filter(
-            (doc) => doc.document_id !== documentId,
-          );
+          if (!prev) return prev;
 
-          return {
-            ...prev,
-            documenti: docs,
-          };
+          if (activeFolder.folder_id === updatedDoc.folder_id) {
+            return {
+              ...prev,
+              documenti: (prev.documenti || []).map((doc) =>
+                doc.document_id === documentId
+                  ? { ...doc, ...updatedDoc }
+                  : doc,
+              ),
+            };
+          }
+
+          if (activeFolder.folder_id === prevFolderId) {
+            return {
+              ...prev,
+              documenti: (prev.documenti || []).filter(
+                (doc) => doc.document_id !== documentId,
+              ),
+            };
+          }
+
+          return prev;
         });
       }
 
