@@ -104,7 +104,7 @@ const HomeDocument = ({
           onClick={(e) => {
             e.stopPropagation();
             console.log("kebab cliccato");
-            setShowMenu(true);
+            setShowMenu((prev) => !prev);
           }}
         />
       </div>

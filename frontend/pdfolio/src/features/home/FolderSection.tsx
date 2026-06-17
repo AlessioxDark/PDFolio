@@ -37,6 +37,8 @@ const FolderSection = () => {
       folder_id: newFolderId,
       color_index: colorIndex,
     });
+
+    setNewFolderName("");
     if (error) {
       console.error("ERRORE: ", error);
     }

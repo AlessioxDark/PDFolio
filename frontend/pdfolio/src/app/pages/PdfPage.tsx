@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { apiCalls } from "../../services/api";
 import PdfPageHeader from "../../features/pdfPage/pdfPageHeader";
@@ -16,6 +16,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 const PdfPage = () => {
   const { pdfId } = useParams();
+  const [searchParams] = useSearchParams();
   const { session } = useAuth();
   const [pdfData, setPdfData] = useState<any>({});
   const { notesArray, setNotesArray, fetchNotes } = useNotes();
@@ -60,6 +61,18 @@ const PdfPage = () => {
     getPdfData();
     fetchNotes(pdfId as string);
   }, []);
+
+  useEffect(() => {
+    const pageParam = searchParams.get("page");
+    if (pageParam && numPages) {
+      const pageNum = parseInt(pageParam, 10);
+      if (pageNum >= 1 && pageNum <= numPages) {
+        setTimeout(() => {
+          scrollToPage(pageNum);
+        }, 300);
+      }
+    }
+  }, [numPages, searchParams]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);

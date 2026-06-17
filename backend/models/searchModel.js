@@ -32,18 +32,30 @@ const globalSearch = async (req, res) => {
       .ilike("nome", `%${q}%`);
     if (documentsError) throw documentsError;
 
-    const { data: notesData, error: notesError } = await supabase
+    const { data: rawNotesData, error: notesError } = await supabase
       .from("note")
-      .select("*")
+      .select("*, documenti(nome)")
       .eq("user_id", user.id)
-      .ilike("content", `%${q}%`);
+      .or(`content.ilike.%${q}%,text.ilike.%${q}%`);
     if (notesError) throw notesError;
-    const { data: textData, error: textError } = await supabase
+
+    const notesData = rawNotesData.map((note) => ({
+      ...note,
+      nome_documento: note.documenti?.nome,
+      page: note.position?.page,
+    }));
+
+    const { data: rawTextData, error: textError } = await supabase
       .from("pagine_documenti")
-      .select("*")
+      .select("*, documenti(nome)")
       .eq("user_id", user.id)
       .ilike("text", `%${q}%`);
     if (textError) throw textError;
+
+    const textData = rawTextData.map((h) => ({
+      ...h,
+      nome_documento: h.documenti?.nome,
+    }));
 
     console.log("documentiData", documentsData);
     console.log("foldersData", foldersData);

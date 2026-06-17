@@ -292,7 +292,7 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async SaveNoteToDB(session, documentId: string, noteData) {
+    async SaveNoteToDB(token, documentId: string, noteData) {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}/notes`,
@@ -301,7 +301,7 @@ export const apiCalls = {
             body: JSON.stringify({ noteData }),
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
+              Authorization: `Bearer ${token}`,
             },
           },
         );
