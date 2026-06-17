@@ -63,16 +63,34 @@ const PdfPage = () => {
   }, []);
 
   useEffect(() => {
+    if (!numPages) return;
+
     const pageParam = searchParams.get("page");
-    if (pageParam && numPages) {
-      const pageNum = parseInt(pageParam, 10);
-      if (pageNum >= 1 && pageNum <= numPages) {
-        setTimeout(() => {
-          scrollToPage(pageNum);
-        }, 300);
+    const noteParam = searchParams.get("note");
+
+    // Caso 1: C'è una nota specifica da raggiungere (Priorità Max)
+    if (noteParam && notesArray.length > 0) {
+      const targetNote = notesArray.find((n) => n.note_id === noteParam);
+      if (targetNote?.position) {
+        const timer = setTimeout(() => {
+          scrollToNoteInPdf(targetNote.position);
+          scrollToNoteInSidebar(targetNote.position);
+        }, 450); // Un leggero delay in più assicura che il layer di testo sia renderizzato nel DOM
+        return () => clearTimeout(timer);
       }
     }
-  }, [numPages, searchParams]);
+
+    // Caso 2: C'è solo il parametro della pagina
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10);
+      if (pageNum >= 1 && pageNum <= numPages) {
+        const timer = setTimeout(() => {
+          scrollToPage(pageNum);
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [numPages, notesArray, searchParams]); // Dipendenze pulite e sincronizzate
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -284,6 +302,7 @@ const PdfPage = () => {
       }
     }, 100);
   };
+
   return (
     <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
       <PdfPageHeader
