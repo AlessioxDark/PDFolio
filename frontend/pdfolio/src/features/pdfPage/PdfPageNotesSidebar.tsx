@@ -1,4 +1,10 @@
-import React, { useEffect, useEffectEvent, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import CrossIcon from "../../icons/CrossIcon";
 import Searchbar from "../../components/Searchbar";
 import FilterPill from "../home/FilterPill";
@@ -21,26 +27,34 @@ const PdfPageNotesSidebar = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
   const { notesArray } = useNotes();
-  const [filteredData, setFilteredData] = useState(notesArray);
   const [activeNote, setActiveNote] = useState<any | null>(null);
-  useEffect(() => {
-    if (searchQuery == "") {
-      switch (selectedFilter) {
-        case "Tutte":
-          setFilteredData(notesArray);
-          break;
-        case "Note":
-          setFilteredData(notesArray.filter((note) => note.type === "NOTE"));
-          break;
-        case "Evidenziati":
-          setFilteredData(
-            notesArray.filter((note) => note.type === "HIGHLIGHT"),
-          );
-          break;
+  // const [filteredResults, setFilteredResults] = useState(notesArray);
+  const filteredResults = useMemo(() => {
+    return notesArray.filter((note) => {
+      // 1. Applica il filtro per Tipo (Tab)
+      if (selectedFilter === "Note" && note.type !== "NOTE") return false;
+      if (selectedFilter === "Evidenziati" && note.type !== "HIGHLIGHT")
+        return false;
+
+      // 2. Applica la ricerca testuale (se presente)
+      if (searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase();
+
+        if (note.type === "NOTE") {
+          const contentMatch = note.content?.toLowerCase().includes(query);
+          const textMatch = note.text?.toLowerCase().includes(query);
+          return contentMatch || textMatch;
+        }
+
+        if (note.type === "HIGHLIGHT") {
+          return note.text?.toLowerCase().includes(query);
+        }
       }
-    } else {
-    }
-  }, [selectedFilter]);
+
+      return true;
+    });
+  }, [notesArray, selectedFilter, searchQuery]);
+
   return (
     <motion.div
       initial={{ width: 0, opacity: 0 }}
@@ -100,11 +114,12 @@ const PdfPageNotesSidebar = ({
                     </div>
                   ))}
                 </div>
+
                 <div
                   className="flex flex-col gap-2 overflow-y-scroll py-4 min-h-0 flex-1"
                   ref={notesContainerRef}
                 >
-                  {filteredData.map((note, index) => (
+                  {filteredResults.map((note, index) => (
                     <NotesSidebarElement
                       setActiveNote={setActiveNote}
                       key={index}

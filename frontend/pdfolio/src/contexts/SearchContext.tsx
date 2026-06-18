@@ -11,10 +11,7 @@ import { toast } from "sonner";
 
 const SearchContext = createContext({
   globalSearchData: [],
-  localSearchData: [],
   isGlobalQueryLoading: false,
-  isLocalQueryLoading: false,
-  handleLocalSearch: (documentId: string) => {},
   handleGlobalSearch: (query: string) => {},
 });
 export const useSearch = () => {
@@ -29,12 +26,9 @@ export const SearchContextProvider = ({ children }) => {
     notesData: [],
     textData: [],
   });
-  const [localSearchData, setLocalSearchData] = useState([]);
   const [isGlobalQueryLoading, setIsGlobalQueryLoading] = useState(false);
-  const [isLocalQueryLoading, setIsLocalQueryLoading] = useState(false);
   const { session } = useAuth();
 
-  const handleLocalSearch = async (documentId: string) => {};
   const handleGlobalSearch = async (query: string) => {
     if (!query.trim()) return;
 
@@ -68,11 +62,8 @@ export const SearchContextProvider = ({ children }) => {
   return (
     <SearchContext.Provider
       value={{
-        localSearchData,
         globalSearchData,
         isGlobalQueryLoading,
-        isLocalQueryLoading,
-        handleLocalSearch,
         handleGlobalSearch,
         setGlobalSearchData,
       }}
