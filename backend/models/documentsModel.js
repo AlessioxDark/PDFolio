@@ -25,7 +25,15 @@ const getSpecificDocument = async (req, res) => {
       .eq("document_id", pdfId)
       .single();
     if (documentError) throw documentError;
-    return { data: documentData, error: null };
+
+    const { data: aiData, error: aiError } = await supabase
+      .from("messaggi_ai")
+      .select("*")
+      .eq("document_id", pdfId);
+
+    if (aiError) throw aiError;
+
+    return { data: { ...documentData, aiMessages: aiData }, error: null };
   } catch (error) {
     return { data: null, error: error };
   }
@@ -223,14 +231,18 @@ const deletePdfFile = async (req) => {
       .from("documenti")
       .delete()
       .eq("document_id", pdfId);
-
     if (dbError) throw dbError;
+    const { error: pagesError } = await supabase
+      .from("pagine_documenti")
+      .delete()
+      .eq("document_id", pdfId);
+
+    if (pagesError) throw pagesError;
     const { data: bucketFiles, error: listError } = await supabase.storage
-      .from("file_pdf") // Nome del tuo bucket
+      .from("file_pdf")
       .list(pdfId, {
-        // Il percorso della "cartella" (l'ID del documento)
-        limit: 1, // Numero massimo di file da ritornare
-        offset: 0, // Per la paginazione
+        limit: 1,
+        offset: 0,
         sortBy: { column: "name", order: "asc" },
       });
     if (listError) throw listError;

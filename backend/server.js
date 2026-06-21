@@ -3,6 +3,7 @@ const authRoutes = require("./routes/authRoutes");
 const documentRoutes = require("./routes/documentRoutes");
 const folderRoutes = require("./routes/folderRoutes");
 const searchRoutes = require("./routes/searchRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const cors = require("cors");
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/folders", folderRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => {
   res.send("<h1>Funziona!</h1>");

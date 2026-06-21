@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useMemo, useRef, useState } from "react";
 import CrossIcon from "../../icons/CrossIcon";
 import Searchbar from "../../components/Searchbar";
 import FilterPill from "../home/FilterPill";
@@ -28,7 +22,6 @@ const PdfPageNotesSidebar = ({
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
   const { notesArray } = useNotes();
   const [activeNote, setActiveNote] = useState<any | null>(null);
-  // const [filteredResults, setFilteredResults] = useState(notesArray);
   const filteredResults = useMemo(() => {
     return notesArray.filter((note) => {
       // 1. Applica il filtro per Tipo (Tab)

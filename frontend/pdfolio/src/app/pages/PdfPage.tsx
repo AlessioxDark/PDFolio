@@ -11,6 +11,7 @@ import PdfPageNotesSidebar from "../../features/pdfPage/PdfPageNotesSidebar";
 import SelectionMenu from "../../features/pdfPage/SelectionMenu";
 import { useNotes } from "../../contexts/NotesContext";
 import UnderlinedElement from "../../components/UnderlinedElement";
+import PdfPageAiSidebar from "@/features/pdfPage/PdfPageAiSidebar";
 // Imposta il worker di react-pdf usando unpkg per evitare problemi con Vite
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -19,6 +20,7 @@ const PdfPage = () => {
   const [searchParams] = useSearchParams();
   const { session } = useAuth();
   const [pdfData, setPdfData] = useState<any>({});
+  const [activeSidebar, setActiveSidebar] = useState<"" | "AI" | "NOTES">("");
   const { notesArray, setNotesArray, fetchNotes } = useNotes();
   const [selectionData, setSelectionData] = useState<{
     menuX: number;
@@ -34,13 +36,16 @@ const PdfPage = () => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const scale = 1.2;
-  const [isNotesSidebarOpen, setIsNotesSidebarOpen] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const notesContainerRef = useRef<HTMLDivElement>(null);
-
+  const [aiMessages, setAiMessages] = useState([]);
   const toggleNotesSidebar = () => {
-    setIsNotesSidebarOpen(!isNotesSidebarOpen);
+    setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
   };
+  const toggleAiSidebar = () => {
+    setActiveSidebar((prev) => (prev === "AI" ? "" : "AI"));
+  };
+
   const getPdfData = async () => {
     if (!session) return; // Evita chiamate se la sessione non è pronta
     const { data, error } = await apiCalls.pdf.getPdfFile(
@@ -54,6 +59,14 @@ const PdfPage = () => {
     if (data) {
       console.log("Dati ricevuti:", data);
       setPdfData(data);
+      setAiMessages([
+        {
+          role: "assistant",
+          content:
+            "Ciao! Sono il tuo assistente. Chiedimi pure qualsiasi cosa sul PDF.",
+        },
+        ...data?.aiMessages,
+      ]);
     }
   };
 
@@ -219,7 +232,7 @@ const PdfPage = () => {
     setNotesArray((prev) => [...prev, highlight]);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
-    setIsNotesSidebarOpen(true);
+    setActiveSidebar("NOTES");
 
     const { data: noteData, error } = await apiCalls.notes.SaveNoteToDB(
       session?.access_token,
@@ -258,7 +271,7 @@ const PdfPage = () => {
     setNotesArray(newArray);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
-    setIsNotesSidebarOpen(true);
+    setActiveSidebar("NOTES");
   };
 
   const handleCopyAction = async () => {
@@ -285,7 +298,7 @@ const PdfPage = () => {
   };
 
   const scrollToNoteInSidebar = (notePos: any) => {
-    setIsNotesSidebarOpen(true);
+    setActiveSidebar("NOTES");
     setTimeout(() => {
       const index = notesArray.findIndex(
         (n) =>
@@ -303,11 +316,33 @@ const PdfPage = () => {
     }, 100);
   };
 
+  const onAskAi = async () => {
+    setActiveSidebar("AI");
+    const message = {
+      role: "user",
+      content: `Spiegami questo passaggio del documento:
+      ${selectionData.text}`,
+    };
+    setAiMessages((prevMessages) => [...prevMessages, message]);
+    const { data, error } = await apiCalls.ai.askAi(
+      session.access_token,
+      pdfId,
+      message.content,
+    );
+    setAiMessages((prev) => {
+      return [...prev, { role: "assistant", content: data.response }];
+    });
+    console.log(data, error);
+    window.getSelection()?.removeAllRanges();
+    setSelectionData(null);
+    setActiveSidebar("AI");
+  };
   return (
     <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
       <PdfPageHeader
         nome={pdfData?.nome}
         toggleNotesSidebar={toggleNotesSidebar}
+        toggleAiSidebar={toggleAiSidebar}
         edited_at={pdfData?.edited_at}
         documentId={pdfId}
       />
@@ -327,6 +362,7 @@ const PdfPage = () => {
                 onHighlight={handleUnderlineAction}
                 onNote={handleAddNoteAction}
                 onCopy={handleCopyAction}
+                onAskAi={onAskAi}
               />
             )}
             {pdfData?.file_url ? (
@@ -432,11 +468,18 @@ const PdfPage = () => {
           )}
         </div>
         <AnimatePresence>
-          {isNotesSidebarOpen && (
+          {activeSidebar === "NOTES" && (
             <PdfPageNotesSidebar
               toggleNotesSidebar={toggleNotesSidebar}
               notesContainerRef={notesContainerRef}
               scrollToNoteInPdf={scrollToNoteInPdf}
+            />
+          )}
+          {activeSidebar === "AI" && (
+            <PdfPageAiSidebar
+              toggleAiSidebar={toggleAiSidebar}
+              messages={aiMessages}
+              setMessages={setAiMessages}
             />
           )}
         </AnimatePresence>

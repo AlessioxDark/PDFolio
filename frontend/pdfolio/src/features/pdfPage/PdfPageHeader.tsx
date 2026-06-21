@@ -10,10 +10,12 @@ import { LucideAArrowDown, LucideCable } from "lucide-react";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
+import BrainIcon from "@/icons/BrainIcon";
 
 const PdfPageHeader = ({
   nome,
   toggleNotesSidebar,
+  toggleAiSidebar,
   edited_at,
   documentId,
 }: {
@@ -107,6 +109,12 @@ const PdfPageHeader = ({
           onClick={toggleNotesSidebar}
         >
           <NoteIcon size={23} className={"text-black"} />
+        </div>
+        <div
+          className="cursor-pointer rounded-full bg-neutral-3 p-1.5 border-2 border-neutral-4"
+          onClick={toggleAiSidebar}
+        >
+          <BrainIcon size={23} className={"text-black"} />
         </div>
         <AlertDialogComponent
           icon={

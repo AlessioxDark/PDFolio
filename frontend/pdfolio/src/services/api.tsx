@@ -369,4 +369,32 @@ export const apiCalls = {
       }
     },
   },
+  ai: {
+    async askAi(token, documentId: string, prompt: string) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/ai/ask/${documentId}`,
+          {
+            method: "POST",
+            body: JSON.stringify({ prompt }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        console.log("inviata ai");
+        if (!response.ok) {
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+  },
 };

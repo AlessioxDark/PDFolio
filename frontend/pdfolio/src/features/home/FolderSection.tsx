@@ -65,10 +65,8 @@ const FolderSection = () => {
   }, [isCreating]);
 
   return (
-    <>
-      <div className="w-full flex justify-between items-end mb-[-10px]">
-        <h2 className="text-xl font-semibold text-text-1">Le tue cartelle</h2>
-      </div>
+    <div className="flex flex-col gap-4 mt-4">
+      <h2 className="text-xl font-semibold text-text-1">Le tue cartelle</h2>
 
       <div className="w-full">
         <motion.div
@@ -161,7 +159,7 @@ const FolderSection = () => {
           <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
