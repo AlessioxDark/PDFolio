@@ -1,14 +1,25 @@
 creare workspaces ??? non lo so
 
-aggiungere salva nota in risposta ai
 dare risposta ai con spiega ai che sia utile per creare una nota
-aggiungere al context ultimi 5 messaggi
 generazione quiz con ai?
 tags
 
 buggato sleectio menu non si apre sempre e come dovrebbe
 
 
+selectionmenu:
+aggiungi semplifica
+aggiungi fai esempio
 
+Navigazione Semantica
+INDICE GENERATO DALL'ai?
 
-ù
+modfiica, leggi note/evidenziazioni?
+
+chat nella nota?
+chat nella cartella? 
+chat nel workspace?
+più colori di evidenziazioni?
+generare riassunto da esportare con ai?
+esportare note?
+generare mappe?
