@@ -12,6 +12,8 @@ import {
 } from "lucide-react"; // Importati i chevron per l'UI
 import { AlertDialogComponent } from "./AlertDialogComponent";
 import { useNotes } from "@/contexts/NotesContext";
+import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 
 const NotesSidebarElement = ({
   note,
@@ -31,13 +33,12 @@ const NotesSidebarElement = ({
 
   // STATO PER GESTIRE L'ESPANSIONE DEI TESTI LUNGHI
   const [isExpanded, setIsExpanded] = useState(false);
-
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
 
   // Soglia oltre la quale mostrare il "Vedi altro" (es. 200 caratteri)
-  const isLongText = note.text && note.text.length > 200;
+  const isLongText = note.content && note.content.length > 200;
 
   return (
     <div
@@ -73,7 +74,6 @@ const NotesSidebarElement = ({
         <div className="px-2 flex flex-col gap-2">
           <div className="leading-relaxed">
             <span
-              // MODIFICATO: Se isExpanded è true, rimuoviamo line-clamp per mostrare tutto il testo
               className={`font-medium break-words rounded-[2px] ${
                 isExpanded ? "" : "line-clamp-5"
               } ${
@@ -94,52 +94,31 @@ const NotesSidebarElement = ({
             >
               {note.text}
             </span>
-
-            {/* NUOVO: Pulsante "Vedi altro / meno" condizionale */}
-            {isLongText && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // FONDAMENTALE: Evita di far muovere il PDF se l'utente vuole solo leggere la nota
-                  setIsExpanded(!isExpanded);
-                }}
-                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-black mt-1 font-medium transition-colors"
-              >
-                {isExpanded ? (
-                  <>
-                    Mostra meno <ChevronUp size={14} />
-                  </>
-                ) : (
-                  <>
-                    Mostra tutto <ChevronDown size={14} />
-                  </>
-                )}
-              </button>
-            )}
           </div>
 
-          {note.type == "NOTE" &&
-            (!isSent ? (
+          {!isSent ? (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex flex-col gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200"
+            >
               <div
-                onClick={(e) => e.stopPropagation()}
-                className="flex flex-row items-end gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200"
+                contentEditable={true}
+                suppressContentEditableWarning={true}
+                ref={chatInputRef}
+                className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none prose prose-sm"
+                onInput={handleInput}
+                data-placeholder="Inserisci testo nota (supporta Markdown...)"
               >
-                <div
-                  contentEditable={true}
-                  suppressContentEditableWarning={true}
-                  ref={chatInputRef}
-                  // Aggiunto max-h-32 per evitare che l'input della nota diventi gigantesco
-                  className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none"
-                  onInput={handleInput}
-                  data-placeholder="Inserisci testo nota"
-                >
-                  {savedContent}
-                </div>
+                {savedContent}
+              </div>
+
+              <div className="flex justify-end items-center w-full pt-1 border-t border-neutral-100">
                 <button
                   type="button"
                   aria-label="Invia messaggio"
                   onClick={async () => {
                     if (noteInput.trim().length > 0) {
-                      const isModification = savedContent !== note.content;
+                      const isModification = !!note.note_id;
                       if (isModification) {
                         const { error } = await apiCalls.notes.UpdateNoteInDB(
                           session?.access_token,
@@ -173,24 +152,58 @@ const NotesSidebarElement = ({
                     size={16}
                     className={`${
                       noteInput.trim().length > 0 ? "bg-accent" : ""
-                    } flex items-center justify-center rounded-full flex-shrink-0 transition-all duration-150`}
+                    } flex items-center justify-center rounded-full flex-shrink-0 transition-all duration-150 p-1`}
                     bgColor="#9333ea"
                   />
                 </button>
               </div>
-            ) : (
-              // ANCHE PER IL COMMENTO SALVATO: Gestiamo i testi lunghi
-              <div className="flex flex-col gap-1">
-                <span
-                  className={`font-medium break-words rounded-[2px] text-text-1 text-sm italic ${
-                    isExpanded ? "" : "line-clamp-4"
-                  }`}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1 w-full text-left">
+              <div
+                className={`prose prose-sm max-w-none text-text-1 text-sm italic font-inter break-words ${
+                  isExpanded ? "" : "line-clamp-4 overflow-hidden"
+                }`}
+              >
+                <Markdown
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    // Customizziamo i paragrafi per non lasciare margini giganti dentro le note
+                    p: ({ ...props }) => (
+                      <p className="my-0 leading-relaxed inline" {...props} />
+                    ),
+                    ul: ({ ...props }) => (
+                      <ul className="list-disc pl-4 my-1" {...props} />
+                    ),
+                    ol: ({ ...props }) => (
+                      <ol className="list-decimal pl-4 my-1" {...props} />
+                    ),
+                  }}
                 >
-                  "{savedContent}"
-                </span>
+                  {savedContent}
+                </Markdown>
               </div>
-            ))}
-
+              {isLongText && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="flex items-center gap-1 text-xs text-neutral-500 hover:text-black mt-1 font-medium transition-colors"
+                >
+                  {isExpanded ? (
+                    <>
+                      Mostra meno <ChevronUp size={14} />
+                    </>
+                  ) : (
+                    <>
+                      Mostra tutto <ChevronDown size={14} />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
           <div className="w-full flex justify-end items-center mt-1">
             <div
               onClick={(e) => e.stopPropagation()}

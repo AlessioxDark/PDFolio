@@ -1,5 +1,14 @@
 creare workspaces ??? non lo so
-implementare funzionalità ai
+
+aggiungere salva nota in risposta ai
+dare risposta ai con spiega ai che sia utile per creare una nota
+aggiungere al context ultimi 5 messaggi
+generazione quiz con ai?
 tags
 
 buggato sleectio menu non si apre sempre e come dovrebbe
+
+
+
+
+ù

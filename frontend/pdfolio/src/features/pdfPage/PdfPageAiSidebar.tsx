@@ -1,18 +1,23 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import CrossIcon from "@/icons/CrossIcon";
 import { useParams } from "react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiCalls } from "@/services/api";
 import Markdown from "react-markdown";
+import rehypeRaw from "rehype-raw"; // <-- IMPORTA IL PLUGIN REHYPE
+import AIMessage from "../ai/AIMessage";
+
 const PdfPageAiSidebar = ({
   toggleAiSidebar,
   messages,
   setMessages,
+  onSaveAsNote,
 }: {
   toggleAiSidebar: () => void;
   messages: any[];
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+  onSaveAsNote: (selection_data: any, content: string) => Promise<void>;
 }) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,22 +29,42 @@ const PdfPageAiSidebar = ({
     setIsLoading(true);
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: "user", content: currentMessage },
+      {
+        role: "user",
+        content: currentMessage,
+        selection_data: null,
+      },
     ]);
     setCurrentMessage("");
     const { data, error } = await apiCalls.ai.askAi(
       session.access_token,
       pdfId,
       currentMessage,
+      {
+        history: messages.slice(messages.length - 4),
+        isExplaining: false,
+        selection_data: null,
+      },
     );
     setMessages((prev) => {
-      return [...prev, { role: "assistant", content: data.response }];
+      return [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          selection_data: null,
+        },
+      ];
     });
     setCurrentMessage("");
     setIsLoading(false);
     console.log(data, error);
   };
-
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
   return (
     <motion.div
       initial={{ width: 0, opacity: 0 }}
@@ -65,60 +90,9 @@ const PdfPageAiSidebar = ({
 
       {/* 2. CHAT MESSAGES AREA (Scrollabile) */}
       <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
-        {messages.map((m, index) => {
-          const isUser = m.role === "user";
-          return (
-            <div
-              key={index}
-              className={`max-w-[85%] flex flex-col rounded-2xl px-4 py-3 border font-inter text-sm leading-relaxed ${
-                isUser
-                  ? "ml-auto bg-black border-black text-white shadow-sm"
-                  : "mr-auto bg-white border-neutral-3 text-black shadow-sm"
-              }`}
-            >
-              <span
-                className={`text-[10px] uppercase tracking-wider font-bold mb-1.5 block ${
-                  isUser ? "text-neutral-400" : "text-neutral-500"
-                }`}
-              >
-                {isUser ? "Tu" : "PDFolio Bot"}
-              </span>
-
-              <div
-                className={`prose prose-sm max-w-none ${isUser ? "text-white" : "text-neutral-800"}`}
-              >
-                <Markdown
-                  components={{
-                    strong: ({ ...props }) => (
-                      <strong
-                        className={
-                          isUser
-                            ? "text-white font-bold"
-                            : "text-black font-bold"
-                        }
-                        {...props}
-                      />
-                    ),
-                    ul: ({ ...props }) => (
-                      <ul className="list-disc pl-4 my-1.5" {...props} />
-                    ),
-                    ol: ({ ...props }) => (
-                      <ol className="list-decimal pl-4 my-1.5" {...props} />
-                    ),
-                    li: ({ ...props }) => <li className="my-0.5" {...props} />,
-                    p: ({ ...props }) => (
-                      <p className="my-0 leading-relaxed" {...props} />
-                    ),
-                  }}
-                >
-                  {m.content}
-                </Markdown>
-              </div>
-            </div>
-          );
+        {messages.map((m) => {
+          return <AIMessage m={m} onSaveAsNote={onSaveAsNote} />;
         })}
-
-        {/* Indicatore di caricamento (Skeleton o testo) */}
         {isLoading && (
           <div className="mr-auto bg-white border border-neutral-3 rounded-2xl px-4 py-3 text-xs text-neutral-400 font-inter shadow-sm flex items-center gap-2">
             <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
@@ -127,7 +101,6 @@ const PdfPageAiSidebar = ({
           </div>
         )}
 
-        {/* Elemento di ancoraggio per l'autoscroll */}
         <div ref={messagesEndRef} />
       </div>
 

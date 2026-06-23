@@ -55,6 +55,7 @@ const addNote = async (req) => {
   try {
     const { pdfId } = req.params;
     const { noteData } = req.body;
+
     console.log("notedata", noteData, req.body);
     const authHeader = req.headers["authorization"];
     // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?

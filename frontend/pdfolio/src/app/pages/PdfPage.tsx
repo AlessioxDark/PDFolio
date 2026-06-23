@@ -64,6 +64,7 @@ const PdfPage = () => {
           role: "assistant",
           content:
             "Ciao! Sono il tuo assistente. Chiedimi pure qualsiasi cosa sul PDF.",
+          selection_data: null,
         },
         ...data?.aiMessages,
       ]);
@@ -317,25 +318,150 @@ const PdfPage = () => {
   };
 
   const onAskAi = async () => {
+    if (!selectionData) return;
+    const currentSelection = selectionData;
     setActiveSidebar("AI");
     const message = {
       role: "user",
       content: `Spiegami questo passaggio del documento:
-      ${selectionData.text}`,
+      ${currentSelection.text}`,
+      selection_data: {
+        document_id: pdfId,
+        text: currentSelection.text,
+        position: {
+          page: currentSelection.pageNum,
+          x: currentSelection.textX,
+          y: currentSelection.textY,
+          width: currentSelection.textWidth,
+          height: currentSelection.textHeight,
+        },
+        isSaved: false,
+      },
     };
+    console.log("sel data", message.selection_data);
     setAiMessages((prevMessages) => [...prevMessages, message]);
     const { data, error } = await apiCalls.ai.askAi(
       session.access_token,
       pdfId,
       message.content,
+      {
+        history: null,
+        isExplaining: true,
+        selection_data: message.selection_data,
+      },
     );
     setAiMessages((prev) => {
-      return [...prev, { role: "assistant", content: data.response }];
+      return [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          selection_data: message.selection_data,
+        },
+      ];
     });
     console.log(data, error);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
     setActiveSidebar("AI");
+  };
+
+  const onSaveAsNote = async (selection_data: any, content: string) => {
+    if (!selection_data) return;
+    const rawPage = selection_data.pageNum || selection_data.position?.page;
+    const rawX =
+      selection_data.textX !== undefined
+        ? selection_data.textX
+        : selection_data.position?.x;
+    const rawY =
+      selection_data.textY !== undefined
+        ? selection_data.textY
+        : selection_data.position?.y;
+    const rawWidth =
+      selection_data.textWidth !== undefined
+        ? selection_data.textWidth
+        : selection_data.position?.width;
+    const rawHeight =
+      selection_data.textHeight !== undefined
+        ? selection_data.textHeight
+        : selection_data.position?.height;
+
+    // 2. Pulizia totale: trasformiamo tutto in numeri puri.
+    // Se dentro c'è un elemento HTML o un oggetto strano, parseFloat lo blocca ed evita l'errore.
+    const page = Number(rawPage || 0);
+    const x = parseFloat(rawX);
+    const y = parseFloat(rawY);
+    const width = parseFloat(rawWidth);
+    const height = parseFloat(rawHeight);
+
+    // 3. Costruiamo l'oggetto NOTA usando solo i numeri puliti
+    const note = {
+      document_id: pdfId,
+      type: "NOTE",
+      text: selection_data.text,
+      content: content,
+      position: {
+        page: page,
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+      },
+    };
+    console.log(note);
+    const newArray = [...notesArray, note];
+    setNotesArray(newArray);
+    window.getSelection()?.removeAllRanges();
+    setSelectionData(null);
+
+    // Aggiorna subito lo stato locale dei messaggi AI con isSaved: true
+    if (selection_data.text) {
+      setAiMessages((prev) =>
+        prev.map((msg) => {
+          if (!msg.selection_data) return msg;
+          const sd =
+            typeof msg.selection_data === "string"
+              ? (() => {
+                  try {
+                    return JSON.parse(msg.selection_data);
+                  } catch {
+                    return null;
+                  }
+                })()
+              : msg.selection_data;
+          if (sd && sd.text === selection_data.text) {
+            return {
+              ...msg,
+              selection_data: { ...sd, isSaved: true },
+            };
+          }
+          return msg;
+        }),
+      );
+    }
+
+    const { data: noteData, error } = await apiCalls.notes.SaveNoteToDB(
+      session?.access_token,
+      pdfId,
+      note,
+    );
+    if (error) {
+      console.log("err", error);
+    } else if (noteData?.noteId) {
+      // Aggiorna la nota appena inserita con il suo ID reale
+      setNotesArray((prev) =>
+        prev.map((n) => (n === note ? { ...n, note_id: noteData.note_id } : n)),
+      );
+    }
+
+    // Aggiorna isSaved nel DB per tutti i messaggi AI associati a questa selezione
+    if (selection_data.text) {
+      await apiCalls.ai.markMessagesAsSaved(
+        session?.access_token,
+        pdfId,
+        selection_data.text,
+      );
+    }
   };
   return (
     <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
@@ -480,6 +606,7 @@ const PdfPage = () => {
               toggleAiSidebar={toggleAiSidebar}
               messages={aiMessages}
               setMessages={setAiMessages}
+              onSaveAsNote={onSaveAsNote}
             />
           )}
         </AnimatePresence>

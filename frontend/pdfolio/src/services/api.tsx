@@ -370,13 +370,22 @@ export const apiCalls = {
     },
   },
   ai: {
-    async askAi(token, documentId: string, prompt: string) {
+    async askAi(
+      token,
+      documentId: string,
+      prompt: string,
+      context: {
+        history: any[];
+        isExplaining: boolean;
+        selection_data: any;
+      },
+    ) {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/ai/ask/${documentId}`,
           {
             method: "POST",
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ prompt, ...context }),
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
@@ -391,6 +400,29 @@ export const apiCalls = {
         }
         const { data } = await response.json();
         console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async markMessagesAsSaved(token, documentId: string, selectionText: string) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/ai/messages/${documentId}/mark-saved`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({ selectionText }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
         return { data: null, error: err };

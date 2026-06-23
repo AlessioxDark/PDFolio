@@ -1,12 +1,22 @@
 const supabase = require("../config/db.js");
-const { GoogleGenAI } = require("@google/genai");
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const { OpenAI } = require("openai");
+
+// Inizializzazione di OpenRouter usando l'SDK di OpenAI
+const openai = new OpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 const askAi = async (req, res) => {
   try {
     console.log("ok");
     const { documentId } = req.params;
-    const { prompt } = req.body;
-
+    const { prompt, history, isExplaining, selection_data } = req.body;
+    const formattedHistory = (history || [])
+      .filter((msg) => msg.content && msg.content.trim() !== "")
+      .map((msg) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content.trim(),
+      }));
     if (!prompt) {
       return {
         data: null,
@@ -74,36 +84,66 @@ Nel testo del contesto ogni pagina è marcata con "[Pagina X]". Quando rispondi 
 - Utilizza il **grassetto** solo per i concetti chiave o i termini tecnici fondamentali.
 - Usa gli elenchi puntati per riassunti, vantaggi/svantaggi o liste di punti.
 - Evita introduzioni verbose o frasi di circostanza (es. NON iniziare con "In base al documento fornito..."). Vai dritto al punto in modo estremamente conciso.
+
+### REGOLA SPECIALE: PROPOSTA DI NOTE AUTOMATICHE
+Quando rispondi a un utente che ha attivato la funzione "Spiega con AI", devi SEMPRE impacchettare la tua spiegazione principale o il riassunto strutturato all'interno di un tag XML personalizzato chiamato <crea-nota>. 
+
+La struttura deve essere tassativamente questa:
+<crea-nota page="Numero_Della_Pagina_Corrente">
+[Qui inserisci il contenuto vero e proprio della tua spiegazione o sintesi, usando il normale Markdown come grassetti o elenchi puntati]
+</crea-nota>
+
+Nota bene: Eventuali testi di cortesia iniziali o saluti (che dovresti comunque ridurre al minimo) devono stare FUORI dal tag. Il tag deve contenere solo ed esclusivamente le informazioni utili che lo studente vorrà salvare nei suoi appunti.
+
 `;
 
     // 3. Fai la chiamata usando la sintassi corretta del nuovo SDK
-    const result = await genAI.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: [
+    // const result = await genAI.models.generateContent({
+    //   model: "gemini-2.0-flash",
+    //   contents: [
+    //     ...formattedHistory,
+    //     {
+    //       role: "user",
+    //       parts: [
+    //         {
+    //           text: `${documentText}\n\nDomanda dell'utente: ${prompt}\n\n${isExplaining && "[ATTENZIONE ASSISTENTE: L'UTENTE HA ATTIVATO LA FUNZIONE 'SPIEGA CON AI'. È OBBLIGATORIO racchiudere la tua spiegazione finale all'interno del tag <crea-nota title='...' page='...'>... </crea-nota> come descritto nelle tue istruzioni di sistema.]"}`,
+    //         },
+    //       ],
+    //     },
+    //   ], // Qui va SOLO la domanda dell'utente
+    //   config: {
+    //     systemInstruction: systemInstruction, // Le istruzioni di sistema vanno qui dentro!
+    //   },
+    // });
+
+    // const responseText = result.text;
+    const response = await openai.chat.completions.create({
+      model: "openrouter/auto", // <--- Cerca il modello gratuito migliore in tempo reale
+      messages: [
+        { role: "system", content: systemInstruction },
+        ...formattedHistory,
         {
+          content: `${documentText}\n\nDomanda dell'utente: ${prompt}\n\n${isExplaining && "[ATTENZIONE ASSISTENTE: L'UTENTE HA ATTIVATO LA FUNZIONE 'SPIEGA CON AI'. È OBBLIGATORIO racchiudere la tua spiegazione finale all'interno del tag <crea-nota title='...' page='...'>... </crea-nota> come descritto nelle tue istruzioni di sistema.]"}`,
+
           role: "user",
-          parts: [
-            { text: `${documentText}\n\nDomanda dell'utente: ${prompt}` },
-          ],
         },
-      ], // Qui va SOLO la domanda dell'utente
-      config: {
-        systemInstruction: systemInstruction, // Le istruzioni di sistema vanno qui dentro!
-      },
+      ],
     });
 
-    const responseText = result.text;
-
+    const responseText = response.choices[0].message.content;
     const { error: insertError } = await supabase.from("messaggi_ai").insert([
       {
         role: "user",
         content: prompt,
         document_id: documentId,
+        user_id: user.id,
       },
       {
         role: "assistant",
         content: responseText,
         document_id: documentId,
+        selection_data,
+        user_id: user.id,
       },
     ]);
     if (insertError) throw insertError;
@@ -119,6 +159,71 @@ Nel testo del contesto ogni pagina è marcata con "[Pagina X]". Quando rispondi 
   }
 };
 
+const markMessagesAsSaved = async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { selectionText } = req.body;
+
+    const authHeader = req.headers["authorization"];
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return { data: null, error: new Error("Token mancante o non valido.") };
+    }
+    const token = authHeader.split(" ")[1];
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+    if (userError) throw userError;
+
+    // Recupera tutti i messaggi con selection_data non nulla per quel documento
+    const { data: messages, error: fetchError } = await supabase
+      .from("messaggi_ai")
+      .select("message_id, selection_data")
+      .eq("document_id", documentId)
+      .eq("user_id", user.id)
+      .not("selection_data", "is", null);
+
+    if (fetchError) throw fetchError;
+
+    // Filtra i messaggi il cui selection_data.text corrisponde al testo selezionato
+    const toUpdate = messages.filter((msg) => {
+      try {
+        const sd =
+          typeof msg.selection_data === "string"
+            ? JSON.parse(msg.selection_data)
+            : msg.selection_data;
+        return sd && sd.text === selectionText;
+      } catch {
+        return false;
+      }
+    });
+
+    if (toUpdate.length === 0) {
+      return { data: { updated: 0 }, error: null };
+    }
+
+    const updatePromises = toUpdate.map(async (msg) => {
+      const sd =
+        typeof msg.selection_data === "string"
+          ? JSON.parse(msg.selection_data)
+          : msg.selection_data;
+      const updatedSd = { ...sd, isSaved: true };
+      return supabase
+        .from("messaggi_ai")
+        .update({ selection_data: updatedSd })
+        .eq("message_id", msg.message_id);
+    });
+
+    await Promise.all(updatePromises);
+
+    return { data: { updated: toUpdate.length }, error: null };
+  } catch (error) {
+    console.error("=== ERRORE markMessagesAsSaved ===", error);
+    return { data: null, error };
+  }
+};
+
 module.exports = {
   askAi,
+  markMessagesAsSaved,
 };
