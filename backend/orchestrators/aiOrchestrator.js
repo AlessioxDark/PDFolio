@@ -51,14 +51,12 @@ const withTimeout = (promise, ms, errorMessage) => {
   ]);
 };
 
-// COSTANTI DI CONFIGURAZIONE DEL CIRCUIT BREAKER
-const FAILURE_THRESHOLD = 3; // Numero di errori prima di aprire il circuito
-const COOLDOWN_PERIOD = 5 * 60 * 1000; // Tempo di blocco (5 minuti)
-const GEMINI_TIMEOUT = 4000; // Timeout aggressivo per Gemini (4s)
-const COHERE_TIMEOUT = 6000; // Timeout per Cohere (6s)
-const GROQ_TIMEOUT = 5000; // Timeout per Groq (5s)
+const FAILURE_THRESHOLD = 3;
+const COOLDOWN_PERIOD = 5 * 60 * 1000;
+const GEMINI_TIMEOUT = 4000;
+const COHERE_TIMEOUT = 6000;
+const GROQ_TIMEOUT = 5000;
 
-// STATI DEI CIRCUITI (Uno per ogni provider, per un isolamento totale)
 const breakerStates = {
   GEMINI: { state: "CLOSED", failures: 0, nextAttempt: 0 },
   COHERE: { state: "CLOSED", failures: 0, nextAttempt: 0 },

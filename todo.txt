@@ -1,25 +1,14 @@
-creare workspaces ??? non lo so
-
-dare risposta ai con spiega ai che sia utile per creare una nota
-generazione quiz con ai?
 tags
-
 buggato sleectio menu non si apre sempre e come dovrebbe
 
 
 selectionmenu:
 aggiungi semplifica
 aggiungi fai esempio
-
-Navigazione Semantica
-INDICE GENERATO DALL'ai?
-
 modfiica, leggi note/evidenziazioni?
-
-chat nella nota?
-chat nella cartella? 
-chat nel workspace?
 più colori di evidenziazioni?
 generare riassunto da esportare con ai?
 esportare note?
-generare mappe?
+sottocartelle
+deep link
+migliorare interfaccia

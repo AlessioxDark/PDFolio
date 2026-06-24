@@ -12,7 +12,6 @@ import SelectionMenu from "../../features/pdfPage/SelectionMenu";
 import { useNotes } from "../../contexts/NotesContext";
 import UnderlinedElement from "../../components/UnderlinedElement";
 import PdfPageAiSidebar from "@/features/pdfPage/PdfPageAiSidebar";
-// Imposta il worker di react-pdf usando unpkg per evitare problemi con Vite
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PdfPage = () => {
