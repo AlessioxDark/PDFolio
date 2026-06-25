@@ -42,9 +42,12 @@ const NotesSidebarElement = ({
 
   return (
     <div
-      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2 ${
-        note.type === "HIGHLIGHT" ? "border-[#FDE047]" : "border-accent"
-      } shadow-[0_12px_8px_rgba(0,0,0,0.08)]`}
+      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2  shadow-[0_12px_8px_rgba(0,0,0,0.08)]`}
+      style={{
+        // Usiamo lo style inline perché Tailwind non supporta classi arbitrarie interpolate in stringa
+        borderLeftColor:
+          note.type === "HIGHLIGHT" ? note.color : "var(--accent)",
+      }}
       onClick={() => {
         scrollToNoteInPdf(note.position);
       }}
@@ -54,7 +57,7 @@ const NotesSidebarElement = ({
           <div className="flex flex-row items-center gap-2">
             <div
               className={`aspect-square h-4 rounded-md ${
-                note.type === "HIGHLIGHT" ? "bg-[#FDE047]" : "bg-accent"
+                note.type === "HIGHLIGHT" ? `bg-[${note.color}]` : "bg-accent"
               }`}
             />
             <span className="font-semibold text-[10px] font-inter text-text-1">
@@ -78,13 +81,14 @@ const NotesSidebarElement = ({
                 isExpanded ? "" : "line-clamp-5"
               } ${
                 note.type === "HIGHLIGHT"
-                  ? "text-text-1 text-sm"
+                  ? "text-black text-sm"
                   : "text-black text-xl"
               }`}
               style={{
                 backgroundColor:
                   note.type === "HIGHLIGHT"
-                    ? "rgba(253, 224, 71, 0.5)"
+                    ? // ? "rgba(253, 224, 71, 0.5)"
+                      note.color
                     : "rgba(147, 51, 234, 0.4)",
                 padding: "0px 2px",
                 WebkitBoxDecorationBreak: "clone",
@@ -96,7 +100,7 @@ const NotesSidebarElement = ({
             </span>
           </div>
 
-          {!isSent ? (
+          {note.type === "NOTE" && !isSent ? (
             <div
               onClick={(e) => e.stopPropagation()}
               className="flex flex-col gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200"

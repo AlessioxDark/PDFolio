@@ -213,7 +213,7 @@ const PdfPage = () => {
     });
   };
 
-  const handleUnderlineAction = async () => {
+  const handleUnderlineAction = async (color: string) => {
     if (!selectionData) return;
     const highlight: any = {
       document_id: pdfId,
@@ -227,6 +227,7 @@ const PdfPage = () => {
         width: selectionData.textWidth,
         height: selectionData.textHeight,
       },
+      color,
     };
     // Aggiungi subito all'array locale per reattività immediata
     setNotesArray((prev) => [...prev, highlight]);
@@ -316,14 +317,24 @@ const PdfPage = () => {
     }, 100);
   };
 
-  const onAskAi = async () => {
+  const onAskAi = async (type) => {
     if (!selectionData) return;
     const currentSelection = selectionData;
     setActiveSidebar("AI");
+    let promptMessage = "";
+
+    if (type === "explain") {
+      promptMessage = "Spiegami questo passaggio del documento";
+    }
+    if (type === "simplify") {
+      promptMessage = "Semplifica questo passaggio del documento";
+    }
+    if (type === "example") {
+      promptMessage = "Fammi un esempio di questo passaggio del documento";
+    }
     const message = {
       role: "user",
-      content: `Spiegami questo passaggio del documento:
-      ${currentSelection.text}`,
+      content: promptMessage + ":\n" + `${currentSelection.text}`,
       selection_data: {
         document_id: pdfId,
         text: currentSelection.text,
@@ -345,7 +356,9 @@ const PdfPage = () => {
       message.content,
       {
         history: null,
-        isExplaining: true,
+        isExplaining: type === "explain",
+        isSimplify: type === "simplify",
+        isExample: type === "example",
         selection_data: message.selection_data,
       },
     );

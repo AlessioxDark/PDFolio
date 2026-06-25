@@ -20,7 +20,6 @@ const PdfPageAiSidebar = ({
   onSaveAsNote: (selection_data: any, content: string) => Promise<void>;
 }) => {
   const [currentMessage, setCurrentMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { session } = useAuth();
   const { pdfId } = useParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,6 +42,8 @@ const PdfPageAiSidebar = ({
       {
         history: messages.slice(messages.length - 4),
         isExplaining: false,
+        isSimplify: false,
+        isExample: false,
         selection_data: null,
       },
     );

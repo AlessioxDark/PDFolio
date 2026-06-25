@@ -11,6 +11,7 @@ const UnderlinedElement = ({
   scale: number;
   scrollToNote: (note: any) => void;
 }) => {
+  console.log("sotto", sotto);
   return (
     <div
       key={sotto.note_id || `${pos.page}-${pos.x}-${pos.y}`}
@@ -22,7 +23,8 @@ const UnderlinedElement = ({
         height: `${pos.height * scale}px`,
         backgroundColor:
           sotto.type === "HIGHLIGHT"
-            ? "rgba(253, 224, 71, 0.4)"
+            ? // ? "rgba(253, 224, 71, 0.4)"
+              sotto.color
             : "rgba(147, 51, 234, 0.3)",
         mixBlendMode: "multiply",
         cursor: "pointer",
