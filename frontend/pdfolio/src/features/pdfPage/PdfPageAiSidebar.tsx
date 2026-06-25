@@ -7,6 +7,7 @@ import { apiCalls } from "@/services/api";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw"; // <-- IMPORTA IL PLUGIN REHYPE
 import AIMessage from "../ai/AIMessage";
+import { useNotes } from "@/contexts/NotesContext";
 
 const PdfPageAiSidebar = ({
   toggleAiSidebar,
@@ -23,6 +24,8 @@ const PdfPageAiSidebar = ({
   const { session } = useAuth();
   const { pdfId } = useParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { notesArray } = useNotes();
+  const [isLoading, setIsLoading] = useState(false);
   const handleSendAi = async () => {
     if (!session || !pdfId || currentMessage === "") return;
     setIsLoading(true);
@@ -45,6 +48,7 @@ const PdfPageAiSidebar = ({
         isSimplify: false,
         isExample: false,
         selection_data: null,
+        notes: notesArray,
       },
     );
     setMessages((prev) => {

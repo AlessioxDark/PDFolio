@@ -360,6 +360,7 @@ const PdfPage = () => {
         isSimplify: type === "simplify",
         isExample: type === "example",
         selection_data: message.selection_data,
+        notes: notesArray,
       },
     );
     setAiMessages((prev) => {

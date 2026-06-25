@@ -17,7 +17,7 @@ const askAi = async (req, res) => {
   try {
     console.log("ok");
     const { documentId } = req.params;
-    const { prompt, history, isExplaining, selection_data } = req.body;
+    const { prompt, history, isExplaining, selection_data, notes } = req.body;
 
     if (!prompt) {
       return {
@@ -68,6 +68,7 @@ const askAi = async (req, res) => {
       documentText,
       prompt,
       isExplaining,
+      notes,
     });
     //     try {
     //       let systemInstruction = `Sei l'assistente AI ufficiale di PDFolio, un copilota intelligente e analitico progettato per aiutare gli utenti a studiare, comprendere e analizzare documenti e PDF.

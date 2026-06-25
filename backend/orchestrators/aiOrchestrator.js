@@ -11,7 +11,7 @@ const genAI = new GoogleGenAI({
 const BASE_SYSTEM_INSTRUCTION = `Sei l'assistente AI ufficiale di PDFolio, un copilota intelligente e analitico progettato per aiutare gli utenti a studiare, comprendere e analizzare documenti e PDF.
   
   ### OBIETTIVO PRINCIPALE
-  Il tuo compito è rispondere alle domande dell'utente basandoti ESCLUSIVAMENTE sui fatti e sui concetti del documento fornito all'interno dei tag <document_context>...</document_context>. Tu hai una conoscenza perfetta e assoluta di questo testo.
+  Il tuo compito è rispondere alle domande dell'utente basandoti ESCLUSIVAMENTE sui fatti e sui concetti del documento fornito all'interno dei tag <document_context>...</document_context>. Tu hai una conoscenza perfetta e assoluta di questo testo.che contiene il testo del libro, il tag <user_notes>, che contiene le annotazioni, i dubbi o i riassunti scritti a mano dall'utente o le frasi che ha evidenziato. Usa le note dell'utente per capire cosa ritiene importante o dove ha difficoltà.
 
   ### GESTIONE DELLE TRE MODALITÀ DI RISPOSTA
   A seconda della richiesta dell'utente (che ti verrà specificata nel prompt), devi calibrare la struttura del tuo output:
@@ -45,6 +45,7 @@ const BASE_SYSTEM_INSTRUCTION = `Sei l'assistente AI ufficiale di PDFolio, un co
   [Qui inserisci il contenuto vero e proprio della tua spiegazione o sintesi, usando il normale Markdown]
   </crea-nota>
 `;
+
 const withTimeout = (promise, ms, errorMessage) => {
   return Promise.race([
     promise,
@@ -185,29 +186,35 @@ const getChatResponse = async ({
   prompt,
   isExplaining,
   isSimplify,
+  notes,
   isExample,
 }) => {
   console.log("sto exp", isExplaining);
-
-  // const isSimplify = prompt.toLowerCase().includes("semplifica");
-  // const isExample = prompt.toLowerCase().includes("esempio");
-
+  const formattedNotes =
+    notes && notes.length > 0
+      ? notes
+          .map(
+            (n) =>
+              `- [Pagina ${n.position?.page || "N/D"}]: "${n.content || n.text}"`,
+          )
+          .join("\n")
+      : "Nessuna nota o evidenziazione presente nel documento.";
   let directive = "";
   if (isExplaining && !isSimplify && !isExample) {
-    // Caso: Tasto "Spiega nel dettaglio" o flusso standard di spiegazione
     directive =
       "\n\n[DIRETTIVA ASSISTENTE: L'utente richiede di SPIEGARE IL DETTAGLIO. È OBBLIGATORIO l'uso del tag <crea-nota> per questa risposta.]";
   } else if (isSimplify) {
-    // Caso: Tasto "Semplifica"
     directive =
       "\n\n[DIRETTIVA ASSISTENTE: L'utente richiede di SEMPLIFICARE il concetto. NON usare assolutamente il tag <crea-nota>.]";
   } else if (isExample) {
-    // Caso: Tasto "Fai un esempio"
     directive =
       "\n\n[DIRETTIVA ASSISTENTE: L'utente richiede di FARE UN ESEMPIO pratico. NON usare assolutamente il tag <crea-nota>.]";
   }
 
-  const fullPrompt = `<document_context>\n${documentText}\n</document_context>\n\nDomanda dell'utente: ${prompt}${directive}`;
+  const fullPrompt = `<document_context>\n${documentText}\n</document_context>\n\n <user_notes>
+Ecco le note e le parti evidenziate dall'utente su questo documento:
+${formattedNotes}
+</user_notes>\n\nDomanda dell'utente: ${prompt}${directive}`;
 
   if (isAllowed("GEMINI")) {
     try {

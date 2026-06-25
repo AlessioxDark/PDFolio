@@ -2,13 +2,12 @@ tags
 buggato sleectio menu non si apre sempre e come dovrebbe
 
 
-selectionmenu:
-aggiungi semplifica
-aggiungi fai esempio
+
 modfiica, leggi note/evidenziazioni?
-più colori di evidenziazioni?
 generare riassunto da esportare con ai?
 esportare note?
 sottocartelle
 deep link
 migliorare interfaccia
+
+filtro evidenziazioni per colore?
