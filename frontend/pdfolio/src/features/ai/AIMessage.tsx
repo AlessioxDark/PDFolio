@@ -1,3 +1,4 @@
+import { useNotes } from "@/contexts/NotesContext";
 import React, { useState, useEffect } from "react";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -5,12 +6,16 @@ import rehypeRaw from "rehype-raw";
 const AIMessage = ({
   m,
   onSaveAsNote,
+  onUpdateNote,
+  onReject,
 }: {
   m: any;
   onSaveAsNote: (selectionData: any, content: string) => Promise<void>;
+  onUpdateNote: (noteId: string, content: string) => Promise<void>;
+  onReject: (selectionText: string) => Promise<void>;
 }) => {
   const isUser = m.role === "user";
-
+  const { notesArray } = useNotes();
   const getParsedSelectionData = (msg: any) => {
     if (!msg || !msg.selection_data) return null;
     let data = msg.selection_data;
@@ -38,12 +43,21 @@ const AIMessage = ({
   const [isSaved, setIsSaved] = useState<boolean>(
     !!selectionDataToUse?.isSaved,
   );
+  const [isModified, setIsModified] = useState<boolean>(
+    !!selectionDataToUse?.isModified,
+  );
+  const [isRejected, setIsRejected] = useState<boolean>(
+    !!selectionDataToUse?.isRejected,
+  );
 
-  // Resincronizza isSaved quando la prop m.selection_data cambia dall'esterno
+  // Resincronizza gli stati quando la prop m.selection_data cambia dall'esterno
   useEffect(() => {
     const sd = getParsedSelectionData(m);
     setIsSaved(!!sd?.isSaved);
+    setIsModified(!!sd?.isModified);
+    setIsRejected(!!sd?.isRejected);
   }, [m.selection_data]);
+
   return (
     <div
       key={m.message_id}
@@ -78,55 +92,179 @@ const AIMessage = ({
               <p className="my-0 leading-relaxed" {...props} />
             ),
             "crea-nota": ({ node, children, ...props }: any) => {
-              const page = props.page ? parseInt(props.page) : 1;
-
               return (
-                <div className="my-3 p-4 border border-accent bg-light-accent rounded-xl flex flex-col gap-2 shadow-sm text-left">
-                  <div className="text-black font-bold text-sm">
-                    {selectionDataToUse?.text && selectionDataToUse.text}
-                    <span className="text-neutral-500 font-normal text-xs">
-                      (Pag. {page})
+                <div className="my-3 p-4 border border-purple-200 bg-light-accent rounded-xl flex flex-col gap-3 shadow-sm text-left font-inter">
+                  {/* 🏷️ TITOLO DELLA NUOVA NOTA */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
+                      Titolo della nota
                     </span>
+                    <div className="text-neutral-800 font-bold text-sm bg-white/60 border border-emerald-100/50 rounded-lg px-2.5 py-1.5 shadow-sm">
+                      {selectionDataToUse?.text}
+                    </div>
                   </div>
 
-                  {/* Mostra il testo formattato internamente al box della nota */}
-
-                  <div className="text-neutral-700 text-xs border-l-2 border-accent pl-3 py-1 bg-light-accent rounded-r-md">
-                    <Markdown
-                      rehypePlugins={[rehypeRaw]}
-                      components={{
-                        // Customizziamo i paragrafi per non lasciare margini giganti dentro le note
-                        p: ({ ...props }) => (
-                          <p
-                            className="my-0 leading-relaxed inline"
-                            {...props}
-                          />
-                        ),
-                        ul: ({ ...props }) => (
-                          <ul className="list-disc pl-4 my-1" {...props} />
-                        ),
-                        ol: ({ ...props }) => (
-                          <ol className="list-decimal pl-4 my-1" {...props} />
-                        ),
-                      }}
-                    >
-                      {extractText(children)}
-                    </Markdown>
+                  {/* 📖 CONTENUTO PROPOSTO DALL'AI */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
+                      Contenuto generato
+                    </span>
+                    <div className="text-neutral-800 text-xs bg-white border border-gray-100 p-3 rounded-lg shadow-inner leading-relaxed">
+                      <Markdown
+                        rehypePlugins={[rehypeRaw]}
+                        components={{
+                          p: ({ ...props }) => (
+                            <p
+                              className="my-0 leading-relaxed inline"
+                              {...props}
+                            />
+                          ),
+                          ul: ({ ...props }) => (
+                            <ul className="list-disc pl-4 my-1" {...props} />
+                          ),
+                          ol: ({ ...props }) => (
+                            <ol className="list-decimal pl-4 my-1" {...props} />
+                          ),
+                        }}
+                      >
+                        {extractText(children)}
+                      </Markdown>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={async () => {
-                      if (selectionDataToUse) {
-                        const contentText = extractText(children);
-                        await onSaveAsNote(selectionDataToUse, contentText);
-                        setIsSaved(true);
-                      }
-                    }}
-                    className="w-full mt-2 bg-accent hover:bg-accent/80 text-white font-medium text-xs py-2 px-3 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer font-inter disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
-                    disabled={isSaved}
-                  >
-                    {isSaved ? "Già salvata" : "Salva come nota"}
-                  </button>
+                  {/* AZIONI DELLA CARD */}
+                  <div className="flex gap-2 justify-end mt-1 font-inter">
+                    {isRejected ? (
+                      <span className="text-xs text-neutral-400 italic py-2">
+                        Suggerimento scartato
+                      </span>
+                    ) : isSaved ? (
+                      <span className="text-xs text-accent font-semibold py-2">
+                        Nota salvata
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={async () => {
+                            if (selectionDataToUse) {
+                              await onReject(selectionDataToUse.text);
+                              setIsRejected(true);
+                            }
+                          }}
+                          className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-700 bg-neutral-2 rounded-lg transition-all cursor-pointer"
+                        >
+                          Scarta
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            if (selectionDataToUse && !isSaved) {
+                              const contentText = extractText(children);
+                              await onSaveAsNote(
+                                selectionDataToUse,
+                                contentText,
+                              );
+                              setIsSaved(true);
+                            }
+                          }}
+                          className="bg-accent hover:bg-accent/80 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          Aggiungi alle note
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            },
+
+            "modifica-nota": ({ node, children, ...props }: any) => {
+              const notaOriginale = notesArray.find(
+                (note) => note.note_id === props.note_id,
+              );
+              return (
+                <div className="my-3 p-4 border border-purple-200 bg-light-accent rounded-xl flex flex-col gap-3 shadow-sm text-left font-inter">
+                  {/* 📌 TITOLO DELLA NOTA */}
+                  <div className="text-neutral-800 font-bold text-sm flex items-center gap-1.5">
+                    <span>{notaOriginale?.text}</span>
+                  </div>
+                  {/* 1. VECCHIO TESTO (Nota Corrente nel DB) */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
+                      Testo attuale
+                    </span>
+                    <div className="text-neutral-500 text-xs bg-neutral-100/70 border border-neutral-200 rounded-lg p-2.5 line-through italic max-h-24 overflow-y-auto">
+                      {notaOriginale?.content ||
+                        notaOriginale?.text ||
+                        "Nessun contenuto precedente."}
+                    </div>
+                  </div>
+                  {/* 2. NUOVO TESTO PROPOSTO (Dall'AI) */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-violet-500 uppercase tracking-wide">
+                      Nuova proposta di revisione
+                    </span>
+                    <div className="text-neutral-800 text-xs bg-white border border-violet-100 p-3 rounded-lg shadow-inner leading-relaxed">
+                      <Markdown
+                        rehypePlugins={[rehypeRaw]}
+                        components={{
+                          p: ({ ...props }) => (
+                            <p
+                              className="my-0 leading-relaxed inline"
+                              {...props}
+                            />
+                          ),
+                          ul: ({ ...props }) => (
+                            <ul className="list-disc pl-4 my-1" {...props} />
+                          ),
+                          ol: ({ ...props }) => (
+                            <ol className="list-decimal pl-4 my-1" {...props} />
+                          ),
+                        }}
+                      >
+                        {extractText(children)}
+                      </Markdown>
+                    </div>
+                  </div>
+                  {/* CONTROLLI DI AZIONE [RIFIUTA / ACCETTA] */}
+                  <div className="flex gap-2 justify-end mt-1 font-inter">
+                    {isRejected ? (
+                      <span className="text-xs text-neutral-400 italic py-2">
+                        Proposta rifiutata
+                      </span>
+                    ) : isModified ? (
+                      <span className="text-xs text-accent font-semibold py-2">
+                        Modifica applicata
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={async () => {
+                            if (notaOriginale) {
+                              await onReject(notaOriginale.text);
+                              setIsRejected(true);
+                            }
+                          }}
+                          className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-700 bg-neutral-2 rounded-lg transition-all cursor-pointer"
+                        >
+                          Rifiuta
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            if (notaOriginale && !isModified) {
+                              const contentText = extractText(children);
+                              await onUpdateNote(props.note_id, contentText);
+                              setIsModified(true);
+                            }
+                          }}
+                          className="bg-accent hover:bg-accent/80 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          Applica Modifica
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               );
             },

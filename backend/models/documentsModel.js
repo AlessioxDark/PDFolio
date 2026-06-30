@@ -90,6 +90,15 @@ const deleteNote = async (req) => {
   try {
     const { pdfId, noteId } = req.params;
 
+    // 1. Recupera il testo della nota prima di eliminarla
+    const { data: noteToDelete } = await supabase
+      .from("note")
+      .select("text, user_id")
+      .eq("note_id", noteId)
+      .eq("document_id", pdfId)
+      .single();
+
+    // 2. Elimina la nota dal database
     const { error: noteError } = await supabase
       .from("note")
       .delete()
@@ -97,6 +106,54 @@ const deleteNote = async (req) => {
       .eq("document_id", pdfId); // Sicurezza extra: cancella solo se la nota appartiene davvero a questo PDF
 
     if (noteError) throw noteError;
+
+    // 3. Se recuperata con successo, resetta lo stato dei messaggi AI associati
+    if (noteToDelete && noteToDelete.text) {
+      const selectionText = noteToDelete.text;
+      const userId = noteToDelete.user_id;
+
+      const { data: messages } = await supabase
+        .from("messaggi_ai")
+        .select("message_id, selection_data")
+        .eq("document_id", pdfId)
+        .eq("user_id", userId)
+        .not("selection_data", "is", null);
+
+      if (messages && messages.length > 0) {
+        const toReset = messages.filter((msg) => {
+          try {
+            const sd =
+              typeof msg.selection_data === "string"
+                ? JSON.parse(msg.selection_data)
+                : msg.selection_data;
+            return sd && sd.text === selectionText;
+          } catch {
+            return false;
+          }
+        });
+
+        if (toReset.length > 0) {
+          const resetPromises = toReset.map(async (msg) => {
+            const sd =
+              typeof msg.selection_data === "string"
+                ? JSON.parse(msg.selection_data)
+                : msg.selection_data;
+            const updatedSd = {
+              ...sd,
+              isSaved: false,
+              isModified: false,
+              isRejected: false,
+            };
+            return supabase
+              .from("messaggi_ai")
+              .update({ selection_data: updatedSd })
+              .eq("message_id", msg.message_id);
+          });
+          await Promise.all(resetPromises);
+        }
+      }
+    }
+
     return { data: { success: true }, error: null };
   } catch (error) {
     return { data: null, error: error };

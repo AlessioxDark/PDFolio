@@ -14,11 +14,15 @@ const PdfPageAiSidebar = ({
   messages,
   setMessages,
   onSaveAsNote,
+  onUpdateNote,
+  onReject,
 }: {
   toggleAiSidebar: () => void;
   messages: any[];
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   onSaveAsNote: (selection_data: any, content: string) => Promise<void>;
+  onUpdateNote: (noteId: string, content: string) => Promise<void>;
+  onReject: (selectionText: string) => Promise<void>;
 }) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const { session } = useAuth();
@@ -96,7 +100,14 @@ const PdfPageAiSidebar = ({
       {/* 2. CHAT MESSAGES AREA (Scrollabile) */}
       <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
         {messages.map((m) => {
-          return <AIMessage m={m} onSaveAsNote={onSaveAsNote} />;
+          return (
+            <AIMessage
+              onUpdateNote={onUpdateNote}
+              onReject={onReject}
+              m={m}
+              onSaveAsNote={onSaveAsNote}
+            />
+          );
         })}
         {isLoading && (
           <div className="mr-auto bg-white border border-neutral-3 rounded-2xl px-4 py-3 text-xs text-neutral-400 font-inter shadow-sm flex items-center gap-2">

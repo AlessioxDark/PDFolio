@@ -179,7 +179,7 @@ const SelectionMenu = ({
                 }}
                 className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
               >
-                📝 <span className="ml-1">Spiega nel dettaglio</span>
+                <span className="ml-1">Spiega nel dettaglio</span>
               </button>
               <button
                 onClick={(e) => {
@@ -189,7 +189,7 @@ const SelectionMenu = ({
                 }}
                 className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
               >
-                🪄 <span className="ml-1">Semplifica concetto</span>
+                <span className="ml-1">Semplifica concetto</span>
               </button>
               <button
                 onClick={(e) => {
@@ -199,7 +199,7 @@ const SelectionMenu = ({
                 }}
                 className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
               >
-                💡 <span className="ml-1">Fai un esempio</span>
+                <span className="ml-1">Fai un esempio</span>
               </button>
             </div>
           )}

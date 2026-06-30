@@ -38,6 +38,7 @@ const PdfPage = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const notesContainerRef = useRef<HTMLDivElement>(null);
   const [aiMessages, setAiMessages] = useState([]);
+  const prevNotesRef = useRef(notesArray);
   const toggleNotesSidebar = () => {
     setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
   };
@@ -104,6 +105,51 @@ const PdfPage = () => {
       }
     }
   }, [numPages, notesArray, searchParams]); // Dipendenze pulite e sincronizzate
+
+  useEffect(() => {
+    // Trova le note che c'erano prima ma non ci sono più adesso
+    const deletedNotes = prevNotesRef.current.filter(
+      (prevNote) => !notesArray.some((n) => n.note_id === prevNote.note_id)
+    );
+
+    if (deletedNotes.length > 0) {
+      // Per ogni nota eliminata, ripristina lo stato dei messaggi AI associati
+      setAiMessages((prev) =>
+        prev.map((msg) => {
+          if (!msg.selection_data) return msg;
+          const sd =
+            typeof msg.selection_data === "string"
+              ? (() => {
+                  try {
+                    return JSON.parse(msg.selection_data);
+                  } catch {
+                    return null;
+                  }
+                })()
+              : msg.selection_data;
+
+          const matchesDeleted = deletedNotes.some(
+            (dn) => sd && sd.text === dn.text
+          );
+
+          if (matchesDeleted) {
+            return {
+              ...msg,
+              selection_data: {
+                ...sd,
+                isSaved: false,
+                isModified: false,
+                isRejected: false,
+              },
+            };
+          }
+          return msg;
+        })
+      );
+    }
+
+    prevNotesRef.current = notesArray;
+  }, [notesArray]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -476,6 +522,93 @@ const PdfPage = () => {
       );
     }
   };
+  const onUpdateNote = async (noteId, newContent) => {
+    const targetNote = notesArray.find((n) => n.note_id === noteId);
+    const selectionText = targetNote?.text;
+
+    const newArray = notesArray.map((n) => {
+      if (n.note_id === noteId) {
+        return { ...n, content: newContent };
+      }
+      return n;
+    });
+    setNotesArray(newArray);
+
+    if (selectionText) {
+      setAiMessages((prev) =>
+        prev.map((msg) => {
+          if (!msg.selection_data) return msg;
+          const sd =
+            typeof msg.selection_data === "string"
+              ? (() => {
+                  try {
+                    return JSON.parse(msg.selection_data);
+                  } catch {
+                    return null;
+                  }
+                })()
+              : msg.selection_data;
+          if (sd && sd.text === selectionText) {
+            return {
+              ...msg,
+              selection_data: { ...sd, isSaved: true, isModified: true },
+            };
+          }
+          return msg;
+        }),
+      );
+    }
+    const { error } = await apiCalls.notes.UpdateNoteInDB(
+      session?.access_token,
+      pdfId,
+      noteId,
+      newContent,
+    );
+    if (error) {
+      console.log("err", error);
+    }
+    if (selectionText) {
+      await apiCalls.ai.markMessageAsModified(
+        session?.access_token,
+        pdfId,
+        selectionText,
+      );
+    }
+  };
+
+  const onReject = async (selectionText: string) => {
+    setAiMessages((prev) =>
+      prev.map((msg) => {
+        if (!msg.selection_data) return msg;
+        const sd =
+          typeof msg.selection_data === "string"
+            ? (() => {
+                try {
+                  return JSON.parse(msg.selection_data);
+                } catch {
+                  return null;
+                }
+              })()
+            : msg.selection_data;
+        if (sd && sd.text === selectionText) {
+          return {
+            ...msg,
+            selection_data: { ...sd, isRejected: true },
+          };
+        }
+        return msg;
+      }),
+    );
+
+    const { error } = await apiCalls.ai.markMessageAsRejected(
+      session?.access_token,
+      pdfId,
+      selectionText,
+    );
+    if (error) {
+      console.log("err", error);
+    }
+  };
   return (
     <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
       <PdfPageHeader
@@ -616,6 +749,8 @@ const PdfPage = () => {
           )}
           {activeSidebar === "AI" && (
             <PdfPageAiSidebar
+              onUpdateNote={onUpdateNote}
+              onReject={onReject}
               toggleAiSidebar={toggleAiSidebar}
               messages={aiMessages}
               setMessages={setAiMessages}

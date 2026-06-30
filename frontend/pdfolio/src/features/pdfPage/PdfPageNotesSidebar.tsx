@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import CrossIcon from "../../icons/CrossIcon";
 import Searchbar from "../../components/Searchbar";
 import FilterPill from "../home/FilterPill";
@@ -6,8 +6,48 @@ import { AnimatePresence, motion } from "framer-motion";
 import NotesSidebarElement from "../../components/NotesSidebarElement";
 import { useNotes } from "../../contexts/NotesContext";
 import SidebarNoteDetailView from "./SidebarNoteDetailView";
-
-const FILTERS = ["Tutte", "Note", "Evidenziati"];
+const colors = [
+  {
+    id: "yellow",
+    className: "bg-[rgba(253,224,71,0.5)]",
+    label: "Giallo",
+    value: "rgba(253,224,71,0.5)",
+  },
+  {
+    id: "green",
+    className: "bg-[rgba(16,185,129,0.5)]",
+    label: "Verde",
+    value: "rgba(16,185,129,0.5)",
+  },
+  {
+    id: "blue",
+    className: "bg-[rgba(59,130,246,0.5)]",
+    label: "Blu",
+    value: "rgba(59,130,246,0.5)",
+  },
+  {
+    id: "pink",
+    className: "bg-[rgba(244,114,182,0.5)]",
+    label: "Rosa",
+    value: "rgba(244,114,182,0.5)",
+  },
+  {
+    id: "orange",
+    className: "bg-[rgb(249,115,22,0.5)]",
+    label: "Arancione",
+    value: "rgba(249,115,22,0.5)",
+  },
+];
+const FILTERS = [
+  { name: "Tutte" },
+  { name: "Note" },
+  { name: "Evidenziati" },
+  {
+    name: "Colore",
+    options: colors.map((c) => c.className),
+    currentColor: null,
+  },
+];
 
 const PdfPageNotesSidebar = ({
   toggleNotesSidebar,
@@ -25,8 +65,15 @@ const PdfPageNotesSidebar = ({
   const filteredResults = useMemo(() => {
     return notesArray.filter((note) => {
       // 1. Applica il filtro per Tipo (Tab)
-      if (selectedFilter === "Note" && note.type !== "NOTE") return false;
-      if (selectedFilter === "Evidenziati" && note.type !== "HIGHLIGHT")
+      if (selectedFilter.name === "Note" && note.type !== "NOTE") return false;
+      if (selectedFilter.name === "Evidenziati" && note.type !== "HIGHLIGHT")
+        return false;
+
+      console.log(selectedFilter);
+      if (
+        selectedFilter.name === "Colore" &&
+        note.color !== selectedFilter?.currentColor
+      )
         return false;
 
       // 2. Applica la ricerca testuale (se presente)
@@ -47,7 +94,9 @@ const PdfPageNotesSidebar = ({
       return true;
     });
   }, [notesArray, selectedFilter, searchQuery]);
-
+  useEffect(() => {
+    console.log("SEL cambiato", selectedFilter);
+  }, [selectedFilter]);
   return (
     <motion.div
       initial={{ width: 0, opacity: 0 }}
@@ -99,10 +148,11 @@ const PdfPageNotesSidebar = ({
                 />
                 <div className="flex flex-row gap-2 mt-2">
                   {FILTERS.map((filter, index) => (
-                    <div key={index} onClick={() => setSelectedFilter(filter)}>
+                    <div key={index}>
                       <FilterPill
                         label={filter}
-                        isActive={selectedFilter === filter}
+                        isActive={selectedFilter.name === filter.name}
+                        setSelectedFilter={setSelectedFilter}
                       />
                     </div>
                   ))}

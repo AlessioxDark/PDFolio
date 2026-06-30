@@ -1,9 +1,7 @@
 tags
-buggato sleectio menu non si apre sempre e come dovrebbe
 
 
 
-modfiica, leggi note/evidenziazioni?
 generare riassunto da esportare con ai?
 esportare note?
 sottocartelle
