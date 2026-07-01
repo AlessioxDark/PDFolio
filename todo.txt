@@ -2,3 +2,5 @@ tags
 esportare note?
 sottocartelle
 migliorare interfaccia
+nella creazione mettere spazio per tag
+nel dropdown mettere solo mdoifica al posto di rinomina e rendere possibile modificare tag e nome

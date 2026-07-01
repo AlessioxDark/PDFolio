@@ -35,6 +35,8 @@ const UploadDialog = ({ icon, chosenFolder }) => {
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [currentTags, setCurrentTags] = useState<string[]>([]);
+  const [inputValue, setInputValue] = useState<string>("");
   const {
     foldersData,
     setDocumentsData,
@@ -122,6 +124,7 @@ const UploadDialog = ({ icon, chosenFolder }) => {
       const fileData = new FormData();
       fileData.append("pdfFile", fileRinominato);
       fileData.append("folder_id", selectedFolder || null);
+      fileData.append("tags", JSON.stringify(currentTags));
       const { data, error } = await apiCalls.pdf.uploadPdfFile(
         session?.access_token,
         fileData,
@@ -189,7 +192,30 @@ const UploadDialog = ({ icon, chosenFolder }) => {
       setIsAnalyzing(false);
     }
   };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && inputValue.trim() !== "") {
+      e.preventDefault(); // Evita l'invio di eventuali form nativi
 
+      // Evitiamo tag duplicati
+      if (!currentTags.includes(inputValue.trim())) {
+        setCurrentTags((prev) => [...prev, inputValue.trim()]);
+      }
+      setInputValue("");
+    } else if (
+      e.key === "Backspace" &&
+      inputValue === "" &&
+      currentTags.length > 0
+    ) {
+      // Chicca UX: se premi Backspace e l'input è vuoto, cancella l'ultimo tag inserito
+      setCurrentTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const removeTag = (indexToRemove) => {
+    setCurrentTags((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
+  };
   return (
     <AlertDialog
       open={isOpen}
@@ -313,6 +339,38 @@ const UploadDialog = ({ icon, chosenFolder }) => {
               </div>
             </div>
           )}
+
+          <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+              Tags
+            </label>
+            <div className="w-full flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 p-2 bg-white focus-within:ring-1 focus-within:ring-accent focus-within:border-accent transition-all min-h-[46px]">
+              {/* 🏷️ LISTA DELLE PILLOLE */}
+              {currentTags.map((tag, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-1 bg-neutral-100 text-neutral-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200 animate-in zoom-in-95 duration-150"
+                >
+                  <span>#{tag}</span>
+                  <XIcon
+                    onClick={() => removeTag(index)}
+                    className="text-neutral-400 hover:text-neutral-600 rounded-full hover:bg-neutral-200 transition-colors cursor-pointer"
+                    size={12}
+                  />
+                </div>
+              ))}
+
+              {/* ✍️ INPUT REALE: Nudo, senza bordi, si adatta allo spazio rimasto */}
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={currentTags.length === 0 ? "Es. Economia" : ""}
+                className="flex-1 min-w-[120px] bg-transparent text-sm font-semibold text-neutral-800 focus:outline-none p-1 placeholder-neutral-400"
+              />
+            </div>
+          </div>
 
           {/* ERROR ALERT */}
           {errorMessage && (

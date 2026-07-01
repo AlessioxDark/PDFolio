@@ -216,6 +216,7 @@ const uploadPdf = async (req) => {
       .getPublicUrl(percorsoCompleto);
     const fileUrl = urlData.publicUrl;
     const rawFolderId = req.body.folder_id;
+    const rawTags = JSON.parse(req.body.tags);
     const cleanFolderId =
       rawFolderId && rawFolderId.trim() !== "" && rawFolderId !== "null"
         ? rawFolderId
@@ -225,6 +226,7 @@ const uploadPdf = async (req) => {
       nome: uploadedFile.originalname.replace(".pdf", ""),
       file_url: fileUrl,
       folder_id: cleanFolderId,
+      tags: rawTags,
     });
     if (insertError) throw insertError;
 
