@@ -214,6 +214,29 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async exportSummaryPdf(token, documentId: string, markdownContent) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}/summary/pdf`,
+          {
+            method: "POST",
+            body: JSON.stringify({ markdownContent }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          const errorData = await response.json();
+          return { data: null, error: errorData.details || errorData.message };
+        }
+        const blob = await response.blob();
+        return { data: blob, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
   folder: {
     async createFolder(session, folderData: object) {
@@ -432,7 +455,11 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async markMessageAsModified(token, documentId: string, selectionText: string) {
+    async markMessageAsModified(
+      token,
+      documentId: string,
+      selectionText: string,
+    ) {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/ai/messages/${documentId}/mark-modified`,
@@ -455,7 +482,11 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
-    async markMessageAsRejected(token, documentId: string, selectionText: string) {
+    async markMessageAsRejected(
+      token,
+      documentId: string,
+      selectionText: string,
+    ) {
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/ai/messages/${documentId}/mark-rejected`,

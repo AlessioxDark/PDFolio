@@ -1,6 +1,9 @@
+import { useAuth } from "@/contexts/AuthContext";
 import { useNotes } from "@/contexts/NotesContext";
+import { apiCalls } from "@/services/api";
 import React, { useState, useEffect } from "react";
 import Markdown from "react-markdown";
+import { useParams } from "react-router";
 import rehypeRaw from "rehype-raw";
 
 const AIMessage = ({
@@ -15,7 +18,9 @@ const AIMessage = ({
   onReject: (selectionText: string) => Promise<void>;
 }) => {
   const isUser = m.role === "user";
+  const { documentId } = useParams();
   const { notesArray } = useNotes();
+  const { session } = useAuth();
   const getParsedSelectionData = (msg: any) => {
     if (!msg || !msg.selection_data) return null;
     let data = msg.selection_data;
@@ -57,6 +62,29 @@ const AIMessage = ({
     setIsModified(!!sd?.isModified);
     setIsRejected(!!sd?.isRejected);
   }, [m.selection_data]);
+
+  const handleExportPdf = async (summaryText) => {
+    const { data, error } = await apiCalls.pdf.exportSummaryPdf(
+      session?.access_token,
+      documentId,
+      summaryText,
+    );
+    if (error) {
+      console.error("Errore esportazione PDF:", error);
+      return;
+    }
+    const downloadUrl = window.URL.createObjectURL(data);
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", `Riassunto_${documentId}.pdf`);
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  };
 
   return (
     <div
@@ -265,6 +293,20 @@ const AIMessage = ({
                       </>
                     )}
                   </div>
+                </div>
+              );
+            },
+            "export-summary": ({ node, children, ...props }: any) => {
+              return (
+                <div>
+                  <h1>Riassunto del Documento</h1>
+
+                  <button
+                    className="text-white bg-accent px-3 py-2 rounded-xl cursor-pointer"
+                    onClick={() => handleExportPdf(extractText(children))}
+                  >
+                    Esporta come PDF
+                  </button>
                 </div>
               );
             },

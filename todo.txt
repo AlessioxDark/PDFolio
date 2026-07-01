@@ -1,11 +1,4 @@
 tags
-
-
-
-generare riassunto da esportare con ai?
 esportare note?
 sottocartelle
-deep link
 migliorare interfaccia
-
-filtro evidenziazioni per colore?

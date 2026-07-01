@@ -1,6 +1,7 @@
 const supabase = require("../config/db.js");
 const crypto = require("crypto");
-const { PDFDocument } = require("pdf-lib");
+const puppeteer = require("puppeteer");
+const { marked } = require("marked");
 const getAll = async (req, res) => {
   try {
     const { data: foldersData, error: foldersError } = await supabase
@@ -340,7 +341,210 @@ const updatePdf = async (req) => {
     return { data: null, error: error };
   }
 };
+const exportSummaryPdf = async (req, res) => {
+  try {
+    const { markdownContent } = req.body;
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
+    let cleanMarkdown = markdownContent;
 
+    cleanMarkdown = cleanMarkdown
+      .replace(/<export-summary[^>]*>\s*/gi, "")
+      .replace(/\s*<\/export-summary>/gi, "");
+
+    cleanMarkdown = cleanMarkdown.replace(
+      /^(\d+\.\d+(?:\.\d+)?\s+.+)$/gm,
+      "### $1",
+    );
+    cleanMarkdown = cleanMarkdown.replace(/^(\d+\.\s+.+)$/gm, "## $1");
+
+    cleanMarkdown = cleanMarkdown.replace(/([^\n])\n(##+ )/g, "$1\n\n$2");
+    cleanMarkdown = cleanMarkdown.replace(/(##+ .+) \n([^\n])/g, "$1\n\n$2");
+
+    const htmlContent = marked.parse(cleanMarkdown);
+
+    console.log("HTML GENERATO E SANIFICATO:\n", htmlContent); // Controlla i log adesso!
+
+    const fullHtml = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+      
+      <script>
+        window.MathJax = {
+          tex: { inlineMath: [['$', '$'], ['\\\\(', '\\\\)']], displayMath: [['$$', '$$']] },
+          startup: { typeset: false }
+        };
+      </script>
+      <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+  @page { 
+    size: A4; 
+    margin: 25mm 22mm 25mm 22mm;
+  }
+  
+  body { 
+    font-family: 'Inter', sans-serif; 
+    -webkit-print-color-adjust: exact; 
+    print-color-adjust: exact; 
+    color: #1e293b;
+    background-color: #ffffff;
+  }
+
+  /* Evita interruzioni orribili a metà pagina */
+  h1, h2, h3, p, li, table, tr { 
+    page-break-inside: avoid; 
+    break-inside: avoid; 
+  }
+
+  /* Stile Tipografico Editoriale */
+  h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a; /* Blu Notte elegante per le macro sezioni */
+    margin-top: 36px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a; /* Nero per i sotto-paragrafi */
+    margin-top: 22px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #334155;
+    margin-bottom: 14px;
+    text-align: justify;
+  }
+
+  /* Reset di sicurezza se l'AI usa liste per sbaglio, impedendo l'ammassamento */
+  ol, ul {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    padding-left: 20px;
+  }
+
+  li {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #334155;
+    margin-bottom: 8px;
+  }
+
+  /* Tabelle Professionali */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 12.5px;
+  }
+
+  th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #475569;
+  }
+
+  /* Fonti p.X discrete */
+  .page-source {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    background-color: #f8fafc;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+    margin-left: 4px;
+    display: inline-block;
+  }
+</style>
+    </head>
+    <body class="antialiased">
+      
+      <!-- Intestazione della dispensa fluttuante ma pulita -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-8 text-[11px] text-slate-400 font-medium tracking-wide">
+        <div>PDFolio — Dispensa di Studio Personale</div>
+        <div class="font-mono">DOCUMENTO PRO</div>
+      </div>
+
+      <!-- Contenuto del Markdown -->
+      <div id="pdf-content">
+        ${htmlContent}
+      </div>
+
+      <!-- Script per convertire i tag pagina in micro-fonti eleganti -->
+      <script>
+        const container = document.getElementById('pdf-content');
+        container.innerHTML = container.innerHTML
+          // Intercetta varie forme di (p. X), [P. X], ecc. e le trasforma nella classe sfumata
+          .replace(/\\((?:p\\.|pagina)\\s?(\\d+)\\)/gi, '<span class="page-source">p. $1</span>')
+          .replace(/\\[(?:p\\.|pagina)\\s?(\\d+)\\]/gi, '<span class="page-source">p. $1</span>')
+          .replace(/\\b(?:p\\.|pagina)\\s?(\\d+)\\b/gi, '<span class="page-source">p. $1</span>');
+
+        if (window.MathJax && window.MathJax.typeset) {
+          window.MathJax.typeset();
+        }
+      </script>
+    </body>
+  </html>`;
+
+    await page.setContent(fullHtml, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "20mm" },
+    });
+
+    await browser.close();
+
+    // 2. CONFIGURI GLI HEADER PER IL DOWNLOAD FORZATO
+    res.setHeader("Content-Type", "application/pdf");
+    // attachment forza il download nativo invece di aprirlo nel browser
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="riassunto-pdfolio.pdf"',
+    );
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    // Spedisci il flusso binario del file
+    // 3. Spari il buffer direttamente nella risposta
+    return res.end(pdfBuffer);
+  } catch (err) {}
+};
 module.exports = {
   getAll,
   getSpecificDocument,
@@ -351,4 +555,5 @@ module.exports = {
   uploadPdf,
   deletePdfFile,
   updatePdf,
+  exportSummaryPdf,
 };

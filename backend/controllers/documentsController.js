@@ -153,6 +153,23 @@ const updatePdf = async (req, res) => {
     });
   }
 };
+const exportSummaryPdf = async (req, res) => {
+  try {
+    const { data, error } = await Documents.exportSummaryPdf(req, res);
+    if (error) throw error;
+    // res.status(200).json({
+    //   data: data,
+    //   message: "documento esportato con successo",
+    //   success: true,
+    // });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'esportazione del documento",
+      details: error.message,
+    });
+  }
+};
 module.exports = {
   getAllDocumentsAndFolders,
   getSpecificDocument,
@@ -163,4 +180,5 @@ module.exports = {
   uploadPdf,
   deletePdfFile,
   updatePdf,
+  exportSummaryPdf,
 };

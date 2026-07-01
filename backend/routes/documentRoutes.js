@@ -10,6 +10,7 @@ const {
   uploadPdf,
   deletePdfFile,
   updatePdf,
+  exportSummaryPdf,
 } = require("../controllers/documentsController");
 const upload = require("../middlewares/multer");
 
@@ -23,4 +24,5 @@ router.post("/:pdfId/notes", addNote);
 router.delete("/:pdfId/notes/:noteId", deleteNote);
 router.patch("/:pdfId/notes/:noteId", updateNote);
 
+router.post("/:documentId/summary/pdf", exportSummaryPdf);
 module.exports = router;
