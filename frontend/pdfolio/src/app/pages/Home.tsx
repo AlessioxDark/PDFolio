@@ -71,13 +71,20 @@ const Home = () => {
           ) : (
             <>
               {activeTag ? (
-                <div className="grid grid-cols-4 gap-5 w-full items-stretch">
-                  {filteredDocuments.map((doc) => {
-                    return <HomeDocument key={doc.document_id} {...doc} />;
-                  })}
+                <div className="flex flex-col gap-3 mt-4">
+                  <h1 className="font-inter text-xl font-bold pl-3">
+                    Tag: #{activeTag}
+                  </h1>
+                  <div className="grid grid-cols-4 gap-5 w-full items-stretch ">
+                    {filteredDocuments.map((doc) => {
+                      return <HomeDocument key={doc.document_id} {...doc} />;
+                    })}
+                  </div>
                 </div>
               ) : activeFolder ? (
-                <FolderPage />
+                <div className="mt-4">
+                  <FolderPage />
+                </div>
               ) : (
                 <>
                   <FolderSection />

@@ -61,7 +61,7 @@ const Sidebar = () => {
               <span>Cestino</span>
             </div>
           }
-          href="/cestino"
+          href="/trashbin"
         />
         <SidebarLink label="Profile" href="/profile" />
       </div>

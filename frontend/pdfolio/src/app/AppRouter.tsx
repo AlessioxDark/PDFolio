@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import ProtectedRoute from "../components/ProtectedRoute";
 import SidebarLayout from "../components/SidebarLayout";
 import PdfPage from "./pages/PdfPage";
+import TrashBin from "./pages/TrashBin";
 
 const AppRouter = () => {
   return (
@@ -18,6 +19,9 @@ const AppRouter = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<SidebarLayout />}>
           <Route path="/" element={<Home />} />
+        </Route>
+        <Route element={<SidebarLayout />}>
+          <Route path="/trashbin" element={<TrashBin />} />
         </Route>
       </Route>
     </Routes>

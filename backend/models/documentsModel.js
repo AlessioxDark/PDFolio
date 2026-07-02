@@ -292,11 +292,13 @@ const deletePdfFile = async (req) => {
       .from("documenti")
       .delete()
       .eq("document_id", pdfId);
+    console.log("dbError", dbError);
     if (dbError) throw dbError;
     const { error: pagesError } = await supabase
       .from("pagine_documenti")
       .delete()
       .eq("document_id", pdfId);
+    console.log("pagesError", pagesError);
 
     if (pagesError) throw pagesError;
     const { data: bucketFiles, error: listError } = await supabase.storage

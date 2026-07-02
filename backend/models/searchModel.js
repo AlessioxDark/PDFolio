@@ -28,8 +28,8 @@ const globalSearch = async (req, res) => {
     const { data: documentsData, error: documentsError } = await supabase
       .from("documenti")
       .select("*")
-      .eq("user_id", user.id)
-      .ilike("nome", `%${q}%`);
+      .eq("user_id", user.id);
+    console.log("docerr", documentsError);
     if (documentsError) throw documentsError;
 
     const { data: rawNotesData, error: notesError } = await supabase
@@ -61,8 +61,30 @@ const globalSearch = async (req, res) => {
     console.log("foldersData", foldersData);
     console.log("notesData", notesData);
     console.log("textData", textData);
+    const qLower = q.toLowerCase();
+    const filteredDocuments = documentsData?.filter((doc) => {
+      // Se la barra di ricerca è vuota, mostra tutti i documenti
+      if (!qLower) return true;
+
+      // 1. Controlla se la parola è nel NOME del documento
+      const matchNome = doc.nome?.toLowerCase().includes(qLower);
+
+      // 2. Controlla se la parola è CONTENUTA in almeno uno dei TAG dell'array
+      // (.some gira su tutto l'array di stringhe)
+      const matchTags = doc.tags?.some((tag) =>
+        tag?.toLowerCase().includes(qLower),
+      );
+
+      // Ritorna il documento se corrisponde al nome OPPURE ai tag (Filtro flessibile totale)
+      return matchNome || matchTags;
+    });
     return {
-      data: { documentsData, foldersData, notesData, textData },
+      data: {
+        documentsData: filteredDocuments,
+        foldersData,
+        notesData,
+        textData,
+      },
       error: null,
     };
   } catch (error) {
