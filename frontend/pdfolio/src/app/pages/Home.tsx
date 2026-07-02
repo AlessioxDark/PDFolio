@@ -23,10 +23,13 @@ import SearchSection from "@/features/home/SearchSection";
 import { useSearch } from "@/contexts/SearchContext";
 const FILTERS = ["Recenti", "Note", "Evidenziazioni", "Documenti"];
 const Home = () => {
-  const { isLoading, activeFolder } = useDocumentsAndFolders();
+  const { isLoading, activeFolder, activeTag, documentsData } =
+    useDocumentsAndFolders();
   const [query, setQuery] = useState("");
   const { currentFilter, setCurrentFilter } = useSearch();
-
+  const filteredDocuments = useMemo(() => {
+    return documentsData.filter((doc) => doc.tags.includes(activeTag));
+  }, [documentsData, activeTag]);
   const isSearching = query.trim().length > 0;
 
   return isLoading ? (
@@ -67,7 +70,13 @@ const Home = () => {
             </div>
           ) : (
             <>
-              {activeFolder ? (
+              {activeTag ? (
+                <div className="grid grid-cols-4 gap-5 w-full items-stretch">
+                  {filteredDocuments.map((doc) => {
+                    return <HomeDocument key={doc.document_id} {...doc} />;
+                  })}
+                </div>
+              ) : activeFolder ? (
                 <FolderPage />
               ) : (
                 <>

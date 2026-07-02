@@ -12,6 +12,7 @@ import {
   Loader2Icon,
   ChevronDownIcon,
   FileTextIcon,
+  XIcon,
 } from "lucide-react";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 
@@ -21,7 +22,7 @@ interface EditDocumentDialogProps {
   documentId: string;
   currentNome: string;
   currentFolderId: string | null;
-  defaultMode?: "rename" | "move";
+  defaultMode?: "edit" | "move";
 }
 
 const EditDocumentDialog = ({
@@ -30,12 +31,15 @@ const EditDocumentDialog = ({
   documentId,
   currentNome,
   currentFolderId,
-  defaultMode = "rename",
+  defaultMode = "edit",
+  tags,
 }: EditDocumentDialogProps) => {
   const [nome, setNome] = useState("");
+  const [currentTags, setCurrentTags] = useState(tags);
   const [folderId, setFolderId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState<string>("");
 
   const { foldersData, handlePdfUpdate } = useDocumentsAndFolders();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +56,7 @@ const EditDocumentDialog = ({
       setErrorMessage(null);
 
       // Focus automatico sul campo nome se in modalità rinomina
-      if (defaultMode === "rename") {
+      if (defaultMode === "edit") {
         setTimeout(() => {
           inputRef.current?.focus();
           inputRef.current?.select();
@@ -77,6 +81,7 @@ const EditDocumentDialog = ({
       const res = await handlePdfUpdate(documentId, {
         nome: finalName,
         folder_id: folderId,
+        tags: currentTags,
       });
 
       if (res.success) {
@@ -89,7 +94,30 @@ const EditDocumentDialog = ({
       setIsSaving(false);
     }
   };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && inputValue.trim() !== "") {
+      e.preventDefault(); // Evita l'invio di eventuali form nativi
 
+      // Evitiamo tag duplicati
+      if (!currentTags.includes(inputValue.trim())) {
+        setCurrentTags((prev) => [...prev, inputValue.trim()]);
+      }
+      setInputValue("");
+    } else if (
+      e.key === "Backspace" &&
+      inputValue === "" &&
+      currentTags.length > 0
+    ) {
+      // Chicca UX: se premi Backspace e l'input è vuoto, cancella l'ultimo tag inserito
+      setCurrentTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const removeTag = (indexToRemove: number) => {
+    setCurrentTags((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
+  };
   return (
     <AlertDialog
       open={isOpen}
@@ -101,18 +129,18 @@ const EditDocumentDialog = ({
       <AlertDialogContent className="max-w-[440px] p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-2xl gap-0 font-sans">
         <AlertDialogHeader className="pb-4">
           <AlertDialogTitle className="text-xl font-bold text-neutral-900 tracking-tight">
-            {defaultMode === "rename"
-              ? "Rinomina Documento"
-              : "Sposta Documento"}
+            {defaultMode === "edit" ? "Modifica Documento" : "Sposta Documento"}
           </AlertDialogTitle>
           <p className="text-xs text-neutral-400 mt-0.5">
-            Modifica il nome del file o la cartella in cui si trova.
+            {defaultMode === "edit"
+              ? "Modifica il nome del file o i tag"
+              : "Sposta il documento in una cartella"}
           </p>
         </AlertDialogHeader>
 
         <div className="flex flex-col gap-5 py-2">
           {/* NOME DOCUMENTO */}
-          {defaultMode == "rename" && (
+          {defaultMode == "edit" && (
             <div className="flex flex-col gap-2">
               <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
                 Nome Documento
@@ -126,6 +154,35 @@ const EditDocumentDialog = ({
                 placeholder="Es. Dispensa di Economia"
                 className="w-full rounded-xl border border-neutral-200 p-3 text-sm font-semibold text-neutral-800 bg-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent focus:ring-offset-0 transition-all disabled:opacity-50"
               />
+              <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+                Tags Documento
+              </label>
+              <div className="w-full flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 p-2 bg-white focus-within:ring-1 focus-within:ring-accent focus-within:border-accent transition-all min-h-[46px]">
+                {/* 🏷️ LISTA DELLE PILLOLE */}
+                {currentTags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1 bg-neutral-100 text-neutral-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200 animate-in zoom-in-95 duration-150"
+                  >
+                    <span>#{tag}</span>
+                    <XIcon
+                      onClick={() => removeTag(index)}
+                      className="text-neutral-400 hover:text-neutral-600 rounded-full hover:bg-neutral-200 transition-colors cursor-pointer"
+                      size={12}
+                    />
+                  </div>
+                ))}
+
+                {/* ✍️ INPUT REALE: Nudo, senza bordi, si adatta allo spazio rimasto */}
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={currentTags.length === 0 ? "Es. Economia" : ""}
+                  className="flex-1 min-w-[120px] bg-transparent text-sm font-semibold text-neutral-800 focus:outline-none p-1 placeholder-neutral-400"
+                />
+              </div>
             </div>
           )}
 

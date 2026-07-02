@@ -16,7 +16,11 @@ const DocumentsAndFolderContext = createContext({
   setFoldersData: (arg) => {},
   handlePdfUpdate: async (
     documentId: string,
-    updatedFields: { nome?: string; folder_id?: string | null },
+    updatedFields: {
+      nome?: string;
+      folder_id?: string | null;
+      tags?: string[];
+    },
   ) => ({ success: false }),
 });
 export const useDocumentsAndFolders = () => {
@@ -54,7 +58,9 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
   const [activeFolder, setActiveFolder] = useState(null);
   const [documentsData, setDocumentsData] = useState([]);
   const [foldersData, setFoldersData] = useState([]);
+  const [activeTag, setActiveTag] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [tagsList, setTagsList] = useState([]);
   const [unorganizedFolderData, setUnorganizedFolderData] = useState({
     folder_id: null,
     nome: "Non Organizzati",
@@ -256,6 +262,17 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     loadDocumentsAndFolders();
   }, [session]);
 
+  useEffect(() => {
+    const allDocuments = [
+      ...documentsData,
+      ...foldersData.flatMap((folder) => folder.documenti),
+    ];
+    const uniqueTags = [
+      ...new Set(allDocuments.flatMap((doc) => doc.tags || [])),
+    ];
+    setTagsList(uniqueTags);
+  }, [documentsData, foldersData]);
+
   useEffect;
   return (
     <DocumentsAndFolderContext.Provider
@@ -270,8 +287,11 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         handlePdfDelete,
         handlePdfUpdate,
         setActiveFolder,
+        activeTag,
+        setActiveTag,
         setUnorganizedFolderData,
         FolderColors,
+        tagsList,
       }}
     >
       {children}
