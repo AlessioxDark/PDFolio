@@ -91,7 +91,6 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Mini Card Utente */}
           <div className="flex items-center justify-between gap-2.5 bg-neutral-50/40 hover:bg-neutral-50 border border-neutral-200 hover:border-neutral-300 p-2 rounded-xl transition-all duration-200 px-3 py-4">
             {/* Avatar e Dati */}
             <div className="flex items-center gap-2.5 min-w-0">
