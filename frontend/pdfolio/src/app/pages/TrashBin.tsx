@@ -33,10 +33,6 @@ const TrashBin = () => {
   };
 
   const handleDeleteForever = async (document_id) => {
-    // const conferma = window.confirm(
-    //   "Sei sicuro? Questa azione eliminerà definitivamente il documento e tutte le sue note.",
-    // );
-    // if (!conferma) return;
     const { error } = await apiCalls.pdf.deletePdfFile(session, document_id);
     if (error) {
       console.error("ERRORE TRASH", error);

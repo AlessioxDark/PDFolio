@@ -6,18 +6,21 @@ import { AuthContextProvider } from "../contexts/AuthContext";
 import { NotesContextProvider } from "../contexts/NotesContext";
 import { DocumentsAndFoldersContextProvider } from "../contexts/DocumentsAndFolderContext";
 import { SearchContextProvider } from "@/contexts/SearchContext";
+import { ProfileContextProvider } from "@/contexts/ProfileContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthContextProvider>
-        <SearchContextProvider>
-          <DocumentsAndFoldersContextProvider>
-            <NotesContextProvider>
-              <AppRouter />
-            </NotesContextProvider>
-          </DocumentsAndFoldersContextProvider>
-        </SearchContextProvider>
+        <ProfileContextProvider>
+          <SearchContextProvider>
+            <DocumentsAndFoldersContextProvider>
+              <NotesContextProvider>
+                <AppRouter />
+              </NotesContextProvider>
+            </DocumentsAndFoldersContextProvider>
+          </SearchContextProvider>
+        </ProfileContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
   );

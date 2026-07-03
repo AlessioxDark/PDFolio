@@ -1,8 +1,5 @@
-
-esportare note?
-
 migliorare interfaccia
-
-cestino
-creare un profile?
-
+implementare pagina settings con dialog
+permettere modifica immagine e handle, sign out e eliminazione account
+implementare dark mode con dark:
+implementare loading api miglirata e rifattorizzazione

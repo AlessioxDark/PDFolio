@@ -588,4 +588,29 @@ export const apiCalls = {
       }
     },
   },
+  profile: {
+    async getProfile(session) {
+      try {
+        console.log(session);
+        const response = await fetch(`${API_BASE_URL}/api/profile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: errorData.details || errorData.message,
+          };
+        }
+        const { data } = await response.json();
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+  },
 };

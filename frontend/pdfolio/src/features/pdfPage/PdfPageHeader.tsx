@@ -85,8 +85,8 @@ const PdfPageHeader = ({
               <TrashIcon size={23} className={"text-black"} />
             </div>
           }
-          title={`Vuoi eliminare il documento dalla piattaforma?`}
-          desc={`Sei sicuro di voler rimuovere il documento dalla piattaforma?`}
+          title={`Vuoi spostare il documento nel cestino?`}
+          desc={`Sei sicuro di spostare il documento nel cestino?`}
           onAction={() => {
             handlePdfDelete(documentId);
             setTimeout(() => {

@@ -4,6 +4,7 @@ const documentRoutes = require("./routes/documentRoutes");
 const folderRoutes = require("./routes/folderRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 const cors = require("cors");
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/documents", documentRoutes);
 app.use("/api/folders", folderRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.get("/", (req, res) => {
   res.send("<h1>Funziona!</h1>");
