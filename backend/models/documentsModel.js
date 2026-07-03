@@ -10,7 +10,8 @@ const getAll = async (req, res) => {
     if (foldersError) throw foldersError;
     const { data: documentsData, error: documentsError } = await supabase
       .from("documenti")
-      .select("*,cartelle(nome,folder_id)");
+      .select("*,cartelle(nome,folder_id)")
+      .eq("is_deleted", false);
     if (documentsError) throw documentsError;
     return { data: { documentsData, foldersData }, error: null };
   } catch (error) {
@@ -283,6 +284,23 @@ const uploadPdf = async (req) => {
   }
 };
 
+const trashPdfFile = async (req) => {
+  try {
+    const { pdfId } = req.params;
+
+    // 1. Rimuovi il documento dal database
+    const { error: dbError } = await supabase
+      .from("documenti")
+      .update({ is_deleted: true })
+      .eq("document_id", pdfId);
+    console.log("dbError", dbError);
+    if (dbError) throw dbError;
+
+    return { data: { success: true, deletedPdfId: pdfId }, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
 const deletePdfFile = async (req) => {
   try {
     const { pdfId } = req.params;
@@ -294,13 +312,7 @@ const deletePdfFile = async (req) => {
       .eq("document_id", pdfId);
     console.log("dbError", dbError);
     if (dbError) throw dbError;
-    const { error: pagesError } = await supabase
-      .from("pagine_documenti")
-      .delete()
-      .eq("document_id", pdfId);
-    console.log("pagesError", pagesError);
 
-    if (pagesError) throw pagesError;
     const { data: bucketFiles, error: listError } = await supabase.storage
       .from("file_pdf")
       .list(pdfId, {
@@ -323,7 +335,19 @@ const deletePdfFile = async (req) => {
     return { data: null, error: error };
   }
 };
-
+const restorePdfFile = async (req) => {
+  try {
+    const { pdfId } = req.params;
+    const { error } = await supabase
+      .from("documenti")
+      .update({ is_deleted: false })
+      .eq("document_id", pdfId);
+    if (error) throw error;
+    return { data: { success: true }, error: null };
+  } catch (error) {
+    return { data: null, error: error };
+  }
+};
 const updatePdf = async (req) => {
   try {
     const { pdfId } = req.params;
@@ -550,6 +574,37 @@ const exportSummaryPdf = async (req, res) => {
     return res.end(pdfBuffer);
   } catch (err) {}
 };
+const getTrashDocuments = async (req, res) => {
+  const authHeader = req.headers["authorization"];
+  // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      success: false,
+      error: "Accesso negato. Token mancante o formato non valido.",
+    });
+  }
+  const token = authHeader.split(" ")[1];
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(token);
+  if (userError) throw userError;
+
+  try {
+    const { data, error } = await supabase
+      .from("documenti")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_deleted", true);
+
+    if (error) throw error;
+
+    return { data: data, error: null };
+  } catch (error) {
+    console.error("Errore nel recupero dei documenti eliminati:", error);
+    return { data: null, error: error };
+  }
+};
 module.exports = {
   getAll,
   getSpecificDocument,
@@ -558,7 +613,10 @@ module.exports = {
   deleteNote,
   updateNote,
   uploadPdf,
-  deletePdfFile,
+  trashPdfFile,
   updatePdf,
   exportSummaryPdf,
+  getTrashDocuments,
+  deletePdfFile,
+  restorePdfFile,
 };

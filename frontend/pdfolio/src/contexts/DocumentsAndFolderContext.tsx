@@ -103,7 +103,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     }
   };
   const handlePdfDelete = async (documentId: string) => {
-    const { data, error } = await apiCalls.pdf.deletePdfFile(
+    const { data, error } = await apiCalls.pdf.trashPdfFile(
       session,
       documentId,
     );

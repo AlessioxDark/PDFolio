@@ -28,7 +28,8 @@ const globalSearch = async (req, res) => {
     const { data: documentsData, error: documentsError } = await supabase
       .from("documenti")
       .select("*")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .eq("is_deleted", false);
     console.log("docerr", documentsError);
     if (documentsError) throw documentsError;
 

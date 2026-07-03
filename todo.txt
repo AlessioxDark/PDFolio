@@ -3,7 +3,6 @@ esportare note?
 
 migliorare interfaccia
 
-aggiungere ricerca nel model per i tag
-
+cestino
 creare un profile?
 

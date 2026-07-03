@@ -118,10 +118,10 @@ const uploadPdf = async (req, res) => {
     });
   }
 };
-const deletePdfFile = async (req, res) => {
+const trashPdfFile = async (req, res) => {
   try {
     console.log("arrivato");
-    const { data, error } = await Documents.deletePdfFile(req);
+    const { data, error } = await Documents.trashPdfFile(req);
     if (error) throw error;
     res.status(200).json({
       data: data,
@@ -170,6 +170,60 @@ const exportSummaryPdf = async (req, res) => {
     });
   }
 };
+const deletePdfFile = async (req, res) => {
+  try {
+    const { data, error } = await Documents.deletePdfFile(req, res);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "documenti eliminati ottenuti con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'ottenimento dei documenti eliminati",
+      details: error.message,
+    });
+  }
+};
+
+const getTrashDocuments = async (req, res) => {
+  try {
+    const { data, error } = await Documents.getTrashDocuments(req, res);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "documenti eliminati ottenuti con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'ottenimento dei documenti eliminati",
+      details: error.message,
+    });
+  }
+};
+
+const restorePdfFile = async (req, res) => {
+  try {
+    const { data, error } = await Documents.restorePdfFile(req);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "documento ripristinato con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante il ripristino del documento",
+      details: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllDocumentsAndFolders,
   getSpecificDocument,
@@ -178,7 +232,10 @@ module.exports = {
   deleteNote,
   updateNote,
   uploadPdf,
-  deletePdfFile,
+  trashPdfFile,
   updatePdf,
   exportSummaryPdf,
+  getTrashDocuments,
+  deletePdfFile,
+  restorePdfFile,
 };

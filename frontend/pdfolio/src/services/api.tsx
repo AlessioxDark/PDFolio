@@ -160,6 +160,34 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async trashPdfFile(session, documentId) {
+      try {
+        console.log("faccio richiesta");
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}/trash`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          console.log("no ok", response);
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: { message: errorData.details || errorData.message },
+          };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
     async deletePdfFile(session, documentId) {
       try {
         console.log("faccio richiesta");
@@ -167,6 +195,34 @@ export const apiCalls = {
           `${API_BASE_URL}/api/documents/${documentId}`,
           {
             method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          },
+        );
+        if (!response.ok) {
+          console.log("no ok", response);
+          // Gestisci l'errore se il backend fallisce
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: { message: errorData.details || errorData.message },
+          };
+        }
+        const { data } = await response.json();
+        console.log("data in api", data);
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async restorePdfFile(session, documentId) {
+      try {
+        console.log("faccio richiesta");
+        const response = await fetch(
+          `${API_BASE_URL}/api/documents/${documentId}/restore`,
+          {
+            method: "PATCH",
             headers: {
               Authorization: `Bearer ${session.access_token}`,
             },
@@ -201,6 +257,28 @@ export const apiCalls = {
             body: JSON.stringify(updateData),
           },
         );
+        if (!response.ok) {
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: { message: errorData.message || errorData.details },
+          };
+        }
+        const { data } = await response.json();
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
+    async getDeletedDocuments(session) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/documents/deleted`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
         if (!response.ok) {
           const errorData = await response.json();
           return {

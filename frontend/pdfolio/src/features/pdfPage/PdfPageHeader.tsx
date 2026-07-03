@@ -27,43 +27,6 @@ const PdfPageHeader = ({
   const { session } = useAuth();
   const navigate = useNavigate();
   const { handlePdfDelete } = useDocumentsAndFolders();
-  // const handlePdfDelete = async () => {
-  //   const { data, error } = await apiCalls.pdf.deletePdfFile(
-  //     session,
-  //     documentId,
-  //   );
-  //   if (error) console.error("ERRORE", error);
-  //   if (data) {
-  //     console.log("DATA", data);
-  //     setDocumentsData((prev) =>
-  //       prev.filter((doc) => doc.document_id !== documentId),
-  //     );
-  //     setUnorganizedFolderData((prev) => {
-  //       const filteredDocs = prev.documenti.filter(
-  //         (doc) => doc.document_id !== documentId,
-  //       );
-  //       return {
-  //         ...prev,
-  //         documenti: filteredDocs,
-  //       };
-  //     });
-  //     setFoldersData((prev) =>
-  //       prev.map((folder) => {
-  //         return {
-  //           ...folder,
-  //           documenti: folder.documenti.filter(
-  //             (doc) => doc.document_id !== documentId,
-  //           ),
-  //         };
-  //       }),
-  //     );
-  //     toast("Il file è stato eliminato");
-
-  //     setTimeout(() => {
-  //       navigate(-1);
-  //     }, 100);
-  //   }
-  // };
   const handlePdfShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast("Il link è stato copiato con successo");
