@@ -1,5 +1,5 @@
 migliorare interfaccia
 implementare pagina settings con dialog
 permettere modifica immagine e handle, sign out e eliminazione account
-implementare dark mode con dark:
+aggiustare search documenti nome
 implementare loading api miglirata e rifattorizzazione

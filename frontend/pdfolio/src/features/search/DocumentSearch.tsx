@@ -8,9 +8,12 @@ const DocumentSearch = () => {
     globalSearchData?.documentsData &&
     globalSearchData.documentsData.length > 0 && (
       <div className="flex flex-col gap-3 mt-2 animate-fadeIn">
-        <span className="text-xs font-inter font-bold uppercase text-text-1 tracking-wider flex items-center gap-1.5">
+        {/* TITOLO SEZIONE */}
+        <span className="text-xs font-inter font-bold uppercase text-text-1 dark:text-zinc-400 tracking-wider flex items-center gap-1.5 transition-colors">
           Documenti ({globalSearchData.documentsData.length})
         </span>
+
+        {/* GRIGLIA RESPONSIVE CARTOLINE PDF */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full items-stretch">
           {globalSearchData.documentsData.map((doc: any, index: number) => (
             <div key={index}>
