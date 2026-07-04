@@ -49,7 +49,9 @@ const DocumentsSection = ({}: {}) => {
   };
   return (
     <div className="w-full flex flex-col gap-4 mt-4">
-      <h2 className="text-xl font-semibold text-text-1">I tuoi documenti</h2>
+      <h2 className="text-xl font-semibold text-text-1 dark:text-zinc-100">
+        I tuoi documenti
+      </h2>
 
       <div className="grid grid-cols-4 gap-5 w-full items-stretch">
         <UploadDialog icon={<UploadButton uploadPdf={uploadPdf} />} />

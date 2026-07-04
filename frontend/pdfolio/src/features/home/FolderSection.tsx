@@ -66,7 +66,9 @@ const FolderSection = () => {
 
   return (
     <div className="flex flex-col gap-4 mt-4">
-      <h2 className="text-xl font-semibold text-text-1">Le tue cartelle</h2>
+      <h2 className="text-xl font-semibold text-text-1 dark:text-zinc-100">
+        Le tue cartelle
+      </h2>
 
       <div className="w-full">
         <motion.div
@@ -77,14 +79,14 @@ const FolderSection = () => {
         >
           {/* Pulsante Crea Cartella (sempre visibile) */}
           <div
-            className="w-30 h-30 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white border-2 border-dashed border-neutral-300 hover:border-accent hover:bg-neutral-50 transition-all gap-1"
+            className="w-30 h-30 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white dark:bg-zinc-900/30 border-2 border-dashed border-neutral-300 dark:border-zinc-800 hover:border-accent dark:hover:border-purple-500 hover:bg-neutral-50 dark:hover:bg-zinc-800/40 transition-all gap-1"
             onClick={() => {
               setColorIndex(Math.floor(Math.random() * 6));
               setIsCreating(true);
             }}
           >
-            <PlusIcon size={24} className="text-accent" />
-            <span className="text-accent text-sm font-medium">
+            <PlusIcon size={24} className="text-accent dark:text-purple-500" />
+            <span className="text-accent dark:text-purple-500 text-sm font-medium">
               Crea cartella
             </span>
           </div>
@@ -145,18 +147,17 @@ const FolderSection = () => {
           className="w-full flex items-center gap-4 py-2 cursor-pointer group"
           onClick={() => setIsShown(!isShown)}
         >
-          <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
+          <div className="flex-1 h-[1px] bg-neutral-3 dark:bg-zinc-800 group-hover:bg-accent/40 dark:group-hover:bg-purple-500/40 transition-colors duration-300" />
           <motion.div
             animate={{ rotate: isShown ? 0 : 180 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
           >
             <ChevronUpIcon
               size={24}
-              className="text-neutral-4 group-hover:text-accent transition-colors duration-300"
-              onClick={() => {}}
+              className="text-neutral-4 dark:text-zinc-500 group-hover:text-accent dark:group-hover:text-purple-400 transition-colors duration-300"
             />
           </motion.div>
-          <div className="flex-1 h-[1px] bg-neutral-3 group-hover:bg-accent/40 transition-colors duration-300" />
+          <div className="flex-1 h-[1px] bg-neutral-3 dark:bg-zinc-800 group-hover:bg-accent/40 dark:group-hover:bg-purple-500/40 transition-colors duration-300" />{" "}
         </div>
       </div>
     </div>

@@ -7,19 +7,22 @@ import { NotesContextProvider } from "../contexts/NotesContext";
 import { DocumentsAndFoldersContextProvider } from "../contexts/DocumentsAndFolderContext";
 import { SearchContextProvider } from "@/contexts/SearchContext";
 import { ProfileContextProvider } from "@/contexts/ProfileContext";
+import { ThemeContextProvider } from "@/contexts/ThemeContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthContextProvider>
         <ProfileContextProvider>
-          <SearchContextProvider>
-            <DocumentsAndFoldersContextProvider>
-              <NotesContextProvider>
-                <AppRouter />
-              </NotesContextProvider>
-            </DocumentsAndFoldersContextProvider>
-          </SearchContextProvider>
+          <ThemeContextProvider>
+            <SearchContextProvider>
+              <DocumentsAndFoldersContextProvider>
+                <NotesContextProvider>
+                  <AppRouter />
+                </NotesContextProvider>
+              </DocumentsAndFoldersContextProvider>
+            </SearchContextProvider>
+          </ThemeContextProvider>
         </ProfileContextProvider>
       </AuthContextProvider>
     </BrowserRouter>

@@ -77,8 +77,10 @@ const SelectionMenu = ({
     >
       {/* RETTANGOLO SELEZIONE COLORI (Compare sopra il menu principale) */}
       {showColorPicker && (
-        <div className="bg-neutral-1 border border-neutral-4 rounded-xl shadow-lg p-2 flex flex-row items-center gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-200 px-2 py-2">
-          <span className="text-xs font-semibold text-black px-1">Colore:</span>
+        <div className="bg-neutral-1 dark:bg-zinc-950 border border-neutral-4 dark:border-zinc-800 rounded-xl shadow-lg p-2 flex flex-row items-center gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-200 px-2 py-2 transition-colors duration-300">
+          <span className="text-xs font-semibold text-black dark:text-zinc-300 px-1">
+            Colore:
+          </span>
           {colors.map((color) => (
             <button
               key={color.id}
@@ -88,17 +90,17 @@ const SelectionMenu = ({
                 onHighlight(color.value); // Passa il colore selezionato al componente padre
                 setShowColorPicker(false); // Chiude il picker dopo la selezione
               }}
-              className={`w-6 h-6 rounded-full cursor-pointer transition-all ${color.className}`}
+              className={`w-6 h-6 rounded-full cursor-pointer transition-all hover:scale-110 ${color.className}`}
             />
           ))}
-          <div className="w-[1px] h-4 bg-neutral-4 mx-0.5"></div>
+          <div className="w-[1px] h-4 bg-neutral-4 dark:bg-zinc-800 mx-0.5"></div>
           {/* Tasto per annullare e tornare indietro */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowColorPicker(false);
             }}
-            className="text-[10px] uppercase tracking-wider font-bold text-black px-1 cursor-pointer"
+            className="text-[10px] uppercase tracking-wider font-bold text-black dark:text-zinc-400 hover:text-neutral-700 dark:hover:text-zinc-200 px-1 cursor-pointer transition-colors"
           >
             Annulla
           </button>
@@ -106,32 +108,36 @@ const SelectionMenu = ({
       )}
 
       {/* MENU PRINCIPALE */}
-      <div className="bg-neutral-1 border border-neutral-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-row items-center p-1.5 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-neutral-1 dark:bg-zinc-900 border border-neutral-4 dark:border-zinc-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-row items-center p-1.5 animate-in fade-in zoom-in-95 duration-200 transition-colors duration-300">
+        {/* Tasto Evidenzia */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             setShowColorPicker(!showColorPicker); // Apre/Chiude la barra dei colori
           }}
-          className={`flex flex-row items-center gap-2 px-3 py-2 text-black rounded-lg transition-all text-sm font-medium cursor-pointer ${
-            showColorPicker ? "bg-neutral-3" : "hover:bg-neutral-3"
+          className={`flex flex-row items-center gap-2 px-3 py-2 text-black dark:text-zinc-200 rounded-lg transition-all text-sm font-medium cursor-pointer ${
+            showColorPicker
+              ? "bg-neutral-3 dark:bg-zinc-800"
+              : "hover:bg-neutral-3 dark:hover:bg-zinc-800"
           }`}
         >
           <span className="flex items-center gap-1.5">Evidenzia</span>
         </button>
 
-        <div className="w-[1px] h-4 bg-neutral-4 mx-1 rounded-full"></div>
+        <div className="w-[1px] h-4 bg-neutral-4 dark:bg-zinc-800 mx-1 rounded-full"></div>
 
+        {/* Tasto Aggiungi Nota */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onNote();
           }}
-          className="flex flex-row items-center gap-2 px-3 py-2 hover:bg-neutral-3 text-black rounded-lg transition-all text-sm font-medium cursor-pointer"
+          className="flex flex-row items-center gap-2 px-3 py-2 hover:bg-neutral-3 dark:hover:bg-zinc-800 text-black dark:text-zinc-200 rounded-lg transition-all text-sm font-medium cursor-pointer"
         >
           <span>Nota</span>
         </button>
 
-        <div className="w-[1px] h-4 bg-neutral-4 mx-1 rounded-full"></div>
+        <div className="w-[1px] h-4 bg-neutral-4 dark:bg-zinc-800 mx-1 rounded-full"></div>
 
         {/* TASTO AI CON DROPDOWN COMPATTO */}
         <div
@@ -144,8 +150,10 @@ const SelectionMenu = ({
               e.stopPropagation();
               setShowAiDropdown(!showAiDropdown);
             }}
-            className={`flex flex-row items-center gap-1 px-3 py-2 text-black rounded-lg transition-all text-sm font-medium cursor-pointer ${
-              showAiDropdown ? "bg-neutral-3" : "hover:bg-neutral-3"
+            className={`flex flex-row items-center gap-1 px-3 py-2 text-black dark:text-zinc-200 rounded-lg transition-all text-sm font-medium cursor-pointer ${
+              showAiDropdown
+                ? "bg-neutral-3 dark:bg-zinc-800"
+                : "hover:bg-neutral-3 dark:hover:bg-zinc-800"
             }`}
           >
             <span>Chiedi all'AI</span>
@@ -169,7 +177,7 @@ const SelectionMenu = ({
             <div
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className="absolute left-0 top-full mt-1 w-48 bg-white border border-neutral-3 rounded-xl shadow-lg p-1 flex flex-col gap-0.5 z-[60] animate-in fade-in slide-in-from-top-2 duration-150"
+              className="absolute left-0 top-full mt-1 w-48 bg-white dark:bg-zinc-950 border border-neutral-3 dark:border-zinc-800 rounded-xl shadow-lg p-1 flex flex-col gap-0.5 z-[60] animate-in fade-in slide-in-from-top-2 duration-150 transition-colors duration-300"
             >
               <button
                 onClick={(e) => {
@@ -177,7 +185,7 @@ const SelectionMenu = ({
                   onAskAi("explain");
                   setShowAiDropdown(false);
                 }}
-                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
+                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 dark:text-zinc-300 hover:bg-neutral-2 dark:hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
               >
                 <span className="ml-1">Spiega nel dettaglio</span>
               </button>
@@ -187,7 +195,7 @@ const SelectionMenu = ({
                   onAskAi("simplify");
                   setShowAiDropdown(false);
                 }}
-                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
+                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 dark:text-zinc-300 hover:bg-neutral-2 dark:hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
               >
                 <span className="ml-1">Semplifica concetto</span>
               </button>
@@ -197,7 +205,7 @@ const SelectionMenu = ({
                   onAskAi("example");
                   setShowAiDropdown(false);
                 }}
-                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 hover:bg-neutral-2 rounded-lg transition-all cursor-pointer"
+                className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 dark:text-zinc-300 hover:bg-neutral-2 dark:hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
               >
                 <span className="ml-1">Fai un esempio</span>
               </button>
@@ -205,14 +213,15 @@ const SelectionMenu = ({
           )}
         </div>
 
-        <div className="w-[1px] h-4 bg-neutral-4 mx-1 rounded-full"></div>
+        <div className="w-[1px] h-4 bg-neutral-4 dark:bg-zinc-800 mx-1 rounded-full"></div>
 
+        {/* Tasto Copia */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onCopy();
           }}
-          className="flex flex-row items-center gap-2 px-3 py-2 hover:bg-neutral-3 text-black rounded-lg transition-all text-sm font-medium cursor-pointer"
+          className="flex flex-row items-center gap-2 px-3 py-2 hover:bg-neutral-3 dark:hover:bg-zinc-800 text-black dark:text-zinc-200 rounded-lg transition-all text-sm font-medium cursor-pointer"
         >
           <span>Copia</span>
         </button>

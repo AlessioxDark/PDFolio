@@ -12,7 +12,7 @@ const Searchbar = ({
   placeholder: string;
 }) => {
   return (
-    <div className="w-full px-1 py-1 pl-2  rounded-full border border-neutral-4 focus-within:ring-2  focus-within:ring-accent  group">
+    <div className="w-full px-1 py-1 pl-2  rounded-full border border-neutral-4 dark:border-zinc-600 focus-within:ring-2  focus-within:ring-accent  group">
       <div className="w-full h-full  py-2 px-3 rounded-xl flex items-center justify-between gap-4 ">
         <div className="flex flex-row gap-2 w-full">
           <SearchIcon size={24} className="text-neutral-4" />

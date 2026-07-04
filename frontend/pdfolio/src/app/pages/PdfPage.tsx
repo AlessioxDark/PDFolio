@@ -109,7 +109,7 @@ const PdfPage = () => {
   useEffect(() => {
     // Trova le note che c'erano prima ma non ci sono più adesso
     const deletedNotes = prevNotesRef.current.filter(
-      (prevNote) => !notesArray.some((n) => n.note_id === prevNote.note_id)
+      (prevNote) => !notesArray.some((n) => n.note_id === prevNote.note_id),
     );
 
     if (deletedNotes.length > 0) {
@@ -129,7 +129,7 @@ const PdfPage = () => {
               : msg.selection_data;
 
           const matchesDeleted = deletedNotes.some(
-            (dn) => sd && sd.text === dn.text
+            (dn) => sd && sd.text === dn.text,
           );
 
           if (matchesDeleted) {
@@ -144,7 +144,7 @@ const PdfPage = () => {
             };
           }
           return msg;
-        })
+        }),
       );
     }
 
@@ -610,7 +610,8 @@ const PdfPage = () => {
     }
   };
   return (
-    <div className="w-full h-screen bg-neutral-3 flex flex-col overflow-hidden">
+    <div className="w-full h-screen bg-neutral-3 dark:bg-zinc-950 flex flex-col overflow-hidden transition-colors duration-300">
+      {" "}
       <PdfPageHeader
         nome={pdfData?.nome}
         toggleNotesSidebar={toggleNotesSidebar}
@@ -618,14 +619,13 @@ const PdfPage = () => {
         edited_at={pdfData?.edited_at}
         documentId={pdfId}
       />
-
       <div className="flex-1 w-full flex flex-row overflow-hidden">
         <div className="flex-1 flex flex-col overflow-hidden">
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
             onMouseUp={handleTextSelection}
-            className="flex-1 w-full overflow-auto bg-neutral-2 flex flex-col items-center py-6 relative"
+            className="flex-1 w-full overflow-auto bg-neutral-2 dark:bg-zinc-900 flex flex-col items-center py-6 relative transition-colors duration-300"
           >
             {selectionData && (
               <SelectionMenu
@@ -703,16 +703,17 @@ const PdfPage = () => {
 
           {/* Controlli di paginazione */}
           {numPages && (
-            <div className="w-full px-4 py-3 bg-neutral-1 border-t border-neutral-4 flex flex-row items-center justify-between shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-10">
+            <div className="w-full px-4 py-3 bg-neutral-1 dark:bg-zinc-950 border-t border-neutral-4 dark:border-zinc-800 flex flex-row items-center justify-between shadow-[0_-2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-10 transition-colors duration-300">
+              {" "}
               <button
                 disabled={pageNumber <= 1}
                 onClick={() => scrollToPage(pageNumber - 1)}
-                className="px-4 py-2 bg-neutral-3 hover:bg-neutral-4 text-black rounded-lg font-inter text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-neutral-3 dark:bg-zinc-800 hover:bg-neutral-4 dark:hover:bg-zinc-700 text-black dark:text-zinc-200 rounded-lg font-inter text-sm disabled:opacity-40 dark:disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 Precedente
               </button>
-
-              <span className="font-inter text-sm text-text-1 flex items-center gap-2">
+              <span className="font-inter text-sm text-text-1 dark:text-zinc-300 flex items-center gap-2">
+                {" "}
                 Pagina
                 <input
                   type="number"
@@ -722,17 +723,19 @@ const PdfPage = () => {
                     if (e.key === "Enter") scrollToPage(pageNumber);
                   }}
                   onBlur={() => scrollToPage(pageNumber)}
-                  className="w-14 text-center border-2 border-neutral-4 rounded-md font-bold text-black py-1 focus:outline-none focus:border-accent transition-colors"
+                  className="w-14 text-center border-2 border-neutral-4 dark:border-zinc-700 rounded-md font-bold text-black dark:text-zinc-100 bg-white dark:bg-zinc-900 py-1 focus:outline-none focus:border-accent dark:focus:border-purple-500 transition-colors"
                   min={1}
                   max={numPages}
                 />
-                di <span className="font-bold text-black">{numPages}</span>
+                di{" "}
+                <span className="font-bold text-black dark:text-zinc-100">
+                  {numPages}
+                </span>{" "}
               </span>
-
               <button
                 disabled={pageNumber >= numPages}
                 onClick={() => scrollToPage(pageNumber + 1)}
-                className="px-4 py-2 bg-neutral-3 hover:bg-neutral-4 text-black rounded-lg font-inter text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-neutral-3 dark:bg-zinc-800 hover:bg-neutral-4 dark:hover:bg-zinc-700 text-black dark:text-zinc-200 rounded-lg font-inter text-sm disabled:opacity-40 dark:disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 Successiva
               </button>

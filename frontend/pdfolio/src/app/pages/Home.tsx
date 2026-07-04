@@ -1,21 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { apiCalls } from "../../services/api";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useMemo, useState } from "react";
 import Searchbar from "../../components/Searchbar";
 import HomeHeader from "../../features/home/HomeHeader";
 import FilterPill from "../../features/home/FilterPill";
-import { Bookmark, FileText, FilterIcon, Hash } from "lucide-react";
-import PlusIcon from "../../icons/PlusIcon";
-import Folder from "../../components/Folder";
-import ChevronUpIcon from "../../icons/ChevronUpIcon";
-import { motion, AnimatePresence } from "framer-motion";
 import HomeDocument from "../../features/home/HomeDocument";
-import { useNotes } from "@/contexts/NotesContext";
-import ErrorDialogComponent from "@/components/ErrorDialogComponent";
-import UploadButton from "@/components/UploadButton";
-import UploadDialog from "@/features/home/UploadDialog";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
-import UnorganizedFolder from "@/components/UnorganizedFolder";
 import FolderSection from "@/features/home/FolderSection";
 import DocumentsSection from "@/features/home/DocumentsSection";
 import FolderPage from "./FolderPage";
@@ -37,7 +25,7 @@ const Home = () => {
       Caricamento in corso...
     </div>
   ) : (
-    <div className=" w-full h-screen overflow-y-auto flex flex-col gap-8 pb-32  ">
+    <div className=" w-full h-screen overflow-y-auto flex flex-col gap-8 pb-32   ">
       <HomeHeader />
       <div className="w-full flex justify-center flex-col items-center gap-10 px-6">
         <div className="w-full flex flex-col gap-2">

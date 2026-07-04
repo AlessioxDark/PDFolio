@@ -22,9 +22,15 @@ const FilterPill = ({
     }
   }, [isActive]);
   return label.name == "Colore" ? (
-    <>
+    <div className="relative">
+      {" "}
+      {/* Wrapper relative fondamentale per ancorare il dropdown assoluto */}
       <div
-        className={`px-4 py-2 rounded-2xl  text-sm cursor-pointer font-inter transition-colors  duration-200 ${isActive ? "text-accent bg-light-accent font-bold" : "text-text-1 bg-neutral-3 hover:bg-neutral-4"}`}
+        className={`px-4 py-2 rounded-2xl text-sm cursor-pointer font-inter transition-colors duration-200 ${
+          isActive
+            ? "text-accent bg-light-accent dark:bg-purple-950/40 dark:text-purple-400 font-bold"
+            : "text-text-1 dark:text-zinc-400 bg-neutral-3 dark:bg-zinc-900 hover:bg-neutral-4 dark:hover:bg-zinc-800"
+        }`}
         onClick={() => {
           setIsDropDownOpen(!isDropDownOpen);
           setSelectedFilter((prev) => {
@@ -38,17 +44,29 @@ const FilterPill = ({
         {label.name}
       </div>
       {isDropDownOpen && (
-        <div className="absolute grid grid-cols-3">
-          {label.options.map((c) => {
+        <div className="absolute top-full left-0 mt-2 grid grid-cols-3 bg-white dark:bg-zinc-950 border border-neutral-4 dark:border-zinc-800 p-1.5 rounded-xl shadow-lg z-50 gap-1 min-w-[120px]">
+          {label.options.map((c, index) => {
+            // Se c contiene una classe Tailwind pura (es. "bg-yellow-300"), la usiamo direttamente.
+            // Se invece c è una stringa esadecimale (es. "#fde047"), usiamo lo style inline.
+            const isHex = c.startsWith("#");
+
             return (
-              <div className="w-max py-1.5 bg-neutral-1">
+              <div
+                key={index}
+                className="flex items-center justify-center p-1 rounded-lg hover:bg-neutral-2 dark:hover:bg-zinc-900 transition-colors"
+              >
                 <div
-                  className={`${c} w-2 h-2 m-2 p-2 rounded-full cursor-pointer`}
+                  className={`w-5 h-5 rounded-full cursor-pointer transition-transform  shadow-sm ${!isHex ? c : ""}`}
+                  style={{
+                    backgroundColor: isHex ? c : undefined,
+                  }}
                   onClick={() => {
-                    console.log("click", c, c.slice(4, -1));
-                    // setSelectedFilter(false);
+                    // Se passi classi tipo "bg-yellow-300", prendi solo la tinta pura o l'hex estratto per il filtro logico
+                    const colorValue = isHex ? c : c.replace("bg-", "");
+                    console.log("click color:", colorValue);
+
                     setSelectedFilter((prev) => {
-                      return { ...prev, currentColor: c.slice(4, -1) };
+                      return { ...prev, currentColor: colorValue };
                     });
                     setIsDropDownOpen(false);
                   }}
@@ -58,10 +76,14 @@ const FilterPill = ({
           })}
         </div>
       )}
-    </>
+    </div>
   ) : (
     <div
-      className={`px-4 py-2 rounded-2xl  text-sm cursor-pointer font-inter transition-colors  duration-200 ${isActive ? "text-accent bg-light-accent font-bold" : "text-text-1 bg-neutral-3 hover:bg-neutral-4"}`}
+      className={`px-4 py-2 rounded-2xl text-sm cursor-pointer font-inter transition-colors duration-200 ${
+        isActive
+          ? "text-accent bg-light-accent dark:bg-purple-950/40 dark:text-purple-400 font-bold"
+          : "text-text-1 dark:text-zinc-400 bg-neutral-3 dark:bg-zinc-900 hover:bg-neutral-4 dark:hover:bg-zinc-800"
+      }`}
       onClick={() => setSelectedFilter(label)}
     >
       {label.name}

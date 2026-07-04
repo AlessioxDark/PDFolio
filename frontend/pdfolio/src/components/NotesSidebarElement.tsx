@@ -42,7 +42,7 @@ const NotesSidebarElement = ({
 
   return (
     <div
-      className={`w-full rounded-xl bg-neutral-2 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2  shadow-[0_12px_8px_rgba(0,0,0,0.08)]`}
+      className="w-full rounded-xl bg-neutral-2 dark:bg-zinc-900 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2 shadow-[0_12px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
       style={{
         // Usiamo lo style inline perché Tailwind non supporta classi arbitrarie interpolate in stringa
         borderLeftColor:
@@ -60,13 +60,14 @@ const NotesSidebarElement = ({
                 note.type === "HIGHLIGHT" ? `bg-[${note.color}]` : "bg-accent"
               }`}
             />
-            <span className="font-semibold text-[10px] font-inter text-text-1">
+            <span className="font-semibold text-[10px] font-inter text-text-1 dark:text-zinc-400">
+              {" "}
               Pagina {note.position.page}
             </span>
           </div>
           <MoveRight
             size={24}
-            className="text-text-1"
+            className="text-text-1 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               setActiveNote(note);
@@ -81,8 +82,8 @@ const NotesSidebarElement = ({
                 isExpanded ? "" : "line-clamp-5"
               } ${
                 note.type === "HIGHLIGHT"
-                  ? "text-black text-sm"
-                  : "text-black text-xl"
+                  ? "text-black dark:text-zinc-200 text-sm"
+                  : "text-black dark:text-zinc-100 text-xl font-bold"
               }`}
               style={{
                 backgroundColor:
@@ -103,20 +104,21 @@ const NotesSidebarElement = ({
           {note.type === "NOTE" && !isSent ? (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="flex flex-col gap-2 mt-2 w-full bg-white/70 border border-neutral-4 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 transition-all duration-200"
+              className="flex flex-col gap-2 mt-2 w-full bg-white/70 dark:bg-zinc-950/60 border border-neutral-4 dark:border-zinc-800 rounded-xl p-2 focus-within:ring-1 focus-within:ring-neutral-400 dark:focus-within:ring-zinc-600 transition-all duration-200"
             >
               <div
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 ref={chatInputRef}
-                className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 empty:before:pointer-events-none prose prose-sm"
+                className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 dark:text-zinc-200 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 dark:empty:before:text-zinc-600 empty:before:pointer-events-none prose prose-sm dark:prose-invert"
                 onInput={handleInput}
                 data-placeholder="Inserisci testo nota (supporta Markdown...)"
               >
                 {savedContent}
               </div>
 
-              <div className="flex justify-end items-center w-full pt-1 border-t border-neutral-100">
+              <div className="flex justify-end items-center w-full pt-1 border-t border-neutral-100 dark:border-zinc-800">
+                {" "}
                 <button
                   type="button"
                   aria-label="Invia messaggio"
@@ -165,7 +167,7 @@ const NotesSidebarElement = ({
           ) : (
             <div className="flex flex-col gap-1 w-full text-left">
               <div
-                className={`prose prose-sm max-w-none text-text-1 text-sm italic font-inter break-words ${
+                className={`prose prose-sm dark:prose-invert max-w-none text-text-1 dark:text-zinc-300 text-sm italic font-inter break-words ${
                   isExpanded ? "" : "line-clamp-4 overflow-hidden"
                 }`}
               >
@@ -193,7 +195,7 @@ const NotesSidebarElement = ({
                     e.stopPropagation();
                     setIsExpanded(!isExpanded);
                   }}
-                  className="flex items-center gap-1 text-xs text-neutral-500 hover:text-black mt-1 font-medium transition-colors"
+                  className="flex items-center gap-1 text-xs text-neutral-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 mt-1 font-medium transition-colors"
                 >
                   {isExpanded ? (
                     <>
@@ -215,7 +217,7 @@ const NotesSidebarElement = ({
             >
               {note.type == "NOTE" && (
                 <Pencil
-                  className="text-text-1 cursor-pointer hover:text-black transition-colors"
+                  className="text-text-1 dark:text-zinc-400 cursor-pointer hover:text-black dark:hover:text-zinc-100 transition-colors"
                   size={18}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -227,7 +229,7 @@ const NotesSidebarElement = ({
               <AlertDialogComponent
                 icon={
                   <TrashIcon
-                    className="text-text-1 hover:text-red-400 transition-colors duration-300"
+                    className="text-text-1 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer transition-colors duration-200"
                     size={20}
                   />
                 }

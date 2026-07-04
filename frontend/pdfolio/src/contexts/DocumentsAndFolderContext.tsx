@@ -29,28 +29,28 @@ export const useDocumentsAndFolders = () => {
 };
 const FolderColors = [
   {
-    bg: "bg-blue-400 hover:bg-blue-400/85",
-    text: "text-blue-700 group-hover:text-blue-700/85",
+    bg: "bg-blue-400 hover:bg-blue-400/85 dark:bg-blue-900 dark:hover:bg-blue-900/60 border border-transparent dark:border-blue-900/30",
+    text: "text-blue-700 group-hover:text-blue-700/85 dark:text-blue-500 dark:group-hover:text-blue-600",
   },
   {
-    bg: "bg-fuchsia-400 hover:bg-fuchsia-400/85",
-    text: "text-fuchsia-700 group-hover:text-fuchsia-700/85",
+    bg: "bg-fuchsia-400 hover:bg-fuchsia-400/85 dark:bg-fuchsia-900 dark:hover:bg-fuchsia-900/60 border border-transparent dark:border-fuchsia-900/30",
+    text: "text-fuchsia-700 group-hover:text-fuchsia-700/85 dark:text-fuchsia-500 dark:group-hover:text-fuchsia-600",
   },
   {
-    bg: "bg-rose-400 hover:bg-rose-400/85",
-    text: "text-rose-700 group-hover:text-rose-700/85",
+    bg: "bg-rose-400 hover:bg-rose-400/85 dark:bg-rose-900 dark:hover:bg-rose-900/60 border border-transparent dark:border-rose-900/30",
+    text: "text-rose-700 group-hover:text-rose-700/85 dark:text-rose-500 dark:group-hover:text-rose-600",
   },
   {
-    bg: "bg-sky-400 hover:bg-sky-400/85",
-    text: "text-sky-700 group-hover:text-sky-700/85",
+    bg: "bg-sky-400 hover:bg-sky-400/85 dark:bg-sky-900 dark:hover:bg-sky-900/60 border border-transparent dark:border-sky-900/30",
+    text: "text-sky-700 group-hover:text-sky-700/85 dark:text-sky-500 dark:group-hover:text-sky-600",
   },
   {
-    bg: "bg-green-400 hover:bg-green-400/85",
-    text: "text-green-700 group-hover:text-green-700/85",
+    bg: "bg-green-400 hover:bg-green-400/85 dark:bg-green-900 dark:hover:bg-green-900/60 border border-transparent dark:border-green-900/30",
+    text: "text-green-700 group-hover:text-green-700/85 dark:text-green-500 dark:group-hover:text-green-600",
   },
   {
-    bg: "bg-amber-400 hover:bg-amber-400/85",
-    text: "text-amber-700 group-hover:text-amber-700/85",
+    bg: "bg-amber-400 hover:bg-amber-400/85 dark:bg-amber-900 dark:hover:bg-amber-900/60 border border-transparent dark:border-amber-900/20",
+    text: "text-amber-700 group-hover:text-amber-700/85 dark:text-amber-500 dark:group-hover:text-amber-600",
   },
 ];
 
@@ -66,8 +66,8 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     nome: "Non Organizzati",
     documenti: [],
     colors: {
-      bg: "bg-gray-400 hover:bg-gray-400/85",
-      text: "text-gray-700 group-hover:text-gray-700/85",
+      bg: "bg-gray-400 hover:bg-gray-400/85 dark:bg-gray-800  dark:hover:bg-gray-800/60 border border-transparent  dark:border-gray-900/30",
+      text: "text-gray-700  group-hover:text-gray-700/85 dark:text-gray-500 dark:group-hover:text-gray-600",
     },
   });
   const { session } = useAuth();

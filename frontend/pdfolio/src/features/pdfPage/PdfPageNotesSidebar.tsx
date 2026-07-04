@@ -103,7 +103,7 @@ const PdfPageNotesSidebar = ({
       animate={{ width: 500, opacity: 1 }}
       exit={{ width: 0, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="h-full bg-neutral-1 shadow-[-4px_0_15px_rgba(0,0,0,0.05)] overflow-hidden border-l border-neutral-4"
+      className="h-full bg-neutral-1 dark:bg-zinc-950 shadow-[-4px_0_15px_rgba(0,0,0,0.05)] dark:shadow-[-6px_0_30px_rgba(0,0,0,0.3)] overflow-hidden border-l border-neutral-4 dark:border-zinc-800 transition-colors duration-300"
     >
       <AnimatePresence mode="wait">
         {activeNote ? (
@@ -129,13 +129,14 @@ const PdfPageNotesSidebar = ({
             className="w-[500px] py-2 h-full flex flex-col"
           >
             <div className="w-[500px] py-2 h-full flex flex-col">
-              <div className="flex w-full flex-row justify-between items-center mb-4 border-b border-b-neutral-4 px-4 py-4 shrink-0">
-                <h1 className="text-xl font-bold font-inter text-black">
+              <div className="flex w-full flex-row justify-between items-center mb-4 border-b border-b-neutral-4 dark:border-b-zinc-800 px-4 py-4 shrink-0 transition-colors">
+                <h1 className="text-xl font-bold font-inter text-black dark:text-zinc-100">
+                  {" "}
                   Note del documento
                 </h1>
                 <CrossIcon
                   size={30}
-                  className="text-text-1 cursor-pointer hover:text-black transition-colors"
+                  className="text-text-1 dark:text-zinc-400 cursor-pointer hover:text-black dark:hover:text-zinc-100 transition-colors"
                   onClick={toggleNotesSidebar}
                 />
               </div>
@@ -159,7 +160,7 @@ const PdfPageNotesSidebar = ({
                 </div>
 
                 <div
-                  className="flex flex-col gap-2 overflow-y-scroll py-4 min-h-0 flex-1"
+                  className="flex flex-col gap-2 overflow-y-auto py-4 min-h-0 flex-1 scrollbar-thin dark:scrollbar-thumb-zinc-800"
                   ref={notesContainerRef}
                 >
                   {filteredResults.map((note, index) => (

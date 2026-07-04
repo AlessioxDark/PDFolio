@@ -49,13 +49,13 @@ const FolderPage = () => {
       <div className="w-full justify-between flex flex-row items-center">
         <div className="w-full flex flex-row gap-2 items-center">
           <ChevronUpIcon
-            className="rotate-270 text-black cursor-pointer"
+            className="rotate-270 text-black cursor-pointer dark:text-zinc-200"
             size={30}
             onClick={() => {
               setActiveFolder(null);
             }}
           />
-          <span className="font-inter text-neutral-800 font-medium text-xl">
+          <span className="font-inter text-neutral-800 font-medium text-xl dark:text-zinc-200">
             {activeFolder.nome}
           </span>
         </div>

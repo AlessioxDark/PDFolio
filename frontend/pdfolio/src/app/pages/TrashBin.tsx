@@ -43,13 +43,18 @@ const TrashBin = () => {
   };
   if (loading) return <div>Loading...</div>;
   return (
-    <div className="px-10 py-8 flex flex-col gap-6 w-full h-screen font-inter bg-neutral-50/30">
+    <div className="px-10 py-8 flex flex-col gap-6 w-full h-screen font-inter bg-neutral-50/30 transition-colors duration-300 dark:bg-zinc-900">
       {/* Header del Cestino con info utili */}
-      <div className="flex flex-col gap-1 border-b border-neutral-200 pb-4">
-        <h1 className="text-2xl font-bold text-neutral-900 flex items-center gap-2">
-          <TrashIcon size={30} className="text-neutral-900" /> Cestino
+      <div className="flex flex-col gap-1 border-b border-neutral-200 dark:border-zinc-800 pb-4">
+        {" "}
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-zinc-100 flex items-center gap-2">
+          <TrashIcon
+            size={30}
+            className="text-neutral-900 dark:text-zinc-100"
+          />{" "}
+          Cestino
         </h1>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-neutral-500 dark:text-zinc-400">
           I documenti qui dentro sono congelati. Ripristinali per poterci
           studiare di nuovo.
         </p>
@@ -58,10 +63,10 @@ const TrashBin = () => {
       {deletedDocumentsData.length === 0 ? (
         // Stato vuoto (Empty State) se non ci sono file eliminati
         <div className="flex flex-col items-center justify-center gap-2 py-20 text-center">
-          <h3 className="text-sm font-semibold text-neutral-700 mt-2">
+          <h3 className="text-sm font-semibold text-neutral-700 dark:text-zinc-300 mt-2">
             Il cestino è vuoto
           </h3>
-          <p className="text-xs text-neutral-400 max-w-xs">
+          <p className="text-xs text-neutral-400 dark:text-zinc-400 max-w-xs">
             Ottimo lavoro! Nessun file eliminato di recente.
           </p>
         </div>
@@ -71,14 +76,15 @@ const TrashBin = () => {
           {deletedDocumentsData.map((document) => (
             <div
               key={document.document_id}
-              className="relative group rounded-xl overflow-hidden"
+              className="relative group rounded-xl overflow-hidden border border-transparent dark:border-zinc-800/50"
             >
               {/* Card "Ghost" disabilitata visivamente (Opaca) */}
               <div className="opacity-70 pointer-events-none transition-opacity duration-200 group-hover:opacity-40">
                 <HomeDocument {...document} />
               </div>
 
-              <div className="absolute inset-0 bg-neutral-950/20 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-3">
+              <div className="absolute inset-0 bg-neutral-950/20 dark:bg-zinc-950/40 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-3">
+                {" "}
                 <button
                   onClick={() => handleRestore(document.document_id)}
                   title="Ripristina file"
@@ -86,7 +92,6 @@ const TrashBin = () => {
                 >
                   <RotateCcw size={18} className="text-accent" />
                 </button>
-
                 {/* Bottone Elimina Definitivamente */}
                 <button
                   onClick={() => handleDeleteForever(document.document_id)}

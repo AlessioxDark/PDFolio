@@ -126,12 +126,12 @@ const EditDocumentDialog = ({
         setIsOpen(open);
       }}
     >
-      <AlertDialogContent className="max-w-[440px] p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-2xl gap-0 font-sans">
+      <AlertDialogContent className="max-w-[440px] p-6 dark:bg-zinc-900 dark:border-zinc-800 rounded-2xl bg-white border border-neutral-200/60 shadow-2xl gap-0 font-sans">
         <AlertDialogHeader className="pb-4">
-          <AlertDialogTitle className="text-xl font-bold text-neutral-900 tracking-tight">
+          <AlertDialogTitle className="text-xl font-bold text-neutral-900 dark:text-zinc-100 tracking-tight">
             {defaultMode === "edit" ? "Modifica Documento" : "Sposta Documento"}
           </AlertDialogTitle>
-          <p className="text-xs text-neutral-400 mt-0.5">
+          <p className="text-xs text-neutral-400 dark:text-zinc-500 mt-0.5">
             {defaultMode === "edit"
               ? "Modifica il nome del file o i tag"
               : "Sposta il documento in una cartella"}
@@ -142,7 +142,7 @@ const EditDocumentDialog = ({
           {/* NOME DOCUMENTO */}
           {defaultMode == "edit" && (
             <div className="flex flex-col gap-2">
-              <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="font-inter text-[11px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider block">
                 Nome Documento
               </label>
               <input
@@ -152,22 +152,22 @@ const EditDocumentDialog = ({
                 onChange={(e) => setNome(e.target.value)}
                 disabled={isSaving}
                 placeholder="Es. Dispensa di Economia"
-                className="w-full rounded-xl border border-neutral-200 p-3 text-sm font-semibold text-neutral-800 bg-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent focus:ring-offset-0 transition-all disabled:opacity-50"
+                className="w-full rounded-xl border border-neutral-200 dark:border-zinc-800 p-3 text-sm font-semibold text-neutral-800 dark:text-zinc-200 bg-white dark:bg-zinc-950/20 placeholder-neutral-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-purple-500 focus:border-accent dark:focus:border-purple-500 transition-all"
               />
-              <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="font-inter text-[11px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider block">
                 Tags Documento
               </label>
-              <div className="w-full flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 p-2 bg-white focus-within:ring-1 focus-within:ring-accent focus-within:border-accent transition-all min-h-[46px]">
+              <div className="w-full flex flex-wrap items-center gap-2 rounded-xl border border-neutral-200 dark:border-zinc-800 p-2 bg-white dark:bg-zinc-950/20 focus-within:ring-1 focus-within:ring-accent dark:focus-within:ring-purple-500 focus-within:border-accent dark:focus-within:border-purple-500 transition-all min-h-[46px]">
                 {/* 🏷️ LISTA DELLE PILLOLE */}
                 {currentTags.map((tag, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-1 bg-neutral-100 text-neutral-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200 animate-in zoom-in-95 duration-150"
+                    className="flex items-center gap-1 bg-neutral-100 dark:bg-zinc-900/20 text-neutral-800 dark:text-zinc-200 text-xs font-semibold px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-zinc-700 animate-in zoom-in-95 duration-150"
                   >
                     <span>#{tag}</span>
                     <XIcon
                       onClick={() => removeTag(index)}
-                      className="text-neutral-400 hover:text-neutral-600 rounded-full hover:bg-neutral-200 transition-colors cursor-pointer"
+                      className="text-neutral-400 dark:text-zinc-500 hover:text-neutral-600 dark:hover:text-zinc-300 rounded-full hover:bg-neutral-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                       size={12}
                     />
                   </div>
@@ -180,7 +180,7 @@ const EditDocumentDialog = ({
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={currentTags.length === 0 ? "Es. Economia" : ""}
-                  className="flex-1 min-w-[120px] bg-transparent text-sm font-semibold text-neutral-800 focus:outline-none p-1 placeholder-neutral-400"
+                  className="flex-1 min-w-[120px] bg-transparent text-sm font-semibold text-neutral-800 dark:text-zinc-200 focus:outline-none p-1 placeholder-neutral-400 dark:placeholder-zinc-600"
                 />
               </div>
             </div>
@@ -189,7 +189,7 @@ const EditDocumentDialog = ({
           {/* SELEZIONE CARTELLA */}
           {defaultMode == "move" && (
             <div className="flex flex-col gap-2">
-              <label className=" font-inter text-[11px] font-bold text-text-1 uppercase tracking-wider flex items-center gap-1.5">
+              <label className="font-inter text-[11px] font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider block">
                 Cartella di Destinazione
               </label>
               <div className="relative">
@@ -197,18 +197,22 @@ const EditDocumentDialog = ({
                   value={folderId || ""}
                   onChange={(e) => setFolderId(e.target.value || null)}
                   disabled={isSaving}
-                  className="w-full appearance-none rounded-xl border border-neutral-200 p-3 pr-10 text-sm font-semibold text-neutral-800 bg-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent focus:ring-offset-0 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full appearance-none rounded-xl border border-neutral-200 dark:border-zinc-800 p-3 pr-10 text-sm font-semibold text-neutral-800 dark:text-zinc-200 bg-white dark:bg-zinc-950/20 focus:outline-none focus:border-accent dark:focus:border-purple-500 focus:ring-1 focus:ring-accent dark:focus:ring-purple-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">
+                  <option value="" className="dark:bg-zinc-900">
                     📦 Nessuna cartella (Salva in "Non organizzati")
                   </option>
                   {foldersData.map((folder) => (
-                    <option key={folder.folder_id} value={folder.folder_id}>
+                    <option
+                      key={folder.folder_id}
+                      value={folder.folder_id}
+                      className="dark:bg-zinc-900"
+                    >
                       📁 {folder.nome}
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-neutral-400 dark:text-zinc-500">
                   <ChevronDownIcon size={16} />
                 </div>
               </div>
@@ -217,7 +221,7 @@ const EditDocumentDialog = ({
 
           {/* ERROR ALERT */}
           {errorMessage && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 border border-red-100/80 text-red-600 text-xs font-medium animate-in fade-in duration-200">
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100/80 dark:border-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium animate-in fade-in duration-200">
               <AlertCircleIcon size={15} className="shrink-0 mt-0.5" />
               <span className="leading-normal">{errorMessage}</span>
             </div>
@@ -225,18 +229,18 @@ const EditDocumentDialog = ({
         </div>
 
         {/* CONTROLLI DI FOOTER */}
-        <div className="pt-4 border-t border-neutral-100 mt-4 flex flex-row sm:justify-end gap-2.5">
+        <div className="pt-4 border-t border-neutral-100 dark:border-zinc-800 mt-4 flex flex-row sm:justify-end gap-2.5">
           <AlertDialogCancel
             onClick={() => setIsOpen(false)}
             disabled={isSaving}
-            className="flex-1 sm:flex-none px-5 h-11 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 hover:text-neutral-900 font-semibold rounded-xl cursor-pointer transition-colors text-sm"
+            className="flex-1 sm:flex-none px-5 h-11 bg-neutral-50 dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 border border-neutral-200 dark:border-zinc-700 text-neutral-600 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-zinc-100 font-semibold rounded-xl cursor-pointer transition-colors text-sm"
           >
             Annulla
           </AlertDialogCancel>
           <button
             onClick={handleSave}
             disabled={!nome.trim() || isSaving}
-            className="flex-1 sm:flex-none px-5 h-11 bg-accent hover:bg-accent/90 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-5 h-11 bg-accent dark:bg-purple-600 hover:bg-accent/90 dark:hover:bg-purple-500 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10"
           >
             {isSaving ? (
               <>
