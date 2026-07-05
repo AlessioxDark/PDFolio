@@ -1,5 +1,7 @@
 migliorare interfaccia
 implementare pagina settings con dialog
 permettere modifica immagine e handle, sign out e eliminazione account
-aggiustare search documenti nome
+aggiustare search documenti nome errore di user_id
+
+assicurarsi che sia in grado di fare un buon riassunto (ai)
 implementare loading api miglirata e rifattorizzazione

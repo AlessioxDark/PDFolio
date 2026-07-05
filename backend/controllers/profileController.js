@@ -17,6 +17,25 @@ const getProfile = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { data, error } = await Profile.editProfile(req, res);
+    if (error) throw error;
+    res.status(200).json({
+      data: data,
+      message: "Profilo aggiornato con successo",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Errore durante l'aggiornamento del profilo",
+      details: error.message,
+    });
+  }
+};
+
 module.exports = {
   getProfile,
+  updateProfile,
 };

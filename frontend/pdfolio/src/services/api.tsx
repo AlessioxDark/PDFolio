@@ -612,5 +612,28 @@ export const apiCalls = {
         return { data: null, error: err };
       }
     },
+    async editProfile(session, editedData) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/profile/edit`, {
+          method: "POST",
+          body: JSON.stringify(editedData),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          return {
+            data: null,
+            error: errorData.details || errorData.message,
+          };
+        }
+        const { data } = await response.json();
+        return { data, error: null };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    },
   },
 };

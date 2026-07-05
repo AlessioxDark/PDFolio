@@ -63,9 +63,11 @@ const globalSearch = async (req, res) => {
     console.log("notesData", notesData);
     console.log("textData", textData);
     const qLower = q.toLowerCase();
+
     const filteredDocuments = documentsData?.filter((doc) => {
       // Se la barra di ricerca è vuota, mostra tutti i documenti
       if (!qLower) return true;
+      console.log("doc", doc);
 
       // 1. Controlla se la parola è nel NOME del documento
       const matchNome = doc.nome?.toLowerCase().includes(qLower);
@@ -75,7 +77,7 @@ const globalSearch = async (req, res) => {
       const matchTags = doc.tags?.some((tag) =>
         tag?.toLowerCase().includes(qLower),
       );
-
+      console.log("match", { matchNome, matchTags });
       // Ritorna il documento se corrisponde al nome OPPURE ai tag (Filtro flessibile totale)
       return matchNome || matchTags;
     });

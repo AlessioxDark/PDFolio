@@ -7,6 +7,7 @@ import TrashIcon from "@/icons/TrashIcon";
 import { useAuth } from "@/contexts/AuthContext";
 import { EllipsisVertical, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import SettingsDialog from "@/features/settings/SettingsDialog";
 
 const Sidebar = () => {
   const { profileData } = useProfile();
@@ -15,6 +16,7 @@ const Sidebar = () => {
   const { activeTag, setActiveTag, tagsList } = useDocumentsAndFolders();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const { toggleTheme, currentTheme } = useTheme();
   return (
@@ -75,10 +77,18 @@ const Sidebar = () => {
           {/* Dropdown Menu (Popup verso l'alto) */}
           {menuOpen && (
             <div className="absolute bottom-16 left-0 right-0 bg-white dark:bg-zinc-800 border border-neutral-200 dark:border-zinc-700 rounded-xl shadow-xl p-1 flex flex-col gap-0.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
-              <button className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-zinc-300 hover:bg-neutral-50 dark:hover:bg-zinc-700 rounded-lg w-full text-left transition-colors cursor-pointer">
+              <button
+                className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-zinc-300 hover:bg-neutral-50 dark:hover:bg-zinc-700 rounded-lg w-full text-left transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(true);
+                  // setMenuOpen(false);
+                }}
+              >
                 <Settings size={14} />
                 Impostazioni
               </button>
+              <SettingsDialog isOpen={isOpen} setIsOpen={setIsOpen} />
 
               <button
                 className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-neutral-600 dark:text-zinc-300 hover:bg-neutral-50 dark:hover:bg-zinc-700 rounded-lg w-full text-left transition-colors cursor-pointer"

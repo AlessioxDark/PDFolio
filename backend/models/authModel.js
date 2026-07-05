@@ -5,9 +5,15 @@ const createProfile = async (req, res) => {
 
     const { data, error } = await supabase
       .from("utenti")
-      .insert({ user_id, email, full_name, handle });
+      .insert({ user_id, email })
+      .select("*");
     if (error) throw error;
-    return { data, error: null };
+    const { data: profilesData, error: profileError } = await supabase
+      .from("profiles")
+      .insert({ full_name, handle, profile_id: user_id })
+      .select("*");
+    if (profileError) throw profileError;
+    return { data: { ...data, ...profilesData }, error: null };
   } catch (error) {
     return { data: null, error: error };
   }

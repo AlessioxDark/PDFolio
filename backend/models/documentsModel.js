@@ -228,6 +228,7 @@ const uploadPdf = async (req) => {
       file_url: fileUrl,
       folder_id: cleanFolderId,
       tags: rawTags,
+      user_id: user.id,
     });
     if (insertError) throw insertError;
 

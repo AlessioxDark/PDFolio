@@ -75,7 +75,11 @@ const SignUp = () => {
     }
 
     console.log("Sign up fatto e profilo creato con successo!");
-    setProfileData({ handle: data.handle, full_name: data.full_name });
+    setProfileData({
+      handle: data.handle,
+      email: data.email,
+      full_name: data.full_name,
+    });
     navigate("/");
     // Se usi React Router potresti voler fare: navigate('/qualche-pagina')
   };
