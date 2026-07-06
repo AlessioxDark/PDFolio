@@ -12,6 +12,8 @@ import SelectionMenu from "../../features/pdfPage/SelectionMenu";
 import { useNotes } from "../../contexts/NotesContext";
 import UnderlinedElement from "../../components/UnderlinedElement";
 import PdfPageAiSidebar from "@/features/pdfPage/PdfPageAiSidebar";
+import LoadingState from "@/components/states/LoadingState";
+import { useApi } from "@/contexts/ApiContext";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PdfPage = () => {
@@ -39,6 +41,8 @@ const PdfPage = () => {
   const notesContainerRef = useRef<HTMLDivElement>(null);
   const [aiMessages, setAiMessages] = useState([]);
   const prevNotesRef = useRef(notesArray);
+
+  const { executeApiCall, loading } = useApi();
   const toggleNotesSidebar = () => {
     setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
   };
@@ -47,28 +51,32 @@ const PdfPage = () => {
   };
 
   const getPdfData = async () => {
-    if (!session) return; // Evita chiamate se la sessione non è pronta
-    const { data, error } = await apiCalls.pdf.getPdfFile(
-      session?.access_token,
-      pdfId as string,
-    );
-    if (error) {
-      console.error("Errore nel caricamento:", error);
-      return;
-    }
-    if (data) {
-      console.log("Dati ricevuti:", data);
-      setPdfData(data);
-      setAiMessages([
-        {
-          role: "assistant",
-          content:
-            "Ciao! Sono il tuo assistente. Chiedimi pure qualsiasi cosa sul PDF.",
-          selection_data: null,
+    if (!session) return;
+
+    await executeApiCall(
+      "get_pdf",
+      () => {
+        return apiCalls.pdf.getPdfFile(session?.access_token, pdfId as string);
+      },
+      {
+        onSuccess: (data) => {
+          console.log("Dati ricevuti:", data);
+          setPdfData(data);
+          setAiMessages([
+            {
+              role: "assistant",
+              content:
+                "Ciao! Sono il tuo assistente. Chiedimi pure qualsiasi cosa sul PDF.",
+              selection_data: null,
+            },
+            ...data?.aiMessages,
+          ]);
         },
-        ...data?.aiMessages,
-      ]);
-    }
+        onError: (error) => {
+          console.error("Errore nel caricamento:", error);
+        },
+      },
+    );
   };
 
   useEffect(() => {
@@ -642,9 +650,7 @@ const PdfPage = () => {
                 file={pdfData.file_url}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={
-                  <div className="text-neutral-500 font-inter mt-10">
-                    Caricamento del documento...
-                  </div>
+                  <LoadingState variant="page" text="Caricamento PDF..." />
                 }
                 error={
                   <div className="text-red-500 font-inter mt-10">
@@ -695,9 +701,10 @@ const PdfPage = () => {
                 ))}
               </Document>
             ) : (
-              <div className="text-neutral-500 font-inter mt-10">
-                In attesa dei dati del PDF...
-              </div>
+              <LoadingState
+                variant="page"
+                text="In attesa dei dati del PDF..."
+              />
             )}
           </div>
 

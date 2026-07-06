@@ -12,7 +12,71 @@
   --color-neutral-4: #cbd5e1;
   --color-neutral-5: #f0f2f5;
   --color-text-1: #94a3b8;
+
+  /* Registrazione dei Keyframes nativi */
+
+  @keyframes step-chase {
+    0% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: 0;
+    }
+    12% {
+      stroke-dasharray: 45 100;
+      stroke-dashoffset: 0;
+    }
+    25% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -25;
+    }
+    30% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -25;
+    }
+    42% {
+      stroke-dasharray: 45 100;
+      stroke-dashoffset: -25;
+    }
+    55% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -50;
+    }
+    60% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -50;
+    }
+    72% {
+      stroke-dasharray: 45 100;
+      stroke-dashoffset: -50;
+    }
+    85% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -75;
+    }
+    100% {
+      stroke-dasharray: 25 100;
+      stroke-dashoffset: -100;
+    }
+  }
+
+  @keyframes global-rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Registriamo le utility ufficiali in v4 (Riduciamo a 1.4s per farlo più scattante) */
+  --animate-step-chase-dark: step-chase 1.5s cubic-bezier(0.4, 0, 0.2, 1)
+    infinite;
+  --animate-step-chase-light: step-chase 1.5s cubic-bezier(0.4, 0, 0.2, 1)
+    infinite;
+  --animate-loader-rotate: global-rotate 2.5s linear infinite;
 }
+
+/* Gestione pulita del delay per la linea chiara usando la variabile v4 */
+.animate-step-chase-light {
+  animation-delay: 0.15s;
+}
+/* Animazione globale di rotazione costante per far viaggiare il "bruco" intorno al cerchio */
 
 /* Il contenitore del testo deve ricalcare la pagina senza sbavature */
 .react-pdf__Page__textContent {
@@ -41,3 +105,10 @@
   background: rgba(147, 51, 234, 0.3) !important;
   color: transparent !important;
 }
+/* .animate-step-chase-light {
+  animation: step-chase 1.6s linear infinite;
+  animation-delay: 0.3s;
+}
+.animate-step-chase-dark {
+  animation: step-chase 1.6s linear infinite;
+} */

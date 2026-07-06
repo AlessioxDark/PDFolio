@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
+import { ApiContext, useApi } from "./ApiContext";
 
 const DocumentsAndFolderContext = createContext({
   documentsData: [],
@@ -59,8 +60,9 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
   const [documentsData, setDocumentsData] = useState([]);
   const [foldersData, setFoldersData] = useState([]);
   const [activeTag, setActiveTag] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [tagsList, setTagsList] = useState([]);
+
+  const { executeApiCall } = useApi();
   const [unorganizedFolderData, setUnorganizedFolderData] = useState({
     folder_id: null,
     nome: "Non Organizzati",
@@ -72,19 +74,8 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
   });
   const { session } = useAuth();
   const loadDocumentsAndFolders = async () => {
-    console.log("chiamo", session);
     if (!session) return;
-    console.log("chiamo pt2");
-    setIsLoading(true);
-    const { data, error } = await apiCalls.home.getHomeFoldersAndFiles(session);
-    if (error) {
-      setIsLoading(false);
-      console.error("Errore nel caricamento:", error);
-      return;
-    }
-    if (data) {
-      setIsLoading(false);
-      console.log("Dati ricevuti:", data);
+    const onSuccess = (data) => {
       const cartelleColorate = (data.foldersData || []).map((folderData) => {
         return {
           ...folderData,
@@ -100,16 +91,17 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         ...prev,
         documenti: documenti.filter((doc) => doc.folder_id === null),
       }));
-    }
+    };
+    await executeApiCall(
+      "home",
+      () => {
+        return apiCalls.home.getHomeFoldersAndFiles(session);
+      },
+      { onSuccess },
+    );
   };
   const handlePdfDelete = async (documentId: string) => {
-    const { data, error } = await apiCalls.pdf.trashPdfFile(
-      session,
-      documentId,
-    );
-    if (error) console.error("ERRORE", error);
-    if (data) {
-      console.log("DATA", data);
+    const onSuccess = (data) => {
       setDocumentsData((prev) =>
         prev.filter((doc) => doc.document_id !== documentId),
       );
@@ -133,29 +125,21 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         }),
       );
       toast("Il file è stato eliminato");
+    };
 
-      // setTimeout(() => {
-      //   navigate(-1);
-      // }, 100);
-    }
+    await executeApiCall(
+      "delete_folder",
+      () => {
+        return apiCalls.pdf.trashPdfFile(session, documentId);
+      },
+      { onSuccess },
+    );
   };
   const handlePdfUpdate = async (
     documentId: string,
     updatedFields: { nome?: string; folder_id?: string | null },
   ) => {
-    const { data, error } = await apiCalls.pdf.updatePdf(
-      session,
-      documentId,
-      updatedFields,
-    );
-    if (error) {
-      console.error("ERRORE AGGIORNAMENTO PDF", error);
-      toast.error(
-        error.message || "Errore durante l'aggiornamento del documento",
-      );
-      return { success: false, error };
-    }
-    if (data) {
+    const onSuccess = (data) => {
       const prevFolderId = documentsData.find(
         (doc) => doc.document_id === documentId,
       )?.folder_id;
@@ -253,10 +237,14 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
           return prev;
         });
       }
-
-      return { success: true };
-    }
-    return { success: false };
+    };
+    await executeApiCall(
+      "update_pdf",
+      () => {
+        return apiCalls.pdf.updatePdf(session, documentId, updatedFields);
+      },
+      { onSuccess },
+    );
   };
   useEffect(() => {
     loadDocumentsAndFolders();
@@ -279,7 +267,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
       value={{
         documentsData,
         foldersData,
-        isLoading,
+
         setDocumentsData,
         setFoldersData,
         unorganizedFolderData,

@@ -9,10 +9,12 @@ import DocumentsSection from "@/features/home/DocumentsSection";
 import FolderPage from "./FolderPage";
 import SearchSection from "@/features/home/SearchSection";
 import { useSearch } from "@/contexts/SearchContext";
+import LoadingState from "@/components/states/LoadingState";
+import { useApi } from "@/contexts/ApiContext";
 const FILTERS = ["Recenti", "Note", "Evidenziazioni", "Documenti"];
 const Home = () => {
-  const { isLoading, activeFolder, activeTag, documentsData } =
-    useDocumentsAndFolders();
+  const { activeFolder, activeTag, documentsData } = useDocumentsAndFolders();
+  const { loading } = useApi();
   const [query, setQuery] = useState("");
   const { currentFilter, setCurrentFilter } = useSearch();
   const filteredDocuments = useMemo(() => {
@@ -20,10 +22,8 @@ const Home = () => {
   }, [documentsData, activeTag]);
   const isSearching = query.trim().length > 0;
 
-  return isLoading ? (
-    <div className="w-full h-screen flex items-center justify-center font-medium text-neutral-500">
-      Caricamento in corso...
-    </div>
+  return loading?.home ? (
+    <LoadingState text="Caricamento..." />
   ) : (
     <div className=" w-full h-screen overflow-y-auto flex flex-col gap-8 pb-32   ">
       <HomeHeader />

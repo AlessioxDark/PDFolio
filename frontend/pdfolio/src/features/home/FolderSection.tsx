@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useApi } from "@/contexts/ApiContext";
 
 const FolderSection = () => {
   const [isShown, setIsShown] = useState(false);
@@ -18,9 +19,11 @@ const FolderSection = () => {
   const [newFolderName, setNewFolderName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { session } = useAuth();
+  const { executeApiCall } = useApi();
   const newFolderId = crypto.randomUUID();
   const handleSaveFolder = async () => {
     if (newFolderName.length < 5) return;
+
     setFoldersData((prev) => [
       {
         nome: newFolderName,
@@ -32,22 +35,32 @@ const FolderSection = () => {
     ]);
     setIsCreating(false);
 
-    const { data, error } = await apiCalls.folder.createFolder(session, {
-      nome: newFolderName,
-      folder_id: newFolderId,
-      color_index: colorIndex,
-    });
+    await executeApiCall(
+      "create_folder",
+      () =>
+        apiCalls.folder.createFolder(session, {
+          nome: newFolderName,
+          folder_id: newFolderId,
+          color_index: colorIndex,
+        }),
+      {
+        onSuccess: (data) => {
+          console.log("Cartella salvata con successo:", data);
+        },
+        onError: (error) => {
+          console.error("Errore durante il salvataggio:", error);
+          setFoldersData((prev) =>
+            prev.filter((f) => f.folder_id !== newFolderId),
+          );
+
+          setNewFolderName("");
+          setIsCreating(true);
+        },
+        startLoading: false,
+      },
+    );
 
     setNewFolderName("");
-    if (error) {
-      console.error("ERRORE: ", error);
-    }
-    if (data) {
-      console.log("DATA: ", data);
-    }
-    if (error) {
-      console.log(error);
-    }
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {

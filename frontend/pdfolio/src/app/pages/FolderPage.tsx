@@ -7,6 +7,8 @@ import UploadDialog from "@/features/home/UploadDialog";
 import { AlertDialogComponent } from "@/components/AlertDialogComponent";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useApi } from "@/contexts/ApiContext";
+import LoadingState from "@/components/states/LoadingState";
 
 const FolderPage = () => {
   const {
@@ -16,34 +18,38 @@ const FolderPage = () => {
     setUnorganizedFolderData,
   } = useDocumentsAndFolders();
   const { session } = useAuth();
+  const { executeApiCall, loading } = useApi();
   const handleDeleteFolder = async () => {
-    const { data, error } = await apiCalls.folder.deleteFolder(
-      session,
-      activeFolder.folder_id,
+    const onSuccess = (data) => {
+      setFoldersData((prev) => {
+        return prev.filter((f) => f.folder_id !== activeFolder.folder_id);
+      });
+      setUnorganizedFolderData((prev) => {
+        return {
+          ...prev,
+          documenti:
+            activeFolder.documenti?.length > 0
+              ? [...prev.documenti, ...activeFolder.documenti]
+              : prev.documenti,
+        };
+      });
+      setActiveFolder(null);
+    };
+
+    await executeApiCall(
+      "delete_folder",
+      () => {
+        return apiCalls.folder.deleteFolder(session, activeFolder.folder_id);
+      },
+      { onSuccess },
     );
-    if (error) {
-      console.log("Error deleting folder:", error);
-      return;
-    }
-    if (data) {
-      console.log("DATA", data);
-    }
+
     console.log("Folder deleted successfully");
-    setFoldersData((prev) => {
-      return prev.filter((f) => f.folder_id !== activeFolder.folder_id);
-    });
-    setUnorganizedFolderData((prev) => {
-      return {
-        ...prev,
-        documenti:
-          activeFolder.documenti?.length > 0
-            ? [...prev.documenti, ...activeFolder.documenti]
-            : prev.documenti,
-      };
-    });
-    setActiveFolder(null);
   };
-  console.log("activeFolder", activeFolder);
+
+  if (loading?.delete_folder) {
+    return <LoadingState text={"Eliminando cartella"} />;
+  }
   return (
     <div className="w-full flex flex-col gap-3">
       <div className="w-full justify-between flex flex-row items-center">

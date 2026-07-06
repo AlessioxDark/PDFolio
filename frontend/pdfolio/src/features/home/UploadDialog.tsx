@@ -25,6 +25,7 @@ import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useApi } from "@/contexts/ApiContext";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 const UploadDialog = ({ icon, chosenFolder }) => {
@@ -45,6 +46,8 @@ const UploadDialog = ({ icon, chosenFolder }) => {
     setActiveFolder,
     activeFolder,
   } = useDocumentsAndFolders();
+
+  const { executeApiCall, loading } = useApi();
   useEffect(() => {
     if (chosenFolder && chosenFolder !== "UNORGANIZED") {
       setSelectedFolder(chosenFolder);
@@ -125,68 +128,71 @@ const UploadDialog = ({ icon, chosenFolder }) => {
       fileData.append("pdfFile", fileRinominato);
       fileData.append("folder_id", selectedFolder || null);
       fileData.append("tags", JSON.stringify(currentTags));
-      const { data, error } = await apiCalls.pdf.uploadPdfFile(
-        session?.access_token,
-        fileData,
-      );
-      console.log("data", data);
-      console.log("error", error);
+      await executeApiCall(
+        "upload_pdf",
+        () => apiCalls.pdf.uploadPdfFile(session?.access_token, fileData),
+        {
+          onSuccess: (data) => {
+            console.log("successo", data);
+            const newDocument = {
+              document_id: data.document_id,
+              nome: fileRinominato.name,
+              file_url: URL.createObjectURL(fileRinominato),
+              folder_id: folderIdDestinazione,
+              created_at: new Date().toISOString(),
+              edited_at: new Date().toISOString(),
+              tags: currentTags,
+            };
+            setDocumentsData((prev) => {
+              return [...prev, newDocument];
+            });
+            if (!folderIdDestinazione) {
+              // Caso: Non organizzati
+              setUnorganizedFolderData((prev) => {
+                const documentiPreesistenti = prev?.documenti || [];
+                return {
+                  ...prev,
+                  documenti: [...documentiPreesistenti, newDocument],
+                };
+              });
+            } else {
+              // Caso: Cartella Specifica
+              setFoldersData((prev) =>
+                prev.map((folder) => {
+                  const isTargetFolder =
+                    String(folder.folder_id) === String(folderIdDestinazione);
 
-      console.log("FOLDER SELECTED", selectedFolder);
-      const newDocument = {
-        document_id: data.document_id,
-        nome: fileRinominato.name,
-        file_url: URL.createObjectURL(fileRinominato),
-        folder_id: folderIdDestinazione,
-        created_at: new Date().toISOString(),
-        edited_at: new Date().toISOString(),
-      };
-      setDocumentsData((prev) => {
-        return [...prev, newDocument];
-      });
-      if (!folderIdDestinazione) {
-        // Caso: Non organizzati
-        setUnorganizedFolderData((prev) => {
-          const documentiPreesistenti = prev?.documenti || [];
-          return {
-            ...prev,
-            documenti: [...documentiPreesistenti, newDocument],
-          };
-        });
-      } else {
-        // Caso: Cartella Specifica
-        setFoldersData((prev) =>
-          prev.map((folder) => {
-            const isTargetFolder =
-              String(folder.folder_id) === String(folderIdDestinazione);
-
-            if (isTargetFolder) {
-              const documentiPreesistenti = folder.documenti || [];
-              return {
-                ...folder,
-                documenti: [...documentiPreesistenti, newDocument],
-              };
+                  if (isTargetFolder) {
+                    const documentiPreesistenti = folder.documenti || [];
+                    return {
+                      ...folder,
+                      documenti: [...documentiPreesistenti, newDocument],
+                    };
+                  }
+                  return folder;
+                }),
+              );
             }
-            return folder;
-          }),
-        );
-      }
-      if (activeFolder) {
-        setActiveFolder((prev) => {
-          return {
-            ...prev,
-            documenti: [newDocument, ...prev.documenti],
-          };
-        });
-      }
-      // aggiornare stato
-      toast.success("PDF caricato con successo");
-      setIsOpen(false);
-      resetStato();
-    } catch (error) {
-      console.error(error);
-      setErrorMessage(
-        "Errore durante l'analisi del file. Riprova con un altro PDF.",
+            if (activeFolder) {
+              setActiveFolder((prev) => {
+                return {
+                  ...prev,
+                  documenti: [newDocument, ...prev.documenti],
+                };
+              });
+            }
+            // aggiornare stato
+            toast.success("PDF caricato con successo");
+            setIsOpen(false);
+            resetStato();
+          },
+          onError: (error) => {
+            console.log("errore", error);
+            toast.error(
+              "Errore durante il caricamento del PDF. Riprova con un altro PDF.",
+            );
+          },
+        },
       );
     } finally {
       setIsAnalyzing(false);
@@ -410,10 +416,15 @@ const UploadDialog = ({ icon, chosenFolder }) => {
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleInvia}
-            disabled={!file || !documentName.trim() || isAnalyzing}
+            disabled={
+              !file ||
+              !documentName.trim() ||
+              isAnalyzing ||
+              loading?.upload_pdf
+            }
             className="flex-1 sm:flex-none px-5 h-11 bg-accent dark:bg-purple-600 hover:bg-accent/90 dark:hover:bg-purple-500 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10"
           >
-            {isAnalyzing ? (
+            {isAnalyzing || loading?.upload_pdf ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2Icon size={15} className="animate-spin" /> Verifico
                 OCR...

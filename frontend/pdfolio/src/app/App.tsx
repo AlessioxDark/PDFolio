@@ -8,22 +8,25 @@ import { DocumentsAndFoldersContextProvider } from "../contexts/DocumentsAndFold
 import { SearchContextProvider } from "@/contexts/SearchContext";
 import { ProfileContextProvider } from "@/contexts/ProfileContext";
 import { ThemeContextProvider } from "@/contexts/ThemeContext";
+import ApiContextProvider from "@/contexts/ApiContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthContextProvider>
-        <ProfileContextProvider>
-          <ThemeContextProvider>
-            <SearchContextProvider>
-              <DocumentsAndFoldersContextProvider>
-                <NotesContextProvider>
-                  <AppRouter />
-                </NotesContextProvider>
-              </DocumentsAndFoldersContextProvider>
-            </SearchContextProvider>
-          </ThemeContextProvider>
-        </ProfileContextProvider>
+        <ApiContextProvider>
+          <ProfileContextProvider>
+            <ThemeContextProvider>
+              <SearchContextProvider>
+                <DocumentsAndFoldersContextProvider>
+                  <NotesContextProvider>
+                    <AppRouter />
+                  </NotesContextProvider>
+                </DocumentsAndFoldersContextProvider>
+              </SearchContextProvider>
+            </ThemeContextProvider>
+          </ProfileContextProvider>
+        </ApiContextProvider>
       </AuthContextProvider>
     </BrowserRouter>
   );

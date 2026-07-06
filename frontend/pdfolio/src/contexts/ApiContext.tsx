@@ -1,0 +1,67 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../../config/db.js";
+import { apiCalls } from "../services/api.js";
+export const ApiContext = createContext({
+  executeApiCall: (type, apiCall, onSuccess) => {},
+  loading: {},
+  error: {},
+});
+export const useApi = () => {
+  const context = useContext(ApiContext);
+  return context;
+};
+
+export const ApiContextProvider = ({ children }) => {
+  const [loading, setLoading] = useState({
+    delete_folder: false,
+    home: false,
+    update_pdf: false,
+    upload_pdf: false,
+  });
+  const [error, setError] = useState({
+    home: null,
+    delete_folder: null,
+    update_pdf: null,
+    create_folder: null,
+    upload_pdf: null,
+  });
+  const executeApiCall = async (
+    type: string,
+    apiCall: () => Promise<any>,
+    {
+      onSuccess = null,
+      onError = null,
+      startLoading = true, // Di default mostra il loading
+      endLoading = true, // Di default spegne il loading alla fine
+    } = {},
+  ) => {
+    // 1. Attiva il loading solo se richiesto
+    if (startLoading) {
+      setLoading((prev) => ({ ...prev, [type]: true }));
+    }
+    setError((prev) => ({ ...prev, [type]: null }));
+    try {
+      const result = await apiCall();
+      if (onSuccess) onSuccess(result.data);
+    } catch (error) {
+      setError((prev) => ({ ...prev, [type]: error }));
+      if (onError) onError(error);
+
+      // Se l'API fallisce, dobbiamo COMUNQUE spegnere il loading (se era partito)
+      // altrimenti l'app rimane bloccata in uno stato di errore con lo spinner attivo
+      if (startLoading) {
+        setLoading((prev) => ({ ...prev, [type]: false }));
+      }
+    } finally {
+      if (startLoading && endLoading) {
+        setLoading((prev) => ({ ...prev, [type]: false }));
+      }
+    }
+  };
+  return (
+    <ApiContext.Provider value={{ executeApiCall, error, loading }}>
+      {children}
+    </ApiContext.Provider>
+  );
+};
+export default ApiContextProvider;
