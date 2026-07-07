@@ -11,12 +11,12 @@ import SettingsDialog from "@/features/settings/SettingsDialog";
 
 const Sidebar = () => {
   const { profileData } = useProfile();
-  const location = useLocation();
   const sidebarLinks = [{ label: "Home", href: "/", icon: "" }];
   const { activeTag, setActiveTag, tagsList } = useDocumentsAndFolders();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const { LogOut: SignOut } = useAuth();
 
   const { toggleTheme, currentTheme } = useTheme();
   return (
@@ -112,6 +112,7 @@ const Sidebar = () => {
               <button
                 // onClick={signOut}
                 className="flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg w-full text-left font-semibold transition-colors cursor-pointer"
+                onClick={SignOut}
               >
                 <LogOut size={14} />
                 Disconnetti

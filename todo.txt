@@ -2,5 +2,5 @@ migliorare interfaccia
 sign out
 
 assicurarsi che sia in grado di fare un buon riassunto (ai)
-implementare loading api miglirata e rifattorizzazione
-risolvere problema auth che altri utenti ossono vedere i tuoi file (stessa cosa con note ecc)
+aggiungere error handling con state ed empty state
+risolvere problema auth che altri utenti possono vedere i tuoi file (stessa cosa con note ecc)

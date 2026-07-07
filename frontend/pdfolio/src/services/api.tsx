@@ -45,6 +45,11 @@ export const apiCalls = {
       if (error) return { error, data: null };
       return { data, error: null };
     },
+    async logOut() {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      return { data: null, error: null };
+    },
 
     async getSession() {
       return await supabase.auth.getSession();

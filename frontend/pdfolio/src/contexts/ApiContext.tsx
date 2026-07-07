@@ -35,6 +35,7 @@ export const ApiContextProvider = ({ children }) => {
     export_summary: false,
     global_search: false,
     edit_profile: false,
+    log_out: false,
   });
   const [error, setError] = useState({
     home: null,
@@ -60,6 +61,7 @@ export const ApiContextProvider = ({ children }) => {
     export_summary: null,
     global_search: null,
     edit_profile: null,
+    log_out: null,
   });
   const executeApiCall = async (
     type: string,

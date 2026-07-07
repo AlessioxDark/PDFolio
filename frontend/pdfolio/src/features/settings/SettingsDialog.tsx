@@ -30,7 +30,7 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
         onError: (error) => {
           setErrorMessage(error.message);
         },
-        onSuccess: (data) => {
+        onSuccess: () => {
           setProfileData(newData);
           setTimeout(() => {
             setIsOpen(false);

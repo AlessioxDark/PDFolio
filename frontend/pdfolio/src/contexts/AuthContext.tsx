@@ -114,6 +114,28 @@ export const AuthContextProvider = ({ children }) => {
     });
   };
 
+  const LogOut = async () => {
+    return new Promise((resolve) => {
+      executeApiCall(
+        "log_out",
+        () => {
+          return apiCalls.authService.logOut();
+        },
+        {
+          onSuccess: () => {
+            setSession(null);
+            localStorage.setItem("remember", "false");
+            resolve({ data: { success: true }, error: null });
+          },
+          onError: (error) => {
+            console.error("Errore durante il log_out:", error);
+            resolve({ data: null, error: error });
+          },
+        },
+      );
+    });
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       const {
@@ -144,7 +166,7 @@ export const AuthContextProvider = ({ children }) => {
   }, []);
   return (
     <AuthContext.Provider
-      value={{ session, LoginUser, SignUpUser, isAuthLoading }}
+      value={{ session, LoginUser, SignUpUser, isAuthLoading, LogOut }}
     >
       {children}
     </AuthContext.Provider>
