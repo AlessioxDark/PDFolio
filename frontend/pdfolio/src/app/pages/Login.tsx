@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm, type SubmitHandler } from "react-hook-form";
 import { Link, Navigate, useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
+import { useApi } from "@/contexts/ApiContext";
+import LoadingState from "@/components/states/LoadingState";
 
 const Login = () => {
   const schema = z.object({
@@ -33,8 +35,9 @@ const Login = () => {
   const { LoginUser } = useAuth();
 
   const navigate = useNavigate();
+
+  const { loading } = useApi();
   const onSubmit = async (data) => {
-    console.log("emailfff", data);
     const { error: authError } = await LoginUser({
       email: data.user_email,
       password: data.password,
@@ -47,6 +50,15 @@ const Login = () => {
     console.log("loginnato");
     navigate("/");
   };
+
+  if (loading?.login) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <LoadingState text={"Acceso in corso..."} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-full min-h-screen p-4 flex items-center justify-center bg-slate-50 overflow-hidden">
       {/* Dynamic Background Glows */}

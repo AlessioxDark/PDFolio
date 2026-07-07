@@ -1,3 +1,5 @@
+import LoadingState from "@/components/states/LoadingState";
+import { useApi } from "@/contexts/ApiContext";
 import { useAuth } from "@/contexts/AuthContext";
 import HomeDocument from "@/features/home/HomeDocument";
 import TrashIcon from "@/icons/TrashIcon";
@@ -6,42 +8,72 @@ import { RotateCcw } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 const TrashBin = () => {
-  const [loading, setLoading] = useState(true);
   const [deletedDocumentsData, setDeletedDocumentsData] = useState([]);
   const { session } = useAuth();
+  const { loading, executeApiCall } = useApi();
   const fetchDeletedDocuments = async () => {
-    setLoading(true);
-    const { data, error } = await apiCalls.pdf.getDeletedDocuments(session);
-    if (error) {
-      console.error("ERRORE TRASH", error);
-    }
-    setDeletedDocumentsData(data);
-    setLoading(false);
+    executeApiCall(
+      "trash_bin",
+      () => {
+        return apiCalls.pdf.getDeletedDocuments(session);
+      },
+      {
+        onSuccess: (data) => {
+          setDeletedDocumentsData(data);
+        },
+        onError: (error) => {
+          console.error("ERRORE TRASH", error);
+        },
+      },
+    );
   };
   useEffect(() => {
     fetchDeletedDocuments();
   }, []);
 
   const handleRestore = async (document_id) => {
-    const { error } = await apiCalls.pdf.restorePdfFile(session, document_id);
-    if (error) {
-      console.error("ERRORE TRASH", error);
-    }
-    setDeletedDocumentsData((prev) =>
-      prev.filter((doc) => doc.document_id !== document_id),
+    executeApiCall(
+      "trash_bin_restore",
+      () => {
+        return apiCalls.pdf.restorePdfFile(session, document_id);
+      },
+      {
+        onSuccess: () => {
+          setDeletedDocumentsData((prev) =>
+            prev.filter((doc) => doc.document_id !== document_id),
+          );
+        },
+        onError: (error) => {
+          console.error("ERRORE TRASH", error);
+        },
+      },
     );
   };
 
   const handleDeleteForever = async (document_id) => {
-    const { error } = await apiCalls.pdf.deletePdfFile(session, document_id);
-    if (error) {
-      console.error("ERRORE TRASH", error);
-    }
-    setDeletedDocumentsData((prev) =>
-      prev.filter((doc) => doc.document_id !== document_id),
+    executeApiCall(
+      "trash_bin_delete",
+      () => {
+        return apiCalls.pdf.deletePdfFile(session, document_id);
+      },
+      {
+        onSuccess: () => {
+          setDeletedDocumentsData((prev) =>
+            prev.filter((doc) => doc.document_id !== document_id),
+          );
+        },
+        onError: (error) => {
+          console.error("ERRORE TRASH", error);
+        },
+      },
     );
   };
-  if (loading) return <div>Loading...</div>;
+  if (loading?.trash_bin)
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <LoadingState text={"Caricamento del cestino..."} />
+      </div>
+    );
   return (
     <div className="px-10 py-8 flex flex-col gap-6 w-full h-screen font-inter bg-neutral-50/30 transition-colors duration-300 dark:bg-zinc-900">
       {/* Header del Cestino con info utili */}

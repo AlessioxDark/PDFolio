@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
+import { useApi } from "./ApiContext";
 
 const SearchContext = createContext({
   globalSearchData: [],
@@ -32,35 +33,32 @@ export const SearchContextProvider = ({ children }) => {
   const [currentFilter, setCurrentFilter] = useState("");
   const [isGlobalQueryLoading, setIsGlobalQueryLoading] = useState(false);
   const { session } = useAuth();
-
+  const { executeApiCall } = useApi();
   const handleGlobalSearch = async (query: string) => {
     if (!query.trim()) return;
 
-    setIsGlobalQueryLoading(true);
-    try {
-      const response = await apiCalls.home.globalSearch(
-        session?.access_token,
-        query,
-      );
-
-      if (response.error) {
-        console.error("Errore nel caricamento:", response.error);
-        // Ripristina la struttura vuota in caso di errore
-        setGlobalSearchData({
-          foldersData: [],
-          documentsData: [],
-          notesData: [],
-          textData: [],
-        });
-      } else if (response.data) {
-        console.log("Dati ricevuti nel Context:", response.data);
-        setGlobalSearchData(response.data);
-      }
-    } catch (err) {
-      console.error("Errore di rete:", err);
-    } finally {
-      setIsGlobalQueryLoading(false);
-    }
+    executeApiCall(
+      "global_search",
+      () => {
+        return apiCalls.home.globalSearch(session?.access_token, query);
+      },
+      {
+        onSuccess: (data) => {
+          console.log("Dati ricevuti nel Context:", data);
+          setGlobalSearchData(data);
+        },
+        onError: (error) => {
+          console.error("Errore nel caricamento:", error);
+          // Ripristina la struttura vuota in caso di errore
+          setGlobalSearchData({
+            foldersData: [],
+            documentsData: [],
+            notesData: [],
+            textData: [],
+          });
+        },
+      },
+    );
   };
 
   const filteredSearchData = useMemo(() => {
@@ -127,7 +125,7 @@ export const SearchContextProvider = ({ children }) => {
     <SearchContext.Provider
       value={{
         globalSearchData: filteredSearchData,
-        isGlobalQueryLoading,
+
         handleGlobalSearch,
         setGlobalSearchData,
         currentFilter,

@@ -11,7 +11,6 @@ const UnderlinedElement = ({
   scale: number;
   scrollToNote: (note: any) => void;
 }) => {
-  console.log("sotto", sotto);
   return (
     <div
       key={sotto.note_id || `${pos.page}-${pos.x}-${pos.y}`}

@@ -2,7 +2,6 @@ const supabase = require("../config/db.js");
 const createProfile = async (req, res) => {
   try {
     const { user_id, email, full_name, handle } = req.body;
-
     const { data, error } = await supabase
       .from("utenti")
       .insert({ user_id, email })

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../../config/db.js";
 import { apiCalls } from "../services/api.js";
 import { useAuth } from "./AuthContext.js";
+import { useApi } from "./ApiContext.js";
 export const NotesContext = createContext({
   notesArray: [],
   addNote: (note: any) => {},
@@ -17,23 +18,27 @@ export const NotesContextProvider = ({ children }) => {
   const [notesArray, setNotesArray] = useState([]);
   const [currentPdfId, setCurrentPdfId] = useState(null);
   const { session } = useAuth();
-
+  const { executeApiCall } = useApi();
   const fetchNotes = async (pdfId: string) => {
     console.log("pdf", pdfId);
     setCurrentPdfId(pdfId);
-
-    const { data, error } = await apiCalls.notes.getNotesByDocumentId(
-      session?.access_token,
-      pdfId,
+    executeApiCall(
+      "get_notes",
+      () => {
+        return apiCalls.notes.getNotesByDocumentId(
+          session?.access_token,
+          pdfId,
+        );
+      },
+      {
+        onSuccess: (data) => {
+          setNotesArray(data);
+        },
+        onError: (error) => {
+          console.error("Errore nel caricamento delle note:", error);
+        },
+      },
     );
-    if (error) {
-      console.error("Errore nel caricamento delle note:", error);
-      return;
-    }
-    if (data) {
-      console.log("Note caricate:", data);
-      setNotesArray(data);
-    }
   };
   const addNote = (note: any) => {
     setNotesArray((prev) => [...prev, note]);

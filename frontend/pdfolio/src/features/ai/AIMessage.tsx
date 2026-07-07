@@ -1,7 +1,9 @@
+import { useApi } from "@/contexts/ApiContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotes } from "@/contexts/NotesContext";
 import { apiCalls } from "@/services/api";
-import React, { useState, useEffect } from "react";
+import { Loader, Loader2Icon } from "lucide-react";
+import React, { useState } from "react";
 import Markdown from "react-markdown";
 import { useParams } from "react-router";
 import rehypeRaw from "rehype-raw";
@@ -13,28 +15,40 @@ const AIMessage = ({
   onReject,
 }: {
   m: any;
-  onSaveAsNote: (selectionData: any, content: string) => Promise<void>;
-  onUpdateNote: (noteId: string, content: string) => Promise<void>;
-  onReject: (selectionText: string) => Promise<void>;
+  onSaveAsNote: (
+    messageId: string,
+    selectionData: any,
+    content: string,
+  ) => Promise<void>;
+  onUpdateNote: (
+    messageId: string,
+    noteId: string,
+    content: string,
+  ) => Promise<void>;
+  onReject: (messageId: string, selectionText: string) => Promise<void>;
 }) => {
   const isUser = m.role === "user";
-  const { documentId } = useParams();
+  const { pdfId: documentId } = useParams();
   const { notesArray } = useNotes();
   const { session } = useAuth();
-  const getParsedSelectionData = (msg: any) => {
-    if (!msg || !msg.selection_data) return null;
-    let data = msg.selection_data;
-    if (typeof data === "string") {
+  const { loading } = useApi();
+  // Stato di loading locale per ogni messaggio (evita lo spinner su tutti i messaggi insieme)
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
+  const [isUpdatingLocal, setIsUpdatingLocal] = useState(false);
+  const [isRejectingLocal, setIsRejectingLocal] = useState(false);
+  const { executeApiCall } = useApi();
+  const getParsedSelectionData = (raw: any) => {
+    if (!raw) return null;
+    if (typeof raw === "string") {
       try {
-        console.log("è json");
-        data = JSON.parse(data);
-      } catch (e) {
-        console.error("Errore JSON.parse selection_data:", e);
+        return JSON.parse(raw);
+      } catch {
         return null;
       }
     }
-    return data;
+    return { ...raw };
   };
+
   const extractText = (children: any): string => {
     if (typeof children === "string") return children;
     if (typeof children === "number") return String(children);
@@ -44,46 +58,39 @@ const AIMessage = ({
     }
     return "";
   };
-  const selectionDataToUse = getParsedSelectionData(m);
-  const [isSaved, setIsSaved] = useState<boolean>(
-    !!selectionDataToUse?.isSaved,
-  );
-  const [isModified, setIsModified] = useState<boolean>(
-    !!selectionDataToUse?.isModified,
-  );
-  const [isRejected, setIsRejected] = useState<boolean>(
-    !!selectionDataToUse?.isRejected,
-  );
-
-  // Resincronizza gli stati quando la prop m.selection_data cambia dall'esterno
-  useEffect(() => {
-    const sd = getParsedSelectionData(m);
-    setIsSaved(!!sd?.isSaved);
-    setIsModified(!!sd?.isModified);
-    setIsRejected(!!sd?.isRejected);
-  }, [m.selection_data]);
+  const selectionDataToUse = getParsedSelectionData(m.selection_data);
+  const isSaved = !!selectionDataToUse?.isSaved;
+  const isModified = !!selectionDataToUse?.isModified;
+  const isRejected = !!selectionDataToUse?.isRejected;
 
   const handleExportPdf = async (summaryText) => {
-    const { data, error } = await apiCalls.pdf.exportSummaryPdf(
-      session?.access_token,
-      documentId,
-      summaryText,
+    executeApiCall(
+      "export_summary",
+      () => {
+        return apiCalls.pdf.exportSummaryPdf(
+          session?.access_token,
+          documentId,
+          summaryText,
+        );
+      },
+      {
+        onError: (error) => {
+          console.error("Errore esportazione PDF:", error);
+        },
+        onSuccess: (data) => {
+          const downloadUrl = window.URL.createObjectURL(data);
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.setAttribute("download", `Riassunto_${documentId}.pdf`);
+
+          document.body.appendChild(link);
+          link.click();
+
+          link.parentNode?.removeChild(link);
+          window.URL.revokeObjectURL(downloadUrl);
+        },
+      },
     );
-    if (error) {
-      console.error("Errore esportazione PDF:", error);
-      return;
-    }
-    const downloadUrl = window.URL.createObjectURL(data);
-
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", `Riassunto_${documentId}.pdf`);
-
-    document.body.appendChild(link);
-    link.click();
-
-    link.parentNode?.removeChild(link);
-    window.URL.revokeObjectURL(downloadUrl);
   };
 
   return (
@@ -125,197 +132,7 @@ const AIMessage = ({
             p: ({ ...props }) => (
               <p className="my-0 leading-relaxed" {...props} />
             ),
-            // "crea-nota": ({ node, children, ...props }: any) => {
-            //   return (
-            //     <div className="my-3 p-4 border border-purple-200 bg-light-accent rounded-xl flex flex-col gap-3 shadow-sm text-left font-inter">
-            //       {/* 🏷️ TITOLO DELLA NUOVA NOTA */}
-            //       <div className="flex flex-col gap-1">
-            //         <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
-            //           Titolo della nota
-            //         </span>
-            //         <div className="text-neutral-800 font-bold text-sm bg-white/60 border border-emerald-100/50 rounded-lg px-2.5 py-1.5 shadow-sm">
-            //           {selectionDataToUse?.text}
-            //         </div>
-            //       </div>
 
-            //       {/* 📖 CONTENUTO PROPOSTO DALL'AI */}
-            //       <div className="flex flex-col gap-1">
-            //         <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
-            //           Contenuto generato
-            //         </span>
-            //         <div className="text-neutral-800 text-xs bg-white border border-gray-100 p-3 rounded-lg shadow-inner leading-relaxed">
-            //           <Markdown
-            //             rehypePlugins={[rehypeRaw]}
-            //             components={{
-            //               p: ({ ...props }) => (
-            //                 <p
-            //                   className="my-0 leading-relaxed inline"
-            //                   {...props}
-            //                 />
-            //               ),
-            //               ul: ({ ...props }) => (
-            //                 <ul className="list-disc pl-4 my-1" {...props} />
-            //               ),
-            //               ol: ({ ...props }) => (
-            //                 <ol className="list-decimal pl-4 my-1" {...props} />
-            //               ),
-            //             }}
-            //           >
-            //             {extractText(children)}
-            //           </Markdown>
-            //         </div>
-            //       </div>
-
-            //       {/* AZIONI DELLA CARD */}
-            //       <div className="flex gap-2 justify-end mt-1 font-inter">
-            //         {isRejected ? (
-            //           <span className="text-xs text-neutral-400 italic py-2">
-            //             Suggerimento scartato
-            //           </span>
-            //         ) : isSaved ? (
-            //           <span className="text-xs text-accent font-semibold py-2">
-            //             Nota salvata
-            //           </span>
-            //         ) : (
-            //           <>
-            //             <button
-            //               onClick={async () => {
-            //                 if (selectionDataToUse) {
-            //                   await onReject(selectionDataToUse.text);
-            //                   setIsRejected(true);
-            //                 }
-            //               }}
-            //               className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-700 bg-neutral-2 rounded-lg transition-all cursor-pointer"
-            //             >
-            //               Scarta
-            //             </button>
-
-            //             <button
-            //               onClick={async () => {
-            //                 if (selectionDataToUse && !isSaved) {
-            //                   const contentText = extractText(children);
-            //                   await onSaveAsNote(
-            //                     selectionDataToUse,
-            //                     contentText,
-            //                   );
-            //                   setIsSaved(true);
-            //                 }
-            //               }}
-            //               className="bg-accent hover:bg-accent/80 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
-            //             >
-            //               Aggiungi alle note
-            //             </button>
-            //           </>
-            //         )}
-            //       </div>
-            //     </div>
-            //   );
-            // },
-
-            // "modifica-nota": ({ node, children, ...props }: any) => {
-            //   const notaOriginale = notesArray.find(
-            //     (note) => note.note_id === props.note_id,
-            //   );
-            //   return (
-            //     <div className="my-3 p-4 border border-purple-200 bg-light-accent rounded-xl flex flex-col gap-3 shadow-sm text-left font-inter">
-            //       {/* 📌 TITOLO DELLA NOTA */}
-            //       <div className="text-neutral-800 font-bold text-sm flex items-center gap-1.5">
-            //         <span>{notaOriginale?.text}</span>
-            //       </div>
-            //       {/* 1. VECCHIO TESTO (Nota Corrente nel DB) */}
-            //       <div className="flex flex-col gap-1">
-            //         <span className="text-[10px] font-semibold text-accent uppercase tracking-wide">
-            //           Testo attuale
-            //         </span>
-            //         <div className="text-neutral-500 text-xs bg-neutral-100/70 border border-neutral-200 rounded-lg p-2.5 line-through italic max-h-24 overflow-y-auto">
-            //           {notaOriginale?.content ||
-            //             notaOriginale?.text ||
-            //             "Nessun contenuto precedente."}
-            //         </div>
-            //       </div>
-            //       {/* 2. NUOVO TESTO PROPOSTO (Dall'AI) */}
-            //       <div className="flex flex-col gap-1">
-            //         <span className="text-[10px] font-semibold text-violet-500 uppercase tracking-wide">
-            //           Nuova proposta di revisione
-            //         </span>
-            //         <div className="text-neutral-800 text-xs bg-white border border-violet-100 p-3 rounded-lg shadow-inner leading-relaxed">
-            //           <Markdown
-            //             rehypePlugins={[rehypeRaw]}
-            //             components={{
-            //               p: ({ ...props }) => (
-            //                 <p
-            //                   className="my-0 leading-relaxed inline"
-            //                   {...props}
-            //                 />
-            //               ),
-            //               ul: ({ ...props }) => (
-            //                 <ul className="list-disc pl-4 my-1" {...props} />
-            //               ),
-            //               ol: ({ ...props }) => (
-            //                 <ol className="list-decimal pl-4 my-1" {...props} />
-            //               ),
-            //             }}
-            //           >
-            //             {extractText(children)}
-            //           </Markdown>
-            //         </div>
-            //       </div>
-            //       {/* CONTROLLI DI AZIONE [RIFIUTA / ACCETTA] */}
-            //       <div className="flex gap-2 justify-end mt-1 font-inter">
-            //         {isRejected ? (
-            //           <span className="text-xs text-neutral-400 italic py-2">
-            //             Proposta rifiutata
-            //           </span>
-            //         ) : isModified ? (
-            //           <span className="text-xs text-accent font-semibold py-2">
-            //             Modifica applicata
-            //           </span>
-            //         ) : (
-            //           <>
-            //             <button
-            //               onClick={async () => {
-            //                 if (notaOriginale) {
-            //                   await onReject(notaOriginale.text);
-            //                   setIsRejected(true);
-            //                 }
-            //               }}
-            //               className="px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-700 bg-neutral-2 rounded-lg transition-all cursor-pointer"
-            //             >
-            //               Rifiuta
-            //             </button>
-
-            //             <button
-            //               onClick={async () => {
-            //                 if (notaOriginale && !isModified) {
-            //                   const contentText = extractText(children);
-            //                   await onUpdateNote(props.note_id, contentText);
-            //                   setIsModified(true);
-            //                 }
-            //               }}
-            //               className="bg-accent hover:bg-accent/80 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
-            //             >
-            //               Applica Modifica
-            //             </button>
-            //           </>
-            //         )}
-            //       </div>
-            //     </div>
-            //   );
-            // },
-            // "export-summary": ({ node, children, ...props }: any) => {
-            //   return (
-            //     <div>
-            //       <h1>Riassunto del Documento</h1>
-
-            //       <button
-            //         className="text-white bg-accent px-3 py-2 rounded-xl cursor-pointer"
-            //         onClick={() => handleExportPdf(extractText(children))}
-            //       >
-            //         Esporta come PDF
-            //       </button>
-            //     </div>
-            //   );
-            // },
             "crea-nota": ({ node, children, ...props }: any) => {
               return (
                 <div className="my-3 p-4 border border-purple-200 dark:border-purple-900/60 bg-light-accent dark:bg-purple-950/20 rounded-xl flex flex-col gap-3 shadow-sm text-left font-inter transition-colors">
@@ -377,29 +194,58 @@ const AIMessage = ({
                       <>
                         <button
                           onClick={async () => {
-                            if (selectionDataToUse) {
-                              await onReject(selectionDataToUse.text);
-                              setIsRejected(true);
+                            if (selectionDataToUse && !isRejectingLocal) {
+                              setIsRejectingLocal(true);
+                              try {
+                                await onReject(
+                                  m.message_id,
+                                  selectionDataToUse.text,
+                                );
+                              } finally {
+                                setIsRejectingLocal(false);
+                              }
                             }
                           }}
+                          disabled={
+                            isSavingLocal || isRejectingLocal || isRejected
+                          }
                           className="px-3 py-2 text-xs font-medium text-neutral-500 dark:text-zinc-400 hover:text-neutral-700 dark:hover:text-zinc-200 bg-neutral-2 dark:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                         >
-                          Scarta
+                          {isRejectingLocal ? "Scarto..." : "Scarta"}
                         </button>
                         <button
                           onClick={async () => {
-                            if (selectionDataToUse && !isSaved) {
-                              const contentText = extractText(children);
-                              await onSaveAsNote(
-                                selectionDataToUse,
-                                contentText,
-                              );
-                              setIsSaved(true);
+                            if (
+                              selectionDataToUse &&
+                              !isSaved &&
+                              !isSavingLocal
+                            ) {
+                              setIsSavingLocal(true);
+                              try {
+                                const contentText = extractText(children);
+                                await onSaveAsNote(
+                                  m.message_id,
+                                  selectionDataToUse,
+                                  contentText,
+                                );
+                              } finally {
+                                setIsSavingLocal(false);
+                              }
                             }
                           }}
+                          disabled={
+                            isSavingLocal || isRejectingLocal || isRejected
+                          }
                           className="bg-accent hover:bg-accent/80 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          Aggiungi alle note
+                          {isSavingLocal ? (
+                            <>
+                              <Loader className="w-3.5 h-3.5 animate-spin" />
+                              Salvataggio...
+                            </>
+                          ) : (
+                            "Aggiungi alle note"
+                          )}
                         </button>
                       </>
                     )}
@@ -480,26 +326,54 @@ const AIMessage = ({
                       <>
                         <button
                           onClick={async () => {
-                            if (notaOriginale) {
-                              await onReject(notaOriginale.text);
-                              setIsRejected(true);
+                            if (notaOriginale && !isRejectingLocal) {
+                              setIsRejectingLocal(true);
+                              try {
+                                await onReject(
+                                  m.message_id,
+                                  notaOriginale.text,
+                                );
+                              } finally {
+                                setIsRejectingLocal(false);
+                              }
                             }
                           }}
+                          disabled={
+                            isUpdatingLocal || isRejectingLocal || isRejected
+                          }
                           className="px-3 py-2 text-xs font-medium text-neutral-500 dark:text-zinc-400 hover:text-neutral-700 dark:hover:text-zinc-200 bg-neutral-2 dark:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                         >
-                          Rifiuta
+                          {isRejectingLocal ? "Rifiuto..." : "Rifiuta"}
                         </button>
                         <button
                           onClick={async () => {
-                            if (notaOriginale && !isModified) {
-                              const contentText = extractText(children);
-                              await onUpdateNote(props.note_id, contentText);
-                              setIsModified(true);
+                            if (notaOriginale && !isUpdatingLocal) {
+                              setIsUpdatingLocal(true);
+                              try {
+                                const contentText = extractText(children);
+                                await onUpdateNote(
+                                  m.message_id,
+                                  props.note_id,
+                                  contentText,
+                                );
+                              } finally {
+                                setIsUpdatingLocal(false);
+                              }
                             }
                           }}
+                          disabled={
+                            isUpdatingLocal || isRejectingLocal || isRejected
+                          }
                           className="bg-accent hover:bg-accent/80 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold text-xs py-2 px-4 rounded-lg transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          Applica Modifica
+                          {isUpdatingLocal ? (
+                            <>
+                              <Loader2Icon className="w-3.5 h-3.5 animate-spin" />
+                              Salvataggio...
+                            </>
+                          ) : (
+                            "Applica Modifica"
+                          )}
                         </button>
                       </>
                     )}
@@ -519,7 +393,9 @@ const AIMessage = ({
                     className="text-white bg-accent hover:bg-accent/90 dark:bg-purple-600 dark:hover:bg-purple-700 px-4 py-2 rounded-xl font-medium text-xs transition-colors cursor-pointer"
                     onClick={() => handleExportPdf(extractText(children))}
                   >
-                    Esporta come PDF
+                    {loading?.export_summary
+                      ? "Esportando..."
+                      : " Esporta come PDF"}{" "}
                   </button>
                 </div>
               );

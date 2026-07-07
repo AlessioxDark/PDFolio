@@ -6,8 +6,6 @@ import ShareIcon from "../../icons/ShareIcon";
 import { useNavigate } from "react-router";
 import { AlertDialogComponent } from "@/components/AlertDialogComponent";
 import { toast } from "sonner";
-import { LucideAArrowDown, LucideCable } from "lucide-react";
-import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import BrainIcon from "@/icons/BrainIcon";

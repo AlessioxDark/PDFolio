@@ -20,16 +20,13 @@ const getProfile = async (req, res) => {
       .select("handle,avatar_url,biography,full_name")
       .eq("profile_id", user.id)
       .single();
-    console.log("profer", profileError);
     if (profileError) throw profileError;
     const { data: userData, error: userDataError } = await supabase
       .from("utenti")
       .select("email")
       .eq("user_id", user.id)
       .single();
-    console.log("user", userDataError);
     if (userDataError) throw userDataError;
-    console.log({ user_id: user.id, email: userData.email, ...profileData });
     return {
       data: { user_id: user.id, email: userData.email, ...profileData },
       error: null,
@@ -59,7 +56,6 @@ const editProfile = async (req, res) => {
       .from("profiles")
       .update({ full_name, biography, avatar_url, handle })
       .eq("profile_id", user.id);
-    console.log("profilee", profileError);
     if (profileError) throw profileError;
 
     return { data: { success: true }, error: null };

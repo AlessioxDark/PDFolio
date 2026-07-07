@@ -13,8 +13,8 @@ import ApiContextProvider from "@/contexts/ApiContext";
 function App() {
   return (
     <BrowserRouter>
-      <AuthContextProvider>
-        <ApiContextProvider>
+      <ApiContextProvider>
+        <AuthContextProvider>
           <ProfileContextProvider>
             <ThemeContextProvider>
               <SearchContextProvider>
@@ -26,8 +26,8 @@ function App() {
               </SearchContextProvider>
             </ThemeContextProvider>
           </ProfileContextProvider>
-        </ApiContextProvider>
-      </AuthContextProvider>
+        </AuthContextProvider>
+      </ApiContextProvider>
     </BrowserRouter>
   );
 }

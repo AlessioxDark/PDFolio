@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router";
 import Step1 from "../../features/register/Step1";
 import Step2 from "../../features/register/Step2";
 import { useProfile } from "../../contexts/ProfileContext";
+import LoadingState from "@/components/states/LoadingState";
+import { useApi } from "@/contexts/ApiContext";
 
 const SignUp = () => {
   const schema = z.object({
@@ -47,7 +49,7 @@ const SignUp = () => {
 
     setError,
   } = methods;
-
+  const { loading } = useApi();
   const { SignUpUser } = useAuth();
   const { setProfileData } = useProfile();
   const [currentStep, setCurrentStep] = useState(1);
@@ -81,7 +83,6 @@ const SignUp = () => {
       full_name: data.full_name,
     });
     navigate("/");
-    // Se usi React Router potresti voler fare: navigate('/qualche-pagina')
   };
 
   const nextStep = async () => {
@@ -89,7 +90,16 @@ const SignUp = () => {
     const output = await methods.trigger(fieldsStep1);
     if (output) setCurrentStep(2);
   };
-
+  if (loading?.sign_up) {
+    <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+      <LoadingState text={"Registrazione in corso..."} />
+    </div>;
+  }
+  if (loading?.create_profile) {
+    <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+      <LoadingState text={"Creazione profilo in corso..."} />
+    </div>;
+  }
   return (
     <div className="relative w-full min-h-screen p-4 flex items-center justify-center bg-slate-50 overflow-hidden">
       {/* Dynamic Background Glows */}

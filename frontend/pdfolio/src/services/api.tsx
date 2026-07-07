@@ -6,21 +6,33 @@ export const apiCalls = {
     async signUp({ email, password, handle }) {
       try {
         const { data: selectData, error: selectError } = await supabase
-          .from("utenti")
+          .from("profiles")
           .select("*")
           .eq("handle", handle);
+
         if (selectError) throw selectError;
-        if (selectData.length > 0) {
-          return { data: null, error: { message: "Utente già registrato" } };
+
+        // 🔥 MODIFICA QUI: Lanciamo un errore vero invece di fare il return
+        if (selectData && selectData.length > 0) {
+          throw { message: "L'handle è già registrato da un altro utente" };
         }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
+
         if (error) throw error;
+
+        // Se tutto va bene, ritorniamo i dati. executeApiCall leggerà questo in 'result.data'
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        // Logga l'errore per debugging nel backend/servizio
+        console.error("Errore nel servizio signUp:", err);
+
+        // 🔥 IMPORTANTE: Dobbiamo fare l'asymmetric return o rilanciare l'errore?
+        // Visto che executeApiCall si aspetta che l'API fallisca lanciando un'eccezione
+        // per entrare nel blocco catch(error), dobbiamo fare THROW anche qui!
+        throw err;
       }
     },
     async loginUser({ email, password }) {
@@ -481,6 +493,7 @@ export const apiCalls = {
         selection_data: any;
       },
     ) {
+      console.log("Context", context);
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/ai/ask/${documentId}`,

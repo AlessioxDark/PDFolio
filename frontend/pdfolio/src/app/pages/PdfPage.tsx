@@ -56,7 +56,7 @@ const PdfPage = () => {
     await executeApiCall(
       "get_pdf",
       () => {
-        return apiCalls.pdf.getPdfFile(session?.access_token, pdfId as string);
+        return apiCalls.pdf.getPdfFile(session, pdfId as string);
       },
       {
         onSuccess: (data) => {
@@ -289,21 +289,25 @@ const PdfPage = () => {
     setSelectionData(null);
     setActiveSidebar("NOTES");
 
-    const { data: noteData, error } = await apiCalls.notes.SaveNoteToDB(
-      session?.access_token,
-      pdfId as string,
-      highlight,
+    await executeApiCall(
+      "save_note",
+      () => {
+        return apiCalls.notes.SaveNoteToDB(
+          session?.access_token,
+          pdfId as string,
+          highlight,
+        );
+      },
+      {
+        onSuccess: (noteData) => {
+          setNotesArray((prev) =>
+            prev.map((n) =>
+              n === highlight ? { ...n, note_id: noteData.noteId } : n,
+            ),
+          );
+        },
+      },
     );
-    if (error) {
-      console.log("err", error);
-    } else if (noteData?.noteId) {
-      // Aggiorna la nota appena inserita con il suo ID reale
-      setNotesArray((prev) =>
-        prev.map((n) =>
-          n === highlight ? { ...n, note_id: noteData.noteId } : n,
-        ),
-      );
-    }
   };
 
   const handleAddNoteAction = () => {
@@ -376,7 +380,20 @@ const PdfPage = () => {
     const currentSelection = selectionData;
     setActiveSidebar("AI");
     let promptMessage = "";
-
+    const staticSelectionData = {
+      document_id: pdfId,
+      text: selectionData.text,
+      position: {
+        page: selectionData.pageNum,
+        x: selectionData.textX,
+        y: selectionData.textY,
+        width: selectionData.textWidth,
+        height: selectionData.textHeight,
+      },
+      isSaved: false,
+      isRejected: false,
+      isModified: false,
+    };
     if (type === "explain") {
       promptMessage = "Spiegami questo passaggio del documento";
     }
@@ -386,54 +403,87 @@ const PdfPage = () => {
     if (type === "example") {
       promptMessage = "Fammi un esempio di questo passaggio del documento";
     }
+    const tempId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(7);
     const message = {
       role: "user",
+      message_id: tempId,
       content: promptMessage + ":\n" + `${currentSelection.text}`,
-      selection_data: {
-        document_id: pdfId,
-        text: currentSelection.text,
-        position: {
-          page: currentSelection.pageNum,
-          x: currentSelection.textX,
-          y: currentSelection.textY,
-          width: currentSelection.textWidth,
-          height: currentSelection.textHeight,
-        },
-        isSaved: false,
-      },
+      selection_data: staticSelectionData,
     };
     console.log("sel data", message.selection_data);
     setAiMessages((prevMessages) => [...prevMessages, message]);
-    const { data, error } = await apiCalls.ai.askAi(
-      session.access_token,
-      pdfId,
-      message.content,
+    await executeApiCall(
+      "ask_ai",
+      () => {
+        return apiCalls.ai.askAi(
+          session?.access_token,
+          pdfId,
+          message.content,
+          {
+            history: null,
+            isExplaining: type === "explain",
+            isSimplify: type === "simplify",
+            isExample: type === "example",
+            selection_data: staticSelectionData,
+            notes: notesArray,
+          },
+        );
+      },
       {
-        history: null,
-        isExplaining: type === "explain",
-        isSimplify: type === "simplify",
-        isExample: type === "example",
-        selection_data: message.selection_data,
-        notes: notesArray,
+        onSuccess: (data) => {
+          console.log("aidata", data);
+          const aiResponseId =
+            typeof crypto !== "undefined" && crypto.randomUUID
+              ? crypto.randomUUID()
+              : Math.random().toString(36).substring(7);
+          setAiMessages((prev) => {
+            return [
+              ...prev,
+              {
+                role: "assistant",
+                message_id: aiResponseId,
+                content: data.response,
+                selection_data: message.selection_data,
+              },
+            ];
+          });
+        },
+        onError: (error) => {
+          setAiMessages((prev) => {
+            return prev.filter((msg) => msg.message_id !== tempId);
+          });
+        },
       },
     );
-    setAiMessages((prev) => {
-      return [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.response,
-          selection_data: message.selection_data,
-        },
-      ];
-    });
-    console.log(data, error);
+
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
-    setActiveSidebar("AI");
   };
 
-  const onSaveAsNote = async (selection_data: any, content: string) => {
+  const parseSelectionData = (raw: any) => {
+    if (!raw) return null;
+    if (typeof raw === "string") {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+    return { ...raw }; // clona, non muta il riferimento originale
+  };
+
+  const serializeSelectionData = (original: any, updated: any) => {
+    return typeof original === "string" ? JSON.stringify(updated) : updated;
+  };
+
+  const onSaveAsNote = async (
+    messageId: string,
+    selection_data: any,
+    content: string,
+  ) => {
     if (!selection_data) return;
     const rawPage = selection_data.pageNum || selection_data.position?.page;
     const rawX =
@@ -453,170 +503,222 @@ const PdfPage = () => {
         ? selection_data.textHeight
         : selection_data.position?.height;
 
-    // 2. Pulizia totale: trasformiamo tutto in numeri puri.
-    // Se dentro c'è un elemento HTML o un oggetto strano, parseFloat lo blocca ed evita l'errore.
     const page = Number(rawPage || 0);
     const x = parseFloat(rawX);
     const y = parseFloat(rawY);
     const width = parseFloat(rawWidth);
     const height = parseFloat(rawHeight);
 
-    // 3. Costruiamo l'oggetto NOTA usando solo i numeri puliti
+    const tempId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(7);
+
     const note = {
+      note_id: tempId,
       document_id: pdfId,
       type: "NOTE",
       text: selection_data.text,
       content: content,
-      position: {
-        page: page,
-        x: x,
-        y: y,
-        width: width,
-        height: height,
-      },
+      position: { page, x, y, width, height },
     };
-    console.log(note);
-    const newArray = [...notesArray, note];
-    setNotesArray(newArray);
+
+    const previousNotes = [...notesArray];
+    setNotesArray([...notesArray, note]);
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
 
-    // Aggiorna subito lo stato locale dei messaggi AI con isSaved: true
-    if (selection_data.text) {
+    // Aggiorna SOLO il messaggio con questo id, senza mutare nulla
+    const updateMessageSavedStatus = (saved: boolean) => {
       setAiMessages((prev) =>
         prev.map((msg) => {
-          if (!msg.selection_data) return msg;
-          const sd =
-            typeof msg.selection_data === "string"
-              ? (() => {
-                  try {
-                    return JSON.parse(msg.selection_data);
-                  } catch {
-                    return null;
-                  }
-                })()
-              : msg.selection_data;
-          if (sd && sd.text === selection_data.text) {
-            return {
-              ...msg,
-              selection_data: { ...sd, isSaved: true },
-            };
-          }
-          return msg;
-        }),
-      );
-    }
-
-    const { data: noteData, error } = await apiCalls.notes.SaveNoteToDB(
-      session?.access_token,
-      pdfId,
-      note,
-    );
-    if (error) {
-      console.log("err", error);
-    } else if (noteData?.noteId) {
-      // Aggiorna la nota appena inserita con il suo ID reale
-      setNotesArray((prev) =>
-        prev.map((n) => (n === note ? { ...n, note_id: noteData.note_id } : n)),
-      );
-    }
-
-    // Aggiorna isSaved nel DB per tutti i messaggi AI associati a questa selezione
-    if (selection_data.text) {
-      await apiCalls.ai.markMessagesAsSaved(
-        session?.access_token,
-        pdfId,
-        selection_data.text,
-      );
-    }
-  };
-  const onUpdateNote = async (noteId, newContent) => {
-    const targetNote = notesArray.find((n) => n.note_id === noteId);
-    const selectionText = targetNote?.text;
-
-    const newArray = notesArray.map((n) => {
-      if (n.note_id === noteId) {
-        return { ...n, content: newContent };
-      }
-      return n;
-    });
-    setNotesArray(newArray);
-
-    if (selectionText) {
-      setAiMessages((prev) =>
-        prev.map((msg) => {
-          if (!msg.selection_data) return msg;
-          const sd =
-            typeof msg.selection_data === "string"
-              ? (() => {
-                  try {
-                    return JSON.parse(msg.selection_data);
-                  } catch {
-                    return null;
-                  }
-                })()
-              : msg.selection_data;
-          if (sd && sd.text === selectionText) {
-            return {
-              ...msg,
-              selection_data: { ...sd, isSaved: true, isModified: true },
-            };
-          }
-          return msg;
-        }),
-      );
-    }
-    const { error } = await apiCalls.notes.UpdateNoteInDB(
-      session?.access_token,
-      pdfId,
-      noteId,
-      newContent,
-    );
-    if (error) {
-      console.log("err", error);
-    }
-    if (selectionText) {
-      await apiCalls.ai.markMessageAsModified(
-        session?.access_token,
-        pdfId,
-        selectionText,
-      );
-    }
-  };
-
-  const onReject = async (selectionText: string) => {
-    setAiMessages((prev) =>
-      prev.map((msg) => {
-        if (!msg.selection_data) return msg;
-        const sd =
-          typeof msg.selection_data === "string"
-            ? (() => {
-                try {
-                  return JSON.parse(msg.selection_data);
-                } catch {
-                  return null;
-                }
-              })()
-            : msg.selection_data;
-        if (sd && sd.text === selectionText) {
+          if (msg.message_id !== messageId) return msg;
+          const parsedSd = parseSelectionData(msg.selection_data);
+          if (!parsedSd) return msg;
+          const updatedSd = { ...parsedSd, isSaved: saved };
           return {
             ...msg,
-            selection_data: { ...sd, isRejected: true },
+            selection_data: serializeSelectionData(
+              msg.selection_data,
+              updatedSd,
+            ),
           };
-        }
-        return msg;
-      }),
-    );
+        }),
+      );
+    };
 
-    const { error } = await apiCalls.ai.markMessageAsRejected(
-      session?.access_token,
-      pdfId,
-      selectionText,
-    );
-    if (error) {
-      console.log("err", error);
+    try {
+      await executeApiCall(
+        "save_note",
+        () => apiCalls.notes.SaveNoteToDB(session?.access_token, pdfId, note),
+        {
+          onSuccess: (noteData) => {
+            setNotesArray((prev) =>
+              prev.map((n) =>
+                n === note ? { ...n, note_id: noteData?.note_id || tempId } : n,
+              ),
+            );
+          },
+          onError: () => setNotesArray(previousNotes),
+        },
+      );
+
+      await executeApiCall(
+        "mark_messages_as_saved",
+        () =>
+          apiCalls.ai.markMessagesAsSaved(
+            session?.access_token,
+            pdfId,
+            selection_data.text,
+          ),
+        {
+          onSuccess: () => updateMessageSavedStatus(true),
+          onError: (err) =>
+            console.error("Errore sincronizzazione messaggi:", err),
+        },
+      );
+    } catch (err) {
+      console.error("Errore globale durante il salvataggio:", err);
+      updateMessageSavedStatus(false);
     }
   };
+
+  const onUpdateNote = async (
+    messageId: string,
+    noteId: string,
+    newContent: string,
+  ) => {
+    const targetNote = notesArray.find((n) => n.note_id === noteId);
+    const selectionText = targetNote?.text;
+    const previousNotes = [...notesArray];
+    setNotesArray(
+      notesArray.map((n) =>
+        n.note_id === noteId ? { ...n, content: newContent } : n,
+      ),
+    );
+
+    const applyMessageState = (isSaved: boolean, isModified: boolean) => {
+      setAiMessages((prev) =>
+        prev.map((msg) => {
+          const matchById = msg.message_id && msg.message_id === messageId;
+          const parsedSd = parseSelectionData(msg.selection_data);
+          const matchByText =
+            selectionText && parsedSd && parsedSd.text === selectionText;
+
+          if (!matchById && !matchByText) return msg;
+
+          const baseSd = parsedSd || {
+            text: selectionText,
+            isSaved: false,
+            isModified: false,
+            isRejected: false,
+          };
+          const updatedSd = { ...baseSd, isSaved, isModified };
+
+          return {
+            ...msg,
+            selection_data: serializeSelectionData(
+              msg.selection_data,
+              updatedSd,
+            ),
+          };
+        }),
+      );
+    };
+    try {
+      await executeApiCall(
+        "update_note",
+        () =>
+          apiCalls.notes.UpdateNoteInDB(
+            session?.access_token,
+            pdfId,
+            noteId,
+            newContent,
+          ),
+        {
+          onSuccess: () => {},
+          onError: (err) => {
+            setNotesArray(previousNotes);
+            throw err;
+          },
+        },
+      );
+
+      if (selectionText) {
+        await executeApiCall(
+          "mark_message_as_modified",
+          () =>
+            apiCalls.ai.markMessageAsModified(
+              session?.access_token,
+              pdfId,
+              selectionText,
+            ),
+          {
+            onSuccess: () => applyMessageState(true, true),
+            onError: (err) => {
+              throw err;
+            },
+          },
+        );
+      } else {
+        applyMessageState(true, true);
+      }
+    } catch (error) {
+      console.error(error);
+      setNotesArray(previousNotes);
+      applyMessageState(true, false);
+    }
+  };
+  const onReject = async (messageId: string, selectionText: string) => {
+    await executeApiCall(
+      "mark_message_as_rejected",
+      () =>
+        apiCalls.ai.markMessageAsRejected(
+          session?.access_token,
+          pdfId,
+          selectionText,
+        ),
+      {
+        onSuccess: () => {
+          setAiMessages((prev) =>
+            prev.map((msg) => {
+              // Match per message_id O per testo della selezione
+              const matchById = msg.message_id && msg.message_id === messageId;
+              const parsedSd = parseSelectionData(msg.selection_data);
+              const matchByText = parsedSd && parsedSd.text === selectionText;
+
+              if (!matchById && !matchByText) return msg;
+              const baseSd = parsedSd || {
+                text: selectionText,
+                isSaved: false,
+                isModified: false,
+                isRejected: false,
+              };
+              const updatedSd = { ...baseSd, isSaved, isModified };
+
+              return {
+                ...msg,
+                selection_data: serializeSelectionData(
+                  msg.selection_data,
+                  updatedSd,
+                ),
+              };
+            }),
+          );
+        },
+        onError: (err) => {
+          throw err;
+        },
+      },
+    );
+  };
+  if (loading?.get_pdf && !pdfData?.file_url) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <LoadingState text={"Caricamento documento..."} />
+      </div>
+    );
+  }
   return (
     <div className="w-full h-screen bg-neutral-3 dark:bg-zinc-950 flex flex-col overflow-hidden transition-colors duration-300">
       {" "}

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { apiCalls } from "@/services/api";
+import { useApi } from "./ApiContext";
 
 export const ProfileContext = createContext({
   profileData: null,
@@ -20,11 +21,22 @@ export const useProfile = () => {
 export const ProfileContextProvider = ({ children }) => {
   const [profileData, setProfileData] = useState(null);
   const { session } = useAuth();
-
+  const { executeApiCall } = useApi();
   const getProfileData = async () => {
-    const { data, error } = await apiCalls.profile.getProfile(session);
-    if (error) console.error(error);
-    setProfileData(data);
+    executeApiCall(
+      "get_profile",
+      () => {
+        return apiCalls.profile.getProfile(session);
+      },
+      {
+        onSuccess: (data) => {
+          setProfileData(data);
+        },
+        onError: (error) => {
+          console.error(error);
+        },
+      },
+    );
   };
 
   useEffect(() => {

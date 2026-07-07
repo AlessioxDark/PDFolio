@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import NotesSidebarElement from "../../components/NotesSidebarElement";
 import { useNotes } from "../../contexts/NotesContext";
 import SidebarNoteDetailView from "./SidebarNoteDetailView";
+import { useApi } from "@/contexts/ApiContext";
+import LoadingState from "@/components/states/LoadingState";
 const colors = [
   {
     id: "yellow",
@@ -62,6 +64,7 @@ const PdfPageNotesSidebar = ({
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
   const { notesArray } = useNotes();
   const [activeNote, setActiveNote] = useState<any | null>(null);
+  const { loading } = useApi();
   const filteredResults = useMemo(() => {
     return notesArray.filter((note) => {
       // 1. Applica il filtro per Tipo (Tab)
@@ -69,7 +72,6 @@ const PdfPageNotesSidebar = ({
       if (selectedFilter.name === "Evidenziati" && note.type !== "HIGHLIGHT")
         return false;
 
-      console.log(selectedFilter);
       if (
         selectedFilter.name === "Colore" &&
         note.color !== selectedFilter?.currentColor
@@ -94,9 +96,7 @@ const PdfPageNotesSidebar = ({
       return true;
     });
   }, [notesArray, selectedFilter, searchQuery]);
-  useEffect(() => {
-    console.log("SEL cambiato", selectedFilter);
-  }, [selectedFilter]);
+
   return (
     <motion.div
       initial={{ width: 0, opacity: 0 }}
@@ -158,20 +158,25 @@ const PdfPageNotesSidebar = ({
                     </div>
                   ))}
                 </div>
-
-                <div
-                  className="flex flex-col gap-2 overflow-y-auto py-4 min-h-0 flex-1 scrollbar-thin dark:scrollbar-thumb-zinc-800"
-                  ref={notesContainerRef}
-                >
-                  {filteredResults.map((note, index) => (
-                    <NotesSidebarElement
-                      setActiveNote={setActiveNote}
-                      key={index}
-                      note={note}
-                      scrollToNoteInPdf={scrollToNoteInPdf}
-                    />
-                  ))}
-                </div>
+                {loading?.get_notes ? (
+                  <div className="w-full h-full flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+                    <LoadingState text={"Recupero delle note..."} />
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col gap-2 overflow-y-auto py-4 min-h-0 flex-1 scrollbar-thin dark:scrollbar-thumb-zinc-800"
+                    ref={notesContainerRef}
+                  >
+                    {filteredResults.map((note, index) => (
+                      <NotesSidebarElement
+                        setActiveNote={setActiveNote}
+                        key={index}
+                        note={note}
+                        scrollToNoteInPdf={scrollToNoteInPdf}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

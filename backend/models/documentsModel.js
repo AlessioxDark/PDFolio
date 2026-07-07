@@ -21,13 +21,28 @@ const getAll = async (req, res) => {
 const getSpecificDocument = async (req, res) => {
   try {
     const { pdfId } = req.params;
+    const authHeader = req.headers["authorization"];
+    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        error: "Accesso negato. Token mancante o formato non valido.",
+      });
+    }
+    const token = authHeader.split(" ")[1];
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+    if (userError) throw userError;
     const { data: documentData, error: documentError } = await supabase
       .from("documenti")
       .select("*")
       .eq("document_id", pdfId)
       .single();
+    console.log("docerr", documentError);
     if (documentError) throw documentError;
-
+    // if (documentData.user_id !== user.id) throw { message: "Accesso Negato" };
     const { data: aiData, error: aiError } = await supabase
       .from("messaggi_ai")
       .select("*")

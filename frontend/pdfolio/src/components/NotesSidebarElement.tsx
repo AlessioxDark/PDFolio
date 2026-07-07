@@ -14,6 +14,7 @@ import { AlertDialogComponent } from "./AlertDialogComponent";
 import { useNotes } from "@/contexts/NotesContext";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import { useApi } from "@/contexts/ApiContext";
 
 const NotesSidebarElement = ({
   note,
@@ -30,7 +31,7 @@ const NotesSidebarElement = ({
   const [noteInput, setNoteInput] = useState(note.content || "");
   const [savedContent, setSavedContent] = useState(note.content || "");
   const [isSent, setIsSent] = useState(note.content && note.content.length > 0);
-
+  const { loading, executeApiCall } = useApi();
   // STATO PER GESTIRE L'ESPANSIONE DEI TESTI LUNGHI
   const [isExpanded, setIsExpanded] = useState(false);
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -88,8 +89,7 @@ const NotesSidebarElement = ({
               style={{
                 backgroundColor:
                   note.type === "HIGHLIGHT"
-                    ? // ? "rgba(253, 224, 71, 0.5)"
-                      note.color
+                    ? note.color
                     : "rgba(147, 51, 234, 0.4)",
                 padding: "0px 2px",
                 WebkitBoxDecorationBreak: "clone",
@@ -126,30 +126,51 @@ const NotesSidebarElement = ({
                     if (noteInput.trim().length > 0) {
                       const isModification = !!note.note_id;
                       if (isModification) {
-                        const { error } = await apiCalls.notes.UpdateNoteInDB(
-                          session?.access_token,
-                          note.document_id,
-                          note.note_id,
-                          noteInput,
-                        );
-                        if (error)
-                          console.error("Errore durante la PATCH:", error);
-                      } else {
-                        const { data: noteData, error } =
-                          await apiCalls.notes.SaveNoteToDB(
-                            session?.access_token,
-                            note.document_id,
-                            {
-                              ...note,
-                              content: noteInput,
+                        setSavedContent(noteInput);
+                        setIsSent(true);
+                        executeApiCall(
+                          "update_note",
+                          () => {
+                            return apiCalls.notes.UpdateNoteInDB(
+                              session?.access_token,
+                              note.document_id,
+                              note.note_id,
+                              noteInput,
+                            );
+                          },
+                          {
+                            onError: (error) => {
+                              console.error("Errore durante la PATCH:", error);
+                              setSavedContent(note.content || "");
+                              setIsSent(false);
                             },
-                          );
-                        if (error)
-                          console.error("Errore durante la POST:", error);
-                        note.note_id = noteData?.noteId;
+                          },
+                        );
+                      } else {
+                        executeApiCall(
+                          "save_note",
+                          () => {
+                            return apiCalls.notes.SaveNoteToDB(
+                              session?.access_token,
+                              note.document_id,
+                              {
+                                ...note,
+                                content: noteInput,
+                              },
+                            );
+                          },
+                          {
+                            onError: (error) => {
+                              console.error("Errore durante la POST:", error);
+                            },
+                            onSuccess: (data) => {
+                              note.note_id = data?.noteId; // Assegni l'ID reale
+                              setSavedContent(noteInput); // Confermi il testo a schermo
+                              setIsSent(true); // Chiudi il box di input
+                            },
+                          },
+                        );
                       }
-                      setSavedContent(noteInput);
-                      setIsSent(true);
                     }
                   }}
                 >

@@ -11,32 +11,33 @@ import { useProfile } from "@/contexts/ProfileContext";
 import DefaultPfpIcon from "@/icons/DefaultPfpIcon";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import LoadingState from "@/components/states/LoadingState";
+import { useApi } from "@/contexts/ApiContext";
 const SettingsDialog = ({ isOpen, setIsOpen }) => {
   const { profileData, setProfileData } = useProfile();
-  const [isSaving, setIsSaving] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
   const [newData, setNewData] = useState(profileData);
   const [errorMessage, setErrorMessage] = useState("");
   const { session } = useAuth();
+  const { loading, executeApiCall } = useApi();
   const handleSave = async () => {
-    setIsSaving(true);
-
-    const { data, error } = await apiCalls.profile.editProfile(
-      session,
-      newData,
+    executeApiCall(
+      "edit_profile",
+      () => {
+        return apiCalls.profile.editProfile(session, newData);
+      },
+      {
+        onError: (error) => {
+          setErrorMessage(error.message);
+        },
+        onSuccess: (data) => {
+          setProfileData(newData);
+          setTimeout(() => {
+            setIsOpen(false);
+          }, 800);
+        },
+      },
     );
-    if (error) {
-      setErrorMessage(error.message);
-      setIsSaving(false);
-      return;
-    }
-    setProfileData(newData);
-    // Simula una chiamata API / Supabase update
-    setTimeout(() => {
-      // if (onSave) onSave({ username, bio, avatarUrl });
-      setIsSaving(false);
-      setIsOpen(false);
-    }, 800);
   };
 
   useEffect(() => {
@@ -51,6 +52,14 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
     }
     setIsDisabled(disable);
   }, [profileData, newData]);
+
+  if (loading?.get_profile) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <LoadingState text={"Caricamento del profilo..."} />
+      </div>
+    );
+  }
   return (
     <AlertDialog
       open={isOpen}
@@ -109,7 +118,7 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
                   return { ...prev, full_name: e.target.value };
                 });
               }}
-              disabled={isSaving}
+              disabled={loading?.edit_profile}
               placeholder="Es. Dispensa di Economia"
               className="w-full rounded-xl border border-neutral-200 dark:border-zinc-800 p-3 text-sm font-semibold text-neutral-800 dark:text-zinc-200 bg-white dark:bg-zinc-950/20 placeholder-neutral-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-purple-500 focus:border-accent dark:focus:border-purple-500 transition-all"
             />
@@ -124,7 +133,7 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
                   return { ...prev, handle: e.target.value };
                 });
               }}
-              disabled={isSaving}
+              disabled={loading?.edit_profile}
               placeholder="Es. Dispensa di Economia"
               className="w-full rounded-xl border border-neutral-200 dark:border-zinc-800 p-3 text-sm font-semibold text-neutral-800 dark:text-zinc-200 bg-white dark:bg-zinc-950/20 placeholder-neutral-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-accent dark:focus:ring-purple-500 focus:border-accent dark:focus:border-purple-500 transition-all"
             />
@@ -159,17 +168,17 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
         <div className="pt-4 border-t border-neutral-100 dark:border-zinc-800 mt-4 flex flex-row sm:justify-end gap-2.5">
           <AlertDialogCancel
             onClick={() => setIsOpen(false)}
-            // disabled={isSaving}
+            disabled={loading?.edit_profile}
             className="flex-1 sm:flex-none px-5 h-11 bg-neutral-50 dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 border border-neutral-200 dark:border-zinc-700 text-neutral-600 dark:text-zinc-300 hover:text-neutral-900 dark:hover:text-zinc-100 font-semibold rounded-xl cursor-pointer transition-colors text-sm"
           >
             Annulla
           </AlertDialogCancel>
           <button
             onClick={handleSave}
-            disabled={isDisabled}
+            disabled={isDisabled || loading?.edit_profile}
             className="flex-1 sm:flex-none px-5 h-11 bg-accent dark:bg-purple-600 hover:bg-accent/90 dark:hover:bg-purple-500 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10"
           >
-            {isSaving ? (
+            {loading?.edit_profile ? (
               <>
                 <Loader2Icon size={15} className="animate-spin" />
                 Salvataggio...

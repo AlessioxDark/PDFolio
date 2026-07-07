@@ -1,14 +1,4 @@
-import { apiCalls } from "@/services/api";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useState,
-} from "react";
-import { useAuth } from "./AuthContext";
-import { toast } from "sonner";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const ThemeContext = createContext({
   currentTheme: [],
