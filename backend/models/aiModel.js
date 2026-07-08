@@ -1,24 +1,11 @@
 const supabase = require("../config/db.js");
-const { GoogleGenAI } = require("@google/genai");
-const { CohereClientV2 } = require("cohere-ai");
-const { OpenAI } = require("openai");
 const AiOrchestrator = require("../orchestrators/aiOrchestrator.js");
 
-// Dentro il controller askAi:
-
-const cohere = new CohereClientV2({
-  token: process.env.COHERE_API_KEY,
-});
-
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
 const askAi = async (req, res) => {
   try {
     console.log("ok");
     const { documentId } = req.params;
     const { prompt, history, isExplaining, selection_data, notes } = req.body;
-    console.log("selection_Data", selection_data, req.body);
     if (!prompt) {
       return {
         data: null,
@@ -71,18 +58,55 @@ const askAi = async (req, res) => {
       notes,
     });
 
+    let finalSelectionData = selection_data;
+
+    // Se l'AI propone di modificare una nota esistente e non abbiamo già selection_data
+    if (!finalSelectionData && responseText) {
+      const modificaMatch = responseText.match(
+        /<modifica-nota\s+note_id="([^"]+)"/,
+      );
+      if (modificaMatch) {
+        const noteId = modificaMatch[1];
+        // Cerca la nota nei dati inviati dal frontend (notes) o nel DB
+        let targetNote = notes && notes.find((n) => n.note_id === noteId);
+        if (!targetNote) {
+          // Fallback: cerca nel database
+          const { data: dbNote } = await supabase
+            .from("note")
+            .select("*")
+            .eq("note_id", noteId)
+            .single();
+          if (dbNote) {
+            targetNote = dbNote;
+          }
+        }
+
+        if (targetNote) {
+          finalSelectionData = {
+            document_id: documentId,
+            text: targetNote.text || targetNote.content,
+            position: targetNote.position,
+            isSaved: true,
+            isRejected: false,
+            isModified: false,
+          };
+        }
+      }
+    }
+
     const { error: insertError } = await supabase.from("messaggi_ai").insert([
       {
         role: "user",
         content: prompt,
         document_id: documentId,
+        // selection_data,
         user_id: user.id,
       },
       {
         role: "assistant",
         content: responseText,
         document_id: documentId,
-        selection_data,
+        selection_data: finalSelectionData,
         user_id: user.id,
       },
     ]);

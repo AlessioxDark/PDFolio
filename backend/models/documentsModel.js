@@ -15,6 +15,7 @@ const getAll = async (req, res) => {
     if (documentsError) throw documentsError;
     return { data: { documentsData, foldersData }, error: null };
   } catch (error) {
+    console.log("errore", error);
     return { data: null, error: error };
   }
 };
@@ -107,7 +108,6 @@ const deleteNote = async (req) => {
   try {
     const { pdfId, noteId } = req.params;
 
-    // 1. Recupera il testo della nota prima di eliminarla
     const { data: noteToDelete } = await supabase
       .from("note")
       .select("text, user_id")
@@ -178,7 +178,6 @@ const deleteNote = async (req) => {
 };
 const updateNote = async (req) => {
   try {
-    console.log("req", req.params);
     const { pdfId, noteId } = req.params;
     const { updatedContent } = req.body;
 
@@ -203,6 +202,7 @@ const updateNote = async (req) => {
 
 const uploadPdf = async (req) => {
   try {
+    throw {};
     const document_id = crypto.randomUUID();
     const uploadedFile = req.file;
     const authHeader = req.headers["authorization"];
@@ -321,7 +321,6 @@ const deletePdfFile = async (req) => {
   try {
     const { pdfId } = req.params;
 
-    // 1. Rimuovi il documento dal database
     const { error: dbError } = await supabase
       .from("documenti")
       .delete()
@@ -366,6 +365,7 @@ const restorePdfFile = async (req) => {
 };
 const updatePdf = async (req) => {
   try {
+    // throw { message: "cia" };
     const { pdfId } = req.params;
     const { nome, folder_id, tags } = req.body;
     const cleanFolderId = folder_id && folder_id !== "null" ? folder_id : null;

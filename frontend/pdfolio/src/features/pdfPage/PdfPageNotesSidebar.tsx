@@ -8,6 +8,7 @@ import { useNotes } from "../../contexts/NotesContext";
 import SidebarNoteDetailView from "./SidebarNoteDetailView";
 import { useApi } from "@/contexts/ApiContext";
 import LoadingState from "@/components/states/LoadingState";
+import ErrorState from "@/components/states/ErrorState";
 const colors = [
   {
     id: "yellow",
@@ -64,7 +65,7 @@ const PdfPageNotesSidebar = ({
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
   const { notesArray } = useNotes();
   const [activeNote, setActiveNote] = useState<any | null>(null);
-  const { loading } = useApi();
+  const { loading, error: errorApi } = useApi();
   const filteredResults = useMemo(() => {
     return notesArray.filter((note) => {
       // 1. Applica il filtro per Tipo (Tab)
@@ -158,7 +159,11 @@ const PdfPageNotesSidebar = ({
                     </div>
                   ))}
                 </div>
-                {loading?.get_notes ? (
+                {errorApi?.get_notes ? (
+                  <div className="w-full h-full flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+                    <ErrorState message={errorApi?.get_notes?.message} />
+                  </div>
+                ) : loading?.get_notes ? (
                   <div className="w-full h-full flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
                     <LoadingState text={"Recupero delle note..."} />
                   </div>

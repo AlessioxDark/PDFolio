@@ -15,6 +15,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
+import { useApi } from "@/contexts/ApiContext";
 
 interface EditDocumentDialogProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ const EditDocumentDialog = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
-
+  const { error: apiError } = useApi();
   const { foldersData, handlePdfUpdate } = useDocumentsAndFolders();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -64,7 +65,11 @@ const EditDocumentDialog = ({
       }
     }
   }, [isOpen, currentNome, currentFolderId, defaultMode]);
-
+  useEffect(() => {
+    if (apiError?.update_pdf) {
+      setErrorMessage(apiError.update_pdf.message);
+    }
+  }, [apiError]);
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!nome.trim()) {
@@ -77,20 +82,21 @@ const EditDocumentDialog = ({
 
     const finalName = nome.trim();
 
-    try {
-      const res = await handlePdfUpdate(documentId, {
-        nome: finalName,
-        folder_id: folderId,
-        tags: currentTags,
-      });
+    const response = await handlePdfUpdate(documentId, {
+      nome: finalName,
+      folder_id: folderId,
+      tags: currentTags,
+    });
 
-      if (res.success) {
-        setIsOpen(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("Errore imprevisto durante il salvataggio.");
-    } finally {
+    if (response.success) {
+      // Se ha successo, chiudiamo il modal e resettiamo il loading
+      setIsOpen(false);
+      setIsSaving(false);
+    } else {
+      setErrorMessage(
+        response.error?.message ||
+          "Impossibile aggiornare il documento. Riprova.",
+      );
       setIsSaving(false);
     }
   };
@@ -244,10 +250,10 @@ const EditDocumentDialog = ({
             className="flex-1 sm:flex-none px-5 h-11 bg-accent dark:bg-purple-600 hover:bg-accent/90 dark:hover:bg-purple-500 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10"
           >
             {isSaving ? (
-              <>
+              <div className="flex flex-row items-center">
                 <Loader2Icon size={15} className="animate-spin" />
                 Salvataggio...
-              </>
+              </div>
             ) : (
               "Salva"
             )}

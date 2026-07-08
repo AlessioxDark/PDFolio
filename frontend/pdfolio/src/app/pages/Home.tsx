@@ -11,16 +11,29 @@ import SearchSection from "@/features/home/SearchSection";
 import { useSearch } from "@/contexts/SearchContext";
 import LoadingState from "@/components/states/LoadingState";
 import { useApi } from "@/contexts/ApiContext";
+import ErrorState from "@/components/states/ErrorState";
 const FILTERS = ["Recenti", "Note", "Evidenziazioni", "Documenti"];
 const Home = () => {
-  const { activeFolder, activeTag, documentsData } = useDocumentsAndFolders();
-  const { loading } = useApi();
+  const { activeFolder, activeTag, documentsData, loadDocumentsAndFolders } =
+    useDocumentsAndFolders();
+  const { loading, error: apiError } = useApi();
   const [query, setQuery] = useState("");
   const { currentFilter, setCurrentFilter } = useSearch();
   const filteredDocuments = useMemo(() => {
     return documentsData.filter((doc) => doc.tags.includes(activeTag));
   }, [documentsData, activeTag]);
   const isSearching = query.trim().length > 0;
+
+  if (apiError?.home) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <ErrorState
+          message={apiError?.home?.message}
+          onRetry={loadDocumentsAndFolders}
+        />
+      </div>
+    );
+  }
 
   return loading?.home ? (
     <LoadingState text="Caricamento..." />

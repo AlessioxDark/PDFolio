@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApi } from "@/contexts/ApiContext";
+import { toast } from "sonner";
 
 const FolderSection = () => {
   const [isShown, setIsShown] = useState(false);
@@ -49,6 +50,7 @@ const FolderSection = () => {
         },
         onError: (error) => {
           console.error("Errore durante il salvataggio:", error);
+          toast.error(error?.message);
           setFoldersData((prev) =>
             prev.filter((f) => f.folder_id !== newFolderId),
           );

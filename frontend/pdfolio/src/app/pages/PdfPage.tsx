@@ -14,6 +14,8 @@ import UnderlinedElement from "../../components/UnderlinedElement";
 import PdfPageAiSidebar from "@/features/pdfPage/PdfPageAiSidebar";
 import LoadingState from "@/components/states/LoadingState";
 import { useApi } from "@/contexts/ApiContext";
+import ErrorState from "@/components/states/ErrorState";
+import { toast } from "sonner";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PdfPage = () => {
@@ -42,7 +44,7 @@ const PdfPage = () => {
   const [aiMessages, setAiMessages] = useState([]);
   const prevNotesRef = useRef(notesArray);
 
-  const { executeApiCall, loading } = useApi();
+  const { executeApiCall, loading, error: apiError } = useApi();
   const toggleNotesSidebar = () => {
     setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
   };
@@ -283,6 +285,7 @@ const PdfPage = () => {
       },
       color,
     };
+    const prevNotes = notesArray;
     // Aggiungi subito all'array locale per reattività immediata
     setNotesArray((prev) => [...prev, highlight]);
     window.getSelection()?.removeAllRanges();
@@ -306,6 +309,12 @@ const PdfPage = () => {
             ),
           );
         },
+        onError: (error) => {
+          toast.error(error?.message);
+          setNotesArray(prevNotes);
+          window.getSelection()?.removeAllRanges();
+          setActiveSidebar("");
+        },
       },
     );
   };
@@ -325,7 +334,6 @@ const PdfPage = () => {
         height: selectionData.textHeight,
       },
     };
-    console.log(note);
     const newArray = [...notesArray, note];
     setNotesArray(newArray);
     window.getSelection()?.removeAllRanges();
@@ -452,9 +460,7 @@ const PdfPage = () => {
           });
         },
         onError: (error) => {
-          setAiMessages((prev) => {
-            return prev.filter((msg) => msg.message_id !== tempId);
-          });
+          toast.error(error?.message);
         },
       },
     );
@@ -553,13 +559,17 @@ const PdfPage = () => {
         () => apiCalls.notes.SaveNoteToDB(session?.access_token, pdfId, note),
         {
           onSuccess: (noteData) => {
+            toast.success("Nota salvata e collegata alla chat!");
             setNotesArray((prev) =>
               prev.map((n) =>
                 n === note ? { ...n, note_id: noteData?.note_id || tempId } : n,
               ),
             );
           },
-          onError: () => setNotesArray(previousNotes),
+          onError: (error) => {
+            setNotesArray(previousNotes);
+            toast.error(error?.message);
+          },
         },
       );
 
@@ -579,7 +589,14 @@ const PdfPage = () => {
       );
     } catch (err) {
       console.error("Errore globale durante il salvataggio:", err);
+      setNotesArray(previousNotes);
       updateMessageSavedStatus(false);
+      toast.error(err?.message || "Impossibile salvare la nota nel database.", {
+        action: {
+          label: "Riprova",
+          onClick: () => onSaveAsNote(messageId, selection_data, content),
+        },
+      });
     }
   };
 
@@ -638,7 +655,6 @@ const PdfPage = () => {
         {
           onSuccess: () => {},
           onError: (err) => {
-            setNotesArray(previousNotes);
             throw err;
           },
         },
@@ -654,7 +670,10 @@ const PdfPage = () => {
               selectionText,
             ),
           {
-            onSuccess: () => applyMessageState(true, true),
+            onSuccess: () => {
+              applyMessageState(true, true);
+              toast.success("Nota modificata e sincronizzata!");
+            },
             onError: (err) => {
               throw err;
             },
@@ -667,6 +686,12 @@ const PdfPage = () => {
       console.error(error);
       setNotesArray(previousNotes);
       applyMessageState(true, false);
+      toast.error(error?.message || "Impossibile salvare la nota. Riprova.", {
+        action: {
+          label: "Riprova",
+          onClick: () => onUpdateNote(messageId, noteId, newContent),
+        },
+      });
     }
   };
   const onReject = async (messageId: string, selectionText: string) => {
@@ -694,7 +719,7 @@ const PdfPage = () => {
                 isModified: false,
                 isRejected: false,
               };
-              const updatedSd = { ...baseSd, isSaved, isModified };
+              const updatedSd = { ...baseSd, isRejected: true };
 
               return {
                 ...msg,
@@ -705,13 +730,26 @@ const PdfPage = () => {
               };
             }),
           );
+          toast.success("Suggerimento scartato con successo!");
         },
         onError: (err) => {
-          throw err;
+          toast.error(err?.message || "Impossibile scartare il suggerimento.", {
+            action: {
+              label: "Riprova",
+              onClick: () => onReject(messageId, selectionText),
+            },
+          });
         },
       },
     );
   };
+  if (apiError?.get_pdf) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
+        <ErrorState message={apiError?.get_pdf?.message} onRetry={getPdfData} />
+      </div>
+    );
+  }
   if (loading?.get_pdf && !pdfData?.file_url) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
@@ -755,9 +793,10 @@ const PdfPage = () => {
                   <LoadingState variant="page" text="Caricamento PDF..." />
                 }
                 error={
-                  <div className="text-red-500 font-inter mt-10">
-                    Impossibile caricare il PDF. Controlla il link.
-                  </div>
+                  <ErrorState
+                    message="Impossibile caricare il PDF. Controlla il link."
+                    onRetry={getPdfData}
+                  />
                 }
                 className="flex flex-col items-center w-full"
               >

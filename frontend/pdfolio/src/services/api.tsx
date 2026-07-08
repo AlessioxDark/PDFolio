@@ -90,15 +90,13 @@ export const apiCalls = {
           },
         });
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async globalSearch(token, query) {
@@ -114,15 +112,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },
@@ -141,15 +137,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async uploadPdfFile(token, pdfFile) {
@@ -162,19 +156,13 @@ export const apiCalls = {
           body: pdfFile,
         });
         if (!response.ok) {
-          console.log("no ok", response);
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.details || errorData.message },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async trashPdfFile(session, documentId) {
@@ -190,19 +178,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          console.log("no ok", response);
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.details || errorData.message },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async deletePdfFile(session, documentId) {
@@ -218,19 +200,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          console.log("no ok", response);
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.details || errorData.message },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async restorePdfFile(session, documentId) {
@@ -246,19 +222,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          console.log("no ok", response);
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.details || errorData.message },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async updatePdf(session, documentId, updateData) {
@@ -276,15 +246,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.message || errorData.details },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async getDeletedDocuments(session) {
@@ -298,15 +265,12 @@ export const apiCalls = {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.message || errorData.details },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async exportSummaryPdf(token, documentId: string, markdownContent) {
@@ -324,12 +288,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const blob = await response.blob();
         return { data: blob, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },
@@ -345,15 +309,13 @@ export const apiCalls = {
           body: JSON.stringify(folderData),
         });
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async deleteFolder(session, folderId: string) {
@@ -368,19 +330,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          console.log("no ok", response);
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return {
-            data: null,
-            error: { message: errorData.details || errorData.message },
-          };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },
@@ -399,15 +355,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async SaveNoteToDB(token, documentId: string, noteData) {
@@ -424,15 +378,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async deleteNoteFromDB(session, documentId: string, noteId) {
@@ -448,15 +400,13 @@ export const apiCalls = {
           },
         );
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async UpdateNoteInDB(
@@ -479,11 +429,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: errorData.message };
+          throw errorData;
         }
-        return { data: await response.json(), error: null };
+        const { data } = await response.json();
+        return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },
@@ -513,15 +464,13 @@ export const apiCalls = {
         );
         console.log("inviata ai");
         if (!response.ok) {
-          // Gestisci l'errore se il backend fallisce
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
-        console.log("data in api", data);
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async markMessagesAsSaved(
@@ -543,12 +492,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async markMessageAsModified(
@@ -570,12 +519,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async markMessageAsRejected(
@@ -597,12 +546,12 @@ export const apiCalls = {
         );
         if (!response.ok) {
           const errorData = await response.json();
-          return { data: null, error: errorData.details || errorData.message };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },
@@ -619,15 +568,12 @@ export const apiCalls = {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          return {
-            data: null,
-            error: errorData.details || errorData.message,
-          };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
     async editProfile(session, editedData) {
@@ -642,15 +588,12 @@ export const apiCalls = {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          return {
-            data: null,
-            error: errorData.details || errorData.message,
-          };
+          throw errorData;
         }
         const { data } = await response.json();
         return { data, error: null };
       } catch (err) {
-        return { data: null, error: err };
+        throw err;
       }
     },
   },

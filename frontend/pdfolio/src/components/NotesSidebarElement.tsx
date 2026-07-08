@@ -15,6 +15,7 @@ import { useNotes } from "@/contexts/NotesContext";
 import Markdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import { useApi } from "@/contexts/ApiContext";
+import { toast } from "sonner";
 
 const NotesSidebarElement = ({
   note,
@@ -32,22 +33,30 @@ const NotesSidebarElement = ({
   const [savedContent, setSavedContent] = useState(note.content || "");
   const [isSent, setIsSent] = useState(note.content && note.content.length > 0);
   const { loading, executeApiCall } = useApi();
-  // STATO PER GESTIRE L'ESPANSIONE DEI TESTI LUNGHI
   const [isExpanded, setIsExpanded] = useState(false);
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
-
-  // Soglia oltre la quale mostrare il "Vedi altro" (es. 200 caratteri)
   const isLongText = note.content && note.content.length > 200;
-
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      const isModification = !!note.note_id;
+      if (isModification) {
+        e.preventDefault();
+        e.stopPropagation();
+        setNoteInput(savedContent);
+        if (chatInputRef.current) {
+          chatInputRef.current.textContent = savedContent;
+        }
+        setIsSent(true);
+      }
+    }
+  };
   return (
     <div
       className="w-full rounded-xl bg-neutral-2 dark:bg-zinc-900 px-4 py-3 border-l-[5px] cursor-pointer transition-all group flex flex-col gap-2 shadow-[0_12px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
       style={{
-        // Usiamo lo style inline perché Tailwind non supporta classi arbitrarie interpolate in stringa
-        borderLeftColor:
-          note.type === "HIGHLIGHT" ? note.color : "var(--accent)",
+        borderLeftColor: note.type === "HIGHLIGHT" ? note.color : "#9333ea",
       }}
       onClick={() => {
         scrollToNoteInPdf(note.position);
@@ -109,6 +118,7 @@ const NotesSidebarElement = ({
               <div
                 contentEditable={true}
                 suppressContentEditableWarning={true}
+                onKeyDown={handleKeyDown}
                 ref={chatInputRef}
                 className="flex-1 min-h-[24px] max-h-32 outline-none text-sm text-text-1 dark:text-zinc-200 font-inter overflow-y-auto px-1 py-0.5 empty:before:content-[attr(data-placeholder)] empty:before:text-neutral-4 dark:empty:before:text-zinc-600 empty:before:pointer-events-none prose prose-sm dark:prose-invert"
                 onInput={handleInput}
@@ -127,7 +137,6 @@ const NotesSidebarElement = ({
                       const isModification = !!note.note_id;
                       if (isModification) {
                         setSavedContent(noteInput);
-                        setIsSent(true);
                         executeApiCall(
                           "update_note",
                           () => {
@@ -140,9 +149,11 @@ const NotesSidebarElement = ({
                           },
                           {
                             onError: (error) => {
-                              console.error("Errore durante la PATCH:", error);
-                              setSavedContent(note.content || "");
+                              toast.error(error?.message);
                               setIsSent(false);
+                            },
+                            onSuccess: () => {
+                              setIsSent(true);
                             },
                           },
                         );
@@ -161,7 +172,8 @@ const NotesSidebarElement = ({
                           },
                           {
                             onError: (error) => {
-                              console.error("Errore durante la POST:", error);
+                              toast.error(error?.message);
+                              setIsSent(false);
                             },
                             onSuccess: (data) => {
                               note.note_id = data?.noteId; // Assegni l'ID reale

@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import Markdown from "react-markdown";
 import { useParams } from "react-router";
 import rehypeRaw from "rehype-raw";
+import { toast } from "sonner";
 
 const AIMessage = ({
   m,
@@ -76,6 +77,7 @@ const AIMessage = ({
       {
         onError: (error) => {
           console.error("Errore esportazione PDF:", error);
+          toast.error(error?.message);
         },
         onSuccess: (data) => {
           const downloadUrl = window.URL.createObjectURL(data);
@@ -88,6 +90,7 @@ const AIMessage = ({
 
           link.parentNode?.removeChild(link);
           window.URL.revokeObjectURL(downloadUrl);
+          toast.success("Pdf esportato con successo!");
         },
       },
     );

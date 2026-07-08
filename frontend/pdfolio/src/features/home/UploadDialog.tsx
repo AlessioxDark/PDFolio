@@ -187,10 +187,7 @@ const UploadDialog = ({ icon, chosenFolder }) => {
             resetStato();
           },
           onError: (error) => {
-            console.log("errore", error);
-            toast.error(
-              "Errore durante il caricamento del PDF. Riprova con un altro PDF.",
-            );
+            setErrorMessage(error?.message);
           },
         },
       );

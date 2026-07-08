@@ -27,6 +27,7 @@ export const ApiContextProvider = ({ children }) => {
     trash_bin: false,
     trash_bin_delete: false,
     trash_bin_restore: false,
+    trash_pdf_file: false,
     login: false,
     sign_up: false,
     create_profile: false,
@@ -36,6 +37,7 @@ export const ApiContextProvider = ({ children }) => {
     global_search: false,
     edit_profile: false,
     log_out: false,
+    delete_note: false,
   });
   const [error, setError] = useState({
     home: null,
@@ -50,6 +52,7 @@ export const ApiContextProvider = ({ children }) => {
     update_note: null,
     mark_message_as_modified: null,
     mark_message_as_rejected: null,
+    trash_pdf_file: null,
     trash_bin: null,
     trash_bin_delete: null,
     trash_bin_restore: null,
@@ -62,6 +65,7 @@ export const ApiContextProvider = ({ children }) => {
     global_search: null,
     edit_profile: null,
     log_out: null,
+    delete_note: null,
   });
   const executeApiCall = async (
     type: string,
@@ -73,7 +77,6 @@ export const ApiContextProvider = ({ children }) => {
       endLoading = true, // Di default spegne il loading alla fine
     } = {},
   ) => {
-    // 1. Attiva il loading solo se richiesto
     if (startLoading) {
       setLoading((prev) => ({ ...prev, [type]: true }));
     }

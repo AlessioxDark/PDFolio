@@ -18,7 +18,7 @@ const HomeDocument = ({
   document_id,
 }) => {
   const navigate = useNavigate();
-  const { foldersData, unorganizedFolderData, handlePdfDelete } =
+  const { foldersData, unorganizedFolderData, handleTrashFile } =
     useDocumentsAndFolders();
   const [showMenu, setShowMenu] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -69,7 +69,7 @@ const HomeDocument = ({
             desc={`Sei sicuro di spostare il documento nel cestino?`}
             onAction={(e) => {
               e.stopPropagation();
-              handlePdfDelete(document_id);
+              handleTrashFile(document_id);
             }}
           />
           <button

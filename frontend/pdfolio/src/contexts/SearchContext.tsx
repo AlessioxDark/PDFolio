@@ -31,7 +31,6 @@ export const SearchContextProvider = ({ children }) => {
     textData: [],
   });
   const [currentFilter, setCurrentFilter] = useState("");
-  const [isGlobalQueryLoading, setIsGlobalQueryLoading] = useState(false);
   const { session } = useAuth();
   const { executeApiCall } = useApi();
   const handleGlobalSearch = async (query: string) => {
@@ -44,12 +43,9 @@ export const SearchContextProvider = ({ children }) => {
       },
       {
         onSuccess: (data) => {
-          console.log("Dati ricevuti nel Context:", data);
           setGlobalSearchData(data);
         },
         onError: (error) => {
-          console.error("Errore nel caricamento:", error);
-          // Ripristina la struttura vuota in caso di errore
           setGlobalSearchData({
             foldersData: [],
             documentsData: [],

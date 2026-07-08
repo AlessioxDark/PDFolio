@@ -8,6 +8,8 @@ import { apiCalls } from "@/services/api";
 import AIMessage from "../ai/AIMessage";
 import { useNotes } from "@/contexts/NotesContext";
 import { useApi } from "@/contexts/ApiContext";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 const PdfPageAiSidebar = ({
   toggleAiSidebar,
@@ -37,7 +39,7 @@ const PdfPageAiSidebar = ({
   const { pdfId } = useParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { notesArray } = useNotes();
-  const { loading, executeApiCall } = useApi();
+  const { error: errorApi, loading, executeApiCall } = useApi();
 
   const handleSendAi = async () => {
     if (!session || !pdfId || currentMessage === "") return;
@@ -89,6 +91,7 @@ const PdfPageAiSidebar = ({
           ]);
         },
         onError: (error) => {
+          toast.error(error?.message);
           setCurrentMessage(oldMessage);
           setMessages(oldMessagesData);
         },
@@ -138,6 +141,23 @@ const PdfPageAiSidebar = ({
         })}
 
         {/* Stato di caricamento (Tre pallini oscillanti) */}
+        {errorApi?.ask_ai && (
+          <div className="w-full flex flex-col gap-2 p-3.5 rounded-xl bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 animate-in fade-in duration-200">
+            {/* Intestazione Errore */}
+            <div className="flex flex-row gap-3 items-center">
+              <div className="relative flex p-2 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/30">
+                <AlertCircle
+                  size={16}
+                  className=" text-red-500 dark:text-red-400"
+                />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-10 dark:bg-red-500"></span>
+              </div>
+              <span className="leading-relaxed text-red-600 dark:text-red-400 font-inter text-sm">
+                {errorApi?.ask_ai?.message}
+              </span>
+            </div>
+          </div>
+        )}
         {loading?.ask_ai && (
           <div className="mr-auto bg-white dark:bg-zinc-900 border border-neutral-3 dark:border-zinc-800 rounded-2xl px-4 py-3 text-xs text-neutral-400 dark:text-zinc-500 font-inter shadow-sm flex items-center gap-2 transition-colors">
             <span className="w-1.5 h-1.5 bg-neutral-400 dark:bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>

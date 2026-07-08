@@ -6,6 +6,7 @@ import DocumentSearch from "../search/DocumentSearch";
 import NotesSearch from "../search/NotesSearch";
 import TextSearch from "../search/TextSearch";
 import { useApi } from "@/contexts/ApiContext";
+import ErrorState from "@/components/states/ErrorState";
 
 const SearchSection = ({
   query,
@@ -38,7 +39,7 @@ const SearchSection = ({
 
     return () => clearTimeout(delayDebounceId);
   }, [query, isSearching]);
-  const { loading } = useApi();
+  const { loading, error: errorApi } = useApi();
   // Calcolo sicuro dei totali (previene crash se i dati sono momentaneamente undefined)
   const totalCount =
     (globalSearchData?.foldersData?.length || 0) +
@@ -47,6 +48,13 @@ const SearchSection = ({
     (globalSearchData?.textData?.length || 0);
 
   // ✨ 1. SKELETON LOADING ANIMATO
+  if (errorApi?.global_search) {
+    return (
+      <div className="w-full flex flex-col gap-6 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm min-h-[300px] transition-colors duration-300">
+        <ErrorState message={errorApi?.global_search?.message} />
+      </div>
+    );
+  }
   if (loading?.global_search) {
     return (
       <div className="w-full flex flex-col gap-6 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm min-h-[350px] transition-colors duration-300">

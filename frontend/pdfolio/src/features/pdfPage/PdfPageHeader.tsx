@@ -24,7 +24,7 @@ const PdfPageHeader = ({
 }) => {
   const { session } = useAuth();
   const navigate = useNavigate();
-  const { handlePdfDelete } = useDocumentsAndFolders();
+  const { handleTrashFile } = useDocumentsAndFolders();
   const handlePdfShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast("Il link è stato copiato con successo");
@@ -95,7 +95,7 @@ const PdfPageHeader = ({
           title={`Vuoi spostare il documento nel cestino?`}
           desc={`Sei sicuro di spostare il documento nel cestino?`}
           onAction={() => {
-            handlePdfDelete(documentId);
+            handleTrashFile(documentId);
             setTimeout(() => {
               navigate(-1);
             }, 1000);

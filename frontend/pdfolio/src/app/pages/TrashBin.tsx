@@ -1,16 +1,19 @@
 import LoadingState from "@/components/states/LoadingState";
 import { useApi } from "@/contexts/ApiContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
 import HomeDocument from "@/features/home/HomeDocument";
 import TrashIcon from "@/icons/TrashIcon";
 import { apiCalls } from "@/services/api";
 import { RotateCcw } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const TrashBin = () => {
   const [deletedDocumentsData, setDeletedDocumentsData] = useState([]);
   const { session } = useAuth();
   const { loading, executeApiCall } = useApi();
+  const { setDocumentsData } = useDocumentsAndFolders();
   const fetchDeletedDocuments = async () => {
     executeApiCall(
       "trash_bin",
@@ -39,11 +42,17 @@ const TrashBin = () => {
       },
       {
         onSuccess: () => {
+          const deletedDocument = deletedDocumentsData.find(
+            (doc) => doc.document_id === document_id,
+          );
+          setDocumentsData((prev) => [...prev, deletedDocument]);
           setDeletedDocumentsData((prev) =>
             prev.filter((doc) => doc.document_id !== document_id),
           );
+          toast.success("Documento ripristinato con successo!");
         },
         onError: (error) => {
+          toast.error(error?.message);
           console.error("ERRORE TRASH", error);
         },
       },
@@ -61,9 +70,10 @@ const TrashBin = () => {
           setDeletedDocumentsData((prev) =>
             prev.filter((doc) => doc.document_id !== document_id),
           );
+          toast.success("Documento eliminato con successo!");
         },
         onError: (error) => {
-          console.error("ERRORE TRASH", error);
+          toast.error(error?.message);
         },
       },
     );

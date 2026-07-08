@@ -97,10 +97,10 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
       () => {
         return apiCalls.home.getHomeFoldersAndFiles(session);
       },
-      { onSuccess },
+      { onSuccess, onError: (e) => console.log("erroe frontend", e) },
     );
   };
-  const handlePdfDelete = async (documentId: string) => {
+  const handleTrashFile = async (documentId: string) => {
     const onSuccess = (data) => {
       setDocumentsData((prev) =>
         prev.filter((doc) => doc.document_id !== documentId),
@@ -128,132 +128,145 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     };
 
     await executeApiCall(
-      "delete_folder",
+      "trash_pdf_file",
       () => {
         return apiCalls.pdf.trashPdfFile(session, documentId);
       },
-      { onSuccess },
+      {
+        onSuccess,
+        onError: (error) => {
+          toast.error(error?.message);
+        },
+      },
     );
   };
   const handlePdfUpdate = async (
     documentId: string,
     updatedFields: { nome?: string; folder_id?: string | null },
   ) => {
-    const onSuccess = (data) => {
-      const prevFolderId = documentsData.find(
-        (doc) => doc.document_id === documentId,
-      )?.folder_id;
-      console.log("PDF AGGIORNATO DATA:", data);
-      const updatedDoc = data;
+    return new Promise(async (resolve) => {
+      const onSuccess = (data) => {
+        const prevFolderId = documentsData.find(
+          (doc) => doc.document_id === documentId,
+        )?.folder_id;
+        const updatedDoc = data;
 
-      // Update documentsData list
-      setDocumentsData((prev) =>
-        prev.map((doc) =>
-          doc.document_id === documentId ? { ...doc, ...updatedDoc } : doc,
-        ),
-      );
-      if (prevFolderId === null || prevFolderId === undefined) {
-        // Era in "Non organizzati", lo togliamo da lì
-        setUnorganizedFolderData((prev) => ({
-          ...prev,
-          documenti: (prev?.documenti || []).filter(
-            (doc) => doc.document_id !== documentId,
-          ),
-        }));
-      } else {
-        // Era in una cartella, lo togliamo da quella cartella
-        setFoldersData((prev) =>
-          prev.map((folder) =>
-            folder.folder_id === prevFolderId
-              ? {
-                  ...folder,
-                  documenti: (folder.documenti || []).filter(
-                    (doc) => doc.document_id !== documentId,
-                  ),
-                }
-              : folder,
+        // Update documentsData list
+        setDocumentsData((prev) =>
+          prev.map((doc) =>
+            doc.document_id === documentId ? { ...doc, ...updatedDoc } : doc,
           ),
         );
-      }
-
-      if (updatedDoc.folder_id === null) {
-        // Va in "Non organizzati"
-        setUnorganizedFolderData((prev) => ({
-          ...prev,
-          documenti: [
-            ...(prev?.documenti || []).filter(
+        if (prevFolderId === null || prevFolderId === undefined) {
+          // Era in "Non organizzati", lo togliamo da lì
+          setUnorganizedFolderData((prev) => ({
+            ...prev,
+            documenti: (prev?.documenti || []).filter(
               (doc) => doc.document_id !== documentId,
             ),
-            updatedDoc,
-          ],
-        }));
-      } else {
-        // Va in una cartella reale
-        setFoldersData((prev) =>
-          prev.map((folder) =>
-            folder.folder_id === updatedDoc.folder_id
-              ? {
-                  ...folder,
-                  documenti: [
-                    ...(folder.documenti || []).filter(
+          }));
+        } else {
+          // Era in una cartella, lo togliamo da quella cartella
+          setFoldersData((prev) =>
+            prev.map((folder) =>
+              folder.folder_id === prevFolderId
+                ? {
+                    ...folder,
+                    documenti: (folder.documenti || []).filter(
                       (doc) => doc.document_id !== documentId,
                     ),
-                    updatedDoc,
-                  ],
-                }
-              : folder,
-          ),
-        );
-      }
+                  }
+                : folder,
+            ),
+          );
+        }
 
-      // 2. Rimuovi e aggiungi in foldersData
-
-      // 3. Rinfresca activeFolder se presente+
-
-      if (activeFolder) {
-        setActiveFolder((prev) => {
-          if (!prev) return prev;
-
-          if (activeFolder.folder_id === updatedDoc.folder_id) {
-            return {
-              ...prev,
-              documenti: (prev.documenti || []).map((doc) =>
-                doc.document_id === documentId
-                  ? { ...doc, ...updatedDoc }
-                  : doc,
-              ),
-            };
-          }
-
-          if (activeFolder.folder_id === prevFolderId) {
-            return {
-              ...prev,
-              documenti: (prev.documenti || []).filter(
+        if (updatedDoc.folder_id === null) {
+          // Va in "Non organizzati"
+          setUnorganizedFolderData((prev) => ({
+            ...prev,
+            documenti: [
+              ...(prev?.documenti || []).filter(
                 (doc) => doc.document_id !== documentId,
               ),
-            };
-          }
+              updatedDoc,
+            ],
+          }));
+        } else {
+          // Va in una cartella reale
+          setFoldersData((prev) =>
+            prev.map((folder) =>
+              folder.folder_id === updatedDoc.folder_id
+                ? {
+                    ...folder,
+                    documenti: [
+                      ...(folder.documenti || []).filter(
+                        (doc) => doc.document_id !== documentId,
+                      ),
+                      updatedDoc,
+                    ],
+                  }
+                : folder,
+            ),
+          );
+        }
 
-          return prev;
-        });
-      }
-    };
-    await executeApiCall(
-      "update_pdf",
-      () => {
-        return apiCalls.pdf.updatePdf(session, documentId, updatedFields);
-      },
-      { onSuccess },
-    );
+        // 2. Rimuovi e aggiungi in foldersData
+
+        // 3. Rinfresca activeFolder se presente+
+
+        if (activeFolder) {
+          setActiveFolder((prev) => {
+            if (!prev) return prev;
+
+            if (activeFolder.folder_id === updatedDoc.folder_id) {
+              return {
+                ...prev,
+                documenti: (prev.documenti || []).map((doc) =>
+                  doc.document_id === documentId
+                    ? { ...doc, ...updatedDoc }
+                    : doc,
+                ),
+              };
+            }
+
+            if (activeFolder.folder_id === prevFolderId) {
+              return {
+                ...prev,
+                documenti: (prev.documenti || []).filter(
+                  (doc) => doc.document_id !== documentId,
+                ),
+              };
+            }
+
+            return prev;
+          });
+        }
+        resolve({ success: true });
+      };
+      await executeApiCall(
+        "update_pdf",
+        () => {
+          return apiCalls.pdf.updatePdf(session, documentId, updatedFields);
+        },
+        {
+          onSuccess,
+          onError: (e) => {
+            resolve({ success: false, error: e });
+          },
+        },
+      );
+    });
   };
   useEffect(() => {
     loadDocumentsAndFolders();
   }, [session]);
 
   useEffect(() => {
+    if (!documentsData && !foldersData) return;
     const allDocuments = [
       ...documentsData,
-      ...foldersData.flatMap((folder) => folder.documenti),
+      ...foldersData?.flatMap((folder) => folder.documenti),
     ];
     const uniqueTags = [
       ...new Set(allDocuments.flatMap((doc) => doc.tags || [])),
@@ -272,7 +285,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         setFoldersData,
         unorganizedFolderData,
         activeFolder,
-        handlePdfDelete,
+        handleTrashFile,
         handlePdfUpdate,
         setActiveFolder,
         activeTag,
@@ -280,6 +293,7 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
         setUnorganizedFolderData,
         FolderColors,
         tagsList,
+        loadDocumentsAndFolders,
       }}
     >
       {children}

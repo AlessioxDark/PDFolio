@@ -1,5 +1,4 @@
 migliorare interfaccia
-sign out
 
 assicurarsi che sia in grado di fare un buon riassunto (ai)
 aggiungere error handling con state ed empty state

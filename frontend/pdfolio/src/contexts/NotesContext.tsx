@@ -3,6 +3,7 @@ import { supabase } from "../../config/db.js";
 import { apiCalls } from "../services/api.js";
 import { useAuth } from "./AuthContext.js";
 import { useApi } from "./ApiContext.js";
+import { toast } from "sonner";
 export const NotesContext = createContext({
   notesArray: [],
   addNote: (note: any) => {},
@@ -44,17 +45,27 @@ export const NotesContextProvider = ({ children }) => {
     setNotesArray((prev) => [...prev, note]);
   };
   const deleteNote = async (id: string) => {
-    setNotesArray((prev) => prev.filter((note) => note.note_id !== id));
+    console.log("elimino");
+    executeApiCall(
+      "delete_note",
+      () => {
+        return apiCalls.notes.deleteNoteFromDB(
+          session?.access_token,
+          currentPdfId,
+          id,
+        );
+      },
+      {
+        onSuccess: (data) => {
+          setNotesArray((prev) => prev.filter((note) => note.note_id !== id));
+        },
+        onError: (error) => {
+          console.log("errore", error);
 
-    const { error } = await apiCalls.notes.deleteNoteFromDB(
-      session?.access_token,
-      currentPdfId,
-      id,
+          toast.error(error?.message);
+        },
+      },
     );
-    if (error) {
-      console.error("Errore nell'eliminazione della nota:", error);
-      return;
-    }
   };
   return (
     <NotesContext.Provider

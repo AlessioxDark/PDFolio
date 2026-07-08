@@ -9,17 +9,21 @@ import { apiCalls } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApi } from "@/contexts/ApiContext";
 import LoadingState from "@/components/states/LoadingState";
-
+import { toast } from "sonner";
 const FolderPage = () => {
   const {
     activeFolder,
     setActiveFolder,
     setFoldersData,
     setUnorganizedFolderData,
+    unorganizedFolderData,
+    foldersData,
   } = useDocumentsAndFolders();
   const { session } = useAuth();
   const { executeApiCall, loading } = useApi();
   const handleDeleteFolder = async () => {
+    const prevFoldersData = foldersData;
+    const prevUnorganizedFolderData = unorganizedFolderData;
     const onSuccess = (data) => {
       setFoldersData((prev) => {
         return prev.filter((f) => f.folder_id !== activeFolder.folder_id);
@@ -41,7 +45,14 @@ const FolderPage = () => {
       () => {
         return apiCalls.folder.deleteFolder(session, activeFolder.folder_id);
       },
-      { onSuccess },
+      {
+        onSuccess,
+        onError: (error) => {
+          setFoldersData(prevFoldersData);
+          setUnorganizedFolderData(prevUnorganizedFolderData);
+          toast.error(error?.message);
+        },
+      },
     );
 
     console.log("Folder deleted successfully");

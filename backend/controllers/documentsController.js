@@ -39,13 +39,13 @@ const addNote = async (req, res) => {
     if (error) throw error;
     res.status(200).json({
       data: data,
-      message: "documento ottenuti con successo",
+      message: "Nota creata con successo",
       success: true,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento del documento",
+      message: "Errore durante la creazione della nota",
       details: error.message,
     });
   }
@@ -120,18 +120,17 @@ const uploadPdf = async (req, res) => {
 };
 const trashPdfFile = async (req, res) => {
   try {
-    console.log("arrivato");
     const { data, error } = await Documents.trashPdfFile(req);
     if (error) throw error;
     res.status(200).json({
       data: data,
-      message: "documento eliminato con successo",
+      message: "documento cestinato con successo",
       success: true,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'eliminazione del documento",
+      message: "Errore durante la cestinazione del documento",
       details: error.message,
     });
   }
