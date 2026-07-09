@@ -63,7 +63,7 @@ const PdfPageNotesSidebar = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
-  const { notesArray } = useNotes();
+  const { notesArray, fetchNotes } = useNotes();
   const [activeNote, setActiveNote] = useState<any | null>(null);
   const { loading, error: errorApi } = useApi();
   const filteredResults = useMemo(() => {
@@ -161,7 +161,10 @@ const PdfPageNotesSidebar = ({
                 </div>
                 {errorApi?.get_notes ? (
                   <div className="w-full h-full flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
-                    <ErrorState message={errorApi?.get_notes?.message} />
+                    <ErrorState
+                      message={errorApi?.get_notes?.message}
+                      onRetry={fetchNotes}
+                    />
                   </div>
                 ) : loading?.get_notes ? (
                   <div className="w-full h-full flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">

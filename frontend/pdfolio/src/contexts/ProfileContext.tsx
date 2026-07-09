@@ -45,7 +45,9 @@ export const ProfileContextProvider = ({ children }) => {
     }
   }, [session]);
   return (
-    <ProfileContext.Provider value={{ profileData, setProfileData }}>
+    <ProfileContext.Provider
+      value={{ profileData, setProfileData, getProfileData }}
+    >
       {children}
     </ProfileContext.Provider>
   );

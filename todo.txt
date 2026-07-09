@@ -1,5 +1,2 @@
 migliorare interfaccia
-
-assicurarsi che sia in grado di fare un buon riassunto (ai)
-aggiungere error handling con state ed empty state
 risolvere problema auth che altri utenti possono vedere i tuoi file (stessa cosa con note ecc)

@@ -41,7 +41,7 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
 
   type FormFields = z.infer<typeof schema>;
 
-  const { profileData, setProfileData } = useProfile();
+  const { profileData, setProfileData, getProfileData } = useProfile();
   const [errorMessage, setErrorMessage] = useState("");
   const { session } = useAuth();
   const { loading, executeApiCall, error: errorApi } = useApi();
@@ -133,7 +133,10 @@ const SettingsDialog = ({ isOpen, setIsOpen }) => {
             </button>
           </div>
 
-          <ErrorState message={errorApi?.get_profile?.message} />
+          <ErrorState
+            message={errorApi?.get_profile?.message}
+            onRetry={getProfileData}
+          />
         </AlertDialogContent>
       </AlertDialog>
     );

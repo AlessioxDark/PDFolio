@@ -51,7 +51,10 @@ const SearchSection = ({
   if (errorApi?.global_search) {
     return (
       <div className="w-full flex flex-col gap-6 bg-white dark:bg-zinc-900 border border-neutral-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm min-h-[300px] transition-colors duration-300">
-        <ErrorState message={errorApi?.global_search?.message} />
+        <ErrorState
+          message={errorApi?.global_search?.message}
+          onRetry={() => handleGlobalSearch(query.trim())}
+        />
       </div>
     );
   }

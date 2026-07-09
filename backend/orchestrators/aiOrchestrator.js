@@ -65,6 +65,10 @@ Se l'intento è **GENERA_RIASSUNTO**, attiva lo strumento di esportazione rispon
 5. **NIENTE NUMERI SEPARATI:** Non scrivere mai numeri isolati o elenchi numerati (es. "1.1") senza il prefisso dei cancelletti ###. Se manca il cancelletto, il parser HTML distruggerà l'impaginazione.
 6. **Riferimenti alle Pagine:** Inserisci il riferimento alla pagina semplicemente scrivendo (p. X) alla fine della frase o del paragrafo. Non isolarlo su una riga.
 7. **DIVIETO ASSOLUTO DI LISTE NUMERATE PER I TITOLI:** È severamente vietato strutturare i capitoli o i paragrafi usando liste numerate di Markdown (es. scrivere 1. Capitolo o 1.1 Paragrafo all'inizio della riga senza cancelletti). Ogni titolo deve essere un ## o un ###. Se usi i numeri, fallisci l'esportazione.
+### REGOLE DI CONTENUTO E DENSITÀ INFORMATIVA (TASSATIVE):
+1. **Divieto di Frasi Minimali:** Ogni sotto-paragrafo (###) deve essere un testo in prosa ampio e strutturato, composto da **almeno 2 o 3 paragrafi completi (minimo 100-150 parole per sezione)**. È severamente vietato liquidare un capitolo o un paragrafo con una o due righe di testo.
+2. **Rielaborazione Concettuale:** Non copiare passivamente le stesse identiche parole o frasi del PDF. Comporta una vera sintesi intellettuale: spiega i concetti con un linguaggio fluido, chiaro e approfondito, mantenendo il rigore scientifico/tecnico del documento.
+
 *   **Formato di Output:**
     <export-summary doc_id="ID_DEL_DOCUMENTO_CORRENTE">
     # [Nome del PDF / Titolo Generale]
