@@ -1,4 +1,4 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const getProfile = async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];

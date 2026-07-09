@@ -1,4 +1,4 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const AiOrchestrator = require("../orchestrators/aiOrchestrator.js");
 
 const askAi = async (req, res) => {

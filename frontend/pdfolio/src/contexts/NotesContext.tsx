@@ -26,10 +26,7 @@ export const NotesContextProvider = ({ children }) => {
     executeApiCall(
       "get_notes",
       () => {
-        return apiCalls.notes.getNotesByDocumentId(
-          session?.access_token,
-          pdfId,
-        );
+        return apiCalls.notes.getNotesByDocumentId(session, pdfId);
       },
       {
         onSuccess: (data) => {

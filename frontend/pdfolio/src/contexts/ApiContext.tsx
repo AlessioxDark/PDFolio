@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../../config/db.js";
 import { apiCalls } from "../services/api.js";
+import { useNavigate } from "react-router";
+import { useAuth } from "./AuthContext.js";
 export const ApiContext = createContext({
   executeApiCall: (type, apiCall, onSuccess) => {},
   loading: {},
@@ -67,6 +69,8 @@ export const ApiContextProvider = ({ children }) => {
     log_out: null,
     delete_note: null,
   });
+  const { LogOut } = useAuth();
+  const navigate = useNavigate();
   const executeApiCall = async (
     type: string,
     apiCall: () => Promise<any>,
@@ -86,6 +90,11 @@ export const ApiContextProvider = ({ children }) => {
       if (onSuccess) onSuccess(result.data);
     } catch (error) {
       setError((prev) => ({ ...prev, [type]: error }));
+      console.log("ERRR", error);
+      if (error.status === 403) {
+        await LogOut;
+        navigate("/login");
+      }
       if (onError) onError(error);
 
       // Se l'API fallisce, dobbiamo COMUNQUE spegnere il loading (se era partito)

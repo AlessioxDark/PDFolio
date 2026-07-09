@@ -1,4 +1,4 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const createFolder = async (req, res) => {
   try {
     const folderData = req.body;

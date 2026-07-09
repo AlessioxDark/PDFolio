@@ -18,7 +18,7 @@ const getAllDocumentsAndFolders = async (req, res) => {
 };
 const getSpecificDocument = async (req, res) => {
   try {
-    const { data, error } = await Documents.getSpecificDocument(req);
+    const { data, error } = await Documents.getSpecificDocument(req, res);
     if (error) throw error;
     res.status(200).json({
       data: data,
@@ -69,7 +69,7 @@ const getNotesByDocumentId = async (req, res) => {
 };
 const deleteNote = async (req, res) => {
   try {
-    const { data, error } = await Documents.deleteNote(req);
+    const { data, error } = await Documents.deleteNote(req, res);
     if (error) throw error;
     res.status(200).json({
       data: data,

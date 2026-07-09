@@ -1,4 +1,4 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const createProfile = async (req, res) => {
   try {
     const { user_id, email, full_name, handle } = req.body;

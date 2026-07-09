@@ -1,4 +1,4 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const globalSearch = async (req, res) => {
   try {
     const { q } = req.query;

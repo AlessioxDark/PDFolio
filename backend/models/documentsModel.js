@@ -1,17 +1,20 @@
-const supabase = require("../config/db.js");
+const supabase = require("../config/db.cjs");
 const crypto = require("crypto");
 const puppeteer = require("puppeteer");
 const { marked } = require("marked");
 const getAll = async (req, res) => {
   try {
+    const { user } = req;
     const { data: foldersData, error: foldersError } = await supabase
       .from("cartelle")
-      .select("*,documenti(*)");
+      .select("*,documenti(*)")
+      .eq("user_id", user.id);
     if (foldersError) throw foldersError;
     const { data: documentsData, error: documentsError } = await supabase
       .from("documenti")
       .select("*,cartelle(nome,folder_id)")
-      .eq("is_deleted", false);
+      .eq("is_deleted", false)
+      .eq("user_id", user.id);
     if (documentsError) throw documentsError;
     return { data: { documentsData, foldersData }, error: null };
   } catch (error) {
@@ -22,32 +25,31 @@ const getAll = async (req, res) => {
 const getSpecificDocument = async (req, res) => {
   try {
     const { pdfId } = req.params;
-    const authHeader = req.headers["authorization"];
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
+
     const { data: documentData, error: documentError } = await supabase
       .from("documenti")
       .select("*")
       .eq("document_id", pdfId)
+      .eq("user_id", user.id)
       .single();
-    console.log("docerr", documentError);
     if (documentError) throw documentError;
+
+    if (documentData.user_id !== user.id) {
+      return res.status(401).json({
+        success: false,
+        details: "",
+        message:
+          "Accesso negato. Non hai i permessi per visualizzare questo documento.",
+      });
+    }
+    console.log("docerr", documentError);
     // if (documentData.user_id !== user.id) throw { message: "Accesso Negato" };
     const { data: aiData, error: aiError } = await supabase
       .from("messaggi_ai")
       .select("*")
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
 
     if (aiError) throw aiError;
 
@@ -59,10 +61,12 @@ const getSpecificDocument = async (req, res) => {
 const getNotesByDocumentId = async (req, res) => {
   try {
     const { pdfId } = req.params;
+    const { user } = req;
     const { data: documentData, error: documentError } = await supabase
       .from("note")
       .select("*")
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
     if (documentError) throw documentError;
     return { data: documentData, error: null };
   } catch (error) {
@@ -71,24 +75,8 @@ const getNotesByDocumentId = async (req, res) => {
 };
 const addNote = async (req) => {
   try {
-    const { pdfId } = req.params;
     const { noteData } = req.body;
-
-    console.log("notedata", noteData, req.body);
-    const authHeader = req.headers["authorization"];
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
     const { data: noteSelect, error: noteError } = await supabase
       .from("note")
       .insert([{ ...noteData, user_id: user.id }])
@@ -107,12 +95,13 @@ const addNote = async (req) => {
 const deleteNote = async (req) => {
   try {
     const { pdfId, noteId } = req.params;
-
+    const { user } = req;
     const { data: noteToDelete } = await supabase
       .from("note")
       .select("text, user_id")
       .eq("note_id", noteId)
       .eq("document_id", pdfId)
+      .eq("user_id", user.id)
       .single();
 
     // 2. Elimina la nota dal database
@@ -120,7 +109,8 @@ const deleteNote = async (req) => {
       .from("note")
       .delete()
       .eq("note_id", noteId)
-      .eq("document_id", pdfId); // Sicurezza extra: cancella solo se la nota appartiene davvero a questo PDF
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id); // Sicurezza extra: cancella solo se la nota appartiene davvero a questo PDF
 
     if (noteError) throw noteError;
 
@@ -180,7 +170,7 @@ const updateNote = async (req) => {
   try {
     const { pdfId, noteId } = req.params;
     const { updatedContent } = req.body;
-
+    const { user } = req;
     // Aggiorna prima la nota base
     const { error: noteError } = await supabase
       .from("note")
@@ -189,7 +179,8 @@ const updateNote = async (req) => {
         updated_at: new Date(),
       })
       .eq("note_id", noteId)
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
 
     if (noteError) throw noteError;
 
@@ -202,23 +193,9 @@ const updateNote = async (req) => {
 
 const uploadPdf = async (req) => {
   try {
-    throw {};
     const document_id = crypto.randomUUID();
     const uploadedFile = req.file;
-    const authHeader = req.headers["authorization"];
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
     const percorsoCompleto = `${document_id}/${uploadedFile.originalname}`;
     const { error: bucketError } = await supabase.storage
       .from("file_pdf")
@@ -303,12 +280,13 @@ const uploadPdf = async (req) => {
 const trashPdfFile = async (req) => {
   try {
     const { pdfId } = req.params;
-
+    const { user } = req;
     // 1. Rimuovi il documento dal database
     const { error: dbError } = await supabase
       .from("documenti")
       .update({ is_deleted: true })
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
     console.log("dbError", dbError);
     if (dbError) throw dbError;
 
@@ -320,11 +298,12 @@ const trashPdfFile = async (req) => {
 const deletePdfFile = async (req) => {
   try {
     const { pdfId } = req.params;
-
+    const { user } = req;
     const { error: dbError } = await supabase
       .from("documenti")
       .delete()
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
     console.log("dbError", dbError);
     if (dbError) throw dbError;
 
@@ -353,10 +332,12 @@ const deletePdfFile = async (req) => {
 const restorePdfFile = async (req) => {
   try {
     const { pdfId } = req.params;
+    const { user } = req;
     const { error } = await supabase
       .from("documenti")
       .update({ is_deleted: false })
-      .eq("document_id", pdfId);
+      .eq("document_id", pdfId)
+      .eq("user_id", user.id);
     if (error) throw error;
     return { data: { success: true }, error: null };
   } catch (error) {
@@ -365,9 +346,9 @@ const restorePdfFile = async (req) => {
 };
 const updatePdf = async (req) => {
   try {
-    // throw { message: "cia" };
     const { pdfId } = req.params;
     const { nome, folder_id, tags } = req.body;
+    const { user } = req;
     const cleanFolderId = folder_id && folder_id !== "null" ? folder_id : null;
     const { data, error } = await supabase
       .from("documenti")
@@ -378,6 +359,7 @@ const updatePdf = async (req) => {
         tags,
       })
       .eq("document_id", pdfId)
+      .eq("user_id", user.id)
       .select("*");
 
     if (error) throw error;
@@ -591,20 +573,7 @@ const exportSummaryPdf = async (req, res) => {
   } catch (err) {}
 };
 const getTrashDocuments = async (req, res) => {
-  const authHeader = req.headers["authorization"];
-  // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      success: false,
-      error: "Accesso negato. Token mancante o formato non valido.",
-    });
-  }
-  const token = authHeader.split(" ")[1];
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser(token);
-  if (userError) throw userError;
+  const { user } = req;
 
   try {
     const { data, error } = await supabase
