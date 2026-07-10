@@ -3,7 +3,6 @@ const AiOrchestrator = require("../orchestrators/aiOrchestrator.js");
 
 const askAi = async (req, res) => {
   try {
-    console.log("ok");
     const { documentId } = req.params;
     const { prompt, history, isExplaining, selection_data, notes } = req.body;
     if (!prompt) {
@@ -13,23 +12,7 @@ const askAi = async (req, res) => {
       };
     }
 
-    const authHeader = req.headers["authorization"];
-    // Controllo di sicurezza: l'header esiste ed è un token Bearer
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return {
-        data: null,
-        error: new Error(
-          "Accesso negato. Token mancante o formato non valido.",
-        ),
-      };
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
-
+    const { user } = req;
     // Recupera le pagine del documento associate a questo utente
     const { data: pages, error: pagesError } = await supabase
       .from("pagine_documenti")
@@ -127,17 +110,7 @@ const markMessagesAsSaved = async (req, res) => {
   try {
     const { documentId } = req.params;
     const { selectionText } = req.body;
-
-    const authHeader = req.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return { data: null, error: new Error("Token mancante o non valido.") };
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
 
     // Recupera tutti i messaggi con selection_data non nulla per quel documento
     const { data: messages, error: fetchError } = await supabase
@@ -191,17 +164,7 @@ const markMessageAsModified = async (req, res) => {
   try {
     const { documentId } = req.params;
     const { selectionText } = req.body;
-
-    const authHeader = req.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return { data: null, error: new Error("Token mancante o non valido.") };
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
 
     // Recupera tutti i messaggi con selection_data non nulla per quel documento
     const { data: messages, error: fetchError } = await supabase
@@ -255,17 +218,7 @@ const markMessageAsRejected = async (req, res) => {
   try {
     const { documentId } = req.params;
     const { selectionText } = req.body;
-
-    const authHeader = req.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return { data: null, error: new Error("Token mancante o non valido.") };
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
 
     // Recupera tutti i messaggi con selection_data non nulla per quel documento
     const { data: messages, error: fetchError } = await supabase

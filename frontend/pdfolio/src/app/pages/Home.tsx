@@ -16,13 +16,20 @@ const FILTERS = ["Recenti", "Note", "Evidenziazioni", "Documenti"];
 const Home = () => {
   const { activeFolder, activeTag, documentsData, loadDocumentsAndFolders } =
     useDocumentsAndFolders();
+  const { currentFilter, setCurrentFilter } = useSearch();
   const { loading, error: apiError } = useApi();
   const [query, setQuery] = useState("");
-  const { currentFilter, setCurrentFilter } = useSearch();
-  const filteredDocuments = useMemo(() => {
-    return documentsData.filter((doc) => doc.tags.includes(activeTag));
-  }, [documentsData, activeTag]);
+
   const isSearching = query.trim().length > 0;
+
+  const filteredDocuments = useMemo(() => {
+    if (!activeTag) return [];
+    return documentsData.filter((doc) => doc.tags?.includes(activeTag));
+  }, [documentsData, activeTag]);
+
+  const handleFilterClick = (filter) => {
+    setCurrentFilter((prev) => (prev === filter ? "" : filter));
+  };
 
   if (apiError?.home) {
     return (
@@ -52,14 +59,7 @@ const Home = () => {
             <div className="flex flex-col gap-2">
               <div className="w-full flex flex-row gap-2 pl-3">
                 {FILTERS.map((filter, index) => (
-                  <div
-                    onClick={() => {
-                      setCurrentFilter((prevFilter) =>
-                        prevFilter == filter ? "" : filter,
-                      );
-                    }}
-                    key={index}
-                  >
+                  <div onClick={() => handleFilterClick(filter)} key={index}>
                     <FilterPill
                       label={filter}
                       isActive={currentFilter == filter}

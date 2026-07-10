@@ -2,21 +2,7 @@ const supabase = require("../config/db.cjs");
 const globalSearch = async (req, res) => {
   try {
     const { q } = req.query;
-    console.log("query", q);
-    const authHeader = req.headers["authorization"];
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
 
     const { data: foldersData, error: foldersError } = await supabase
       .from("cartelle")
@@ -30,7 +16,6 @@ const globalSearch = async (req, res) => {
       .select("*")
       .eq("user_id", user.id)
       .eq("is_deleted", false);
-    console.log("docerr", documentsError);
     if (documentsError) throw documentsError;
 
     const { data: rawNotesData, error: notesError } = await supabase

@@ -4,8 +4,12 @@ const {
   createFolder,
   deleteFolder,
 } = require("../controllers/folderController");
+const requireAuth = require("../middlewares/auth.cjs");
 
-router.post("/", createFolder);
-router.delete("/:folderId", deleteFolder);
+// POST /api/folders
+router.post("/", requireAuth, createFolder);
+
+// DELETE /api/folders/:folderId
+router.delete("/:folderId", requireAuth, deleteFolder);
 
 module.exports = router;

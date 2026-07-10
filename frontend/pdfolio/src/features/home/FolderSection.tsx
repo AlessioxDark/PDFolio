@@ -12,35 +12,50 @@ import { useApi } from "@/contexts/ApiContext";
 import { toast } from "sonner";
 
 const FolderSection = () => {
-  const [isShown, setIsShown] = useState(false);
   const { foldersData, setFoldersData, FolderColors } =
     useDocumentsAndFolders();
+  const [isShown, setIsShown] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [colorIndex, setColorIndex] = useState<null | number>(null);
   const [newFolderName, setNewFolderName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { session } = useAuth();
   const { executeApiCall } = useApi();
-  const newFolderId = crypto.randomUUID();
+
+  const isSavingRef = useRef(false);
+
   const handleSaveFolder = async () => {
-    if (newFolderName.length < 5) return;
+    if (isSavingRef.current) return;
+
+    const trimmedName = newFolderName.trim();
+    if (trimmedName.length < 5) {
+      if (trimmedName.length > 0) {
+        toast.error("Il nome della cartella deve contenere almeno 5 caratteri");
+      }
+      setIsCreating(false);
+      setNewFolderName("");
+      return;
+    }
+    isSavingRef.current = true;
+
+    const newFolderId = crypto.randomUUID();
 
     setFoldersData((prev) => [
       {
-        nome: newFolderName,
+        nome: trimmedName,
         documenti: [],
         colors: FolderColors[colorIndex],
         folder_id: newFolderId,
       },
       ...prev,
     ]);
+    setNewFolderName("");
     setIsCreating(false);
-
     await executeApiCall(
       "create_folder",
       () =>
         apiCalls.folder.createFolder(session, {
-          nome: newFolderName,
+          nome: trimmedName,
           folder_id: newFolderId,
           color_index: colorIndex,
         }),
@@ -55,14 +70,14 @@ const FolderSection = () => {
             prev.filter((f) => f.folder_id !== newFolderId),
           );
 
-          setNewFolderName("");
+          setNewFolderName(trimmedName);
           setIsCreating(true);
+          isSavingRef.current = false;
         },
         startLoading: false,
       },
     );
-
-    setNewFolderName("");
+    isSavingRef.current = false;
   };
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -92,11 +107,10 @@ const FolderSection = () => {
           animate={{ height: isShown ? "auto" : "150px" }}
           className="grid grid-cols-6 w-full overflow-hidden gap-y-4 justify-items-center content-start"
         >
-          {/* Pulsante Crea Cartella (sempre visibile) */}
           <div
             className="w-30 h-30 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white dark:bg-zinc-900/30 border-2 border-dashed border-neutral-300 dark:border-zinc-800 hover:border-accent dark:hover:border-purple-500 hover:bg-neutral-50 dark:hover:bg-zinc-800/40 transition-all gap-1"
             onClick={() => {
-              setColorIndex(Math.floor(Math.random() * 6));
+              setColorIndex(Math.floor(Math.random() * FolderColors.length));
               setIsCreating(true);
             }}
           >
@@ -106,7 +120,6 @@ const FolderSection = () => {
             </span>
           </div>
 
-          {/* 3. Mappatura dei dati con AnimatePresence per entrate fluide */}
           <AnimatePresence>
             <UnorganizedFolder />
             {isCreating && (
@@ -118,7 +131,7 @@ const FolderSection = () => {
               >
                 <div className="w-[70px] flex flex-col items-center">
                   <FolderIcon
-                    className={` transition-colors duration-300 ${FolderColors[colorIndex].text}`}
+                    className={` transition-colors duration-300 ${colorIndex ? FolderColors[colorIndex].text : ""}`}
                     size={70}
                   />
                   <input
@@ -132,9 +145,6 @@ const FolderSection = () => {
                     maxLength={80}
                     className="w-full font-inter text-center text-sm font-medium text-white border border-neutral-200 rounded px-1 py-0.5 focus:outline-none"
                   />
-                  {/* <span className="font-inter text-white text-sm text-center w-full font-medium line-clamp-1">
-                    {nome}
-                  </span> */}
                 </div>
                 <span className="font-inter text-white text-base absolute top-1.5 right-3 font-bold ">
                   0
@@ -144,8 +154,6 @@ const FolderSection = () => {
             {foldersData
               ?.slice(0, isShown ? foldersData.length : 9)
               .map((item) => {
-                console.log("item", item);
-
                 return (
                   <Folder
                     folder={item}

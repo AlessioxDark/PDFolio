@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { globalSearch } = require("../controllers/searchController");
 // POST /api/auth/register
-// Riceve i dati dal Context dopo la registrazione su Supabase
-router.get("/global", globalSearch);
+const requireAuth = require("../middlewares/auth.cjs");
+router.get("/global", requireAuth, globalSearch);
 
 module.exports = router;

@@ -1,2 +1,3 @@
 migliorare interfaccia
-risolvere problema auth che altri utenti possono vedere i tuoi file (stessa cosa con note ecc)
+
+finire con uploaddialog

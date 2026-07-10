@@ -16,9 +16,12 @@ const DocumentsSection = ({}: {}) => {
       <div className="grid grid-cols-4 gap-5 w-full items-stretch">
         <UploadDialog icon={<UploadButton />} />
 
-        {/* Lista Documenti */}
         {documentsData.map((doc) => {
-          return <HomeDocument key={doc.document_id} {...doc} />;
+          return (
+            <div key={doc.document_id}>
+              <HomeDocument {...doc} />
+            </div>
+          );
         })}
       </div>
     </div>

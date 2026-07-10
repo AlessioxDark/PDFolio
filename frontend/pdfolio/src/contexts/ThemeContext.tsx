@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext({
-  currentTheme: [],
-  setCurrentTheme: (arg) => arg,
+const ThemeContext = createContext<{
+  currentTheme: string;
+  setCurrentTheme: (theme: string) => void;
+  toggleTheme: () => void;
+}>({
+  currentTheme: "light",
+  setCurrentTheme: (theme: string) => {},
+  toggleTheme: () => {},
 });
 export const useTheme = () => {
   const context = useContext(ThemeContext);

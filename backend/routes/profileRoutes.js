@@ -4,8 +4,9 @@ const {
   getProfile,
   updateProfile,
 } = require("../controllers/profileController");
+const requireAuth = require("../middlewares/auth.cjs");
 
-router.get("/", getProfile);
-router.post("/edit", updateProfile);
+router.get("/", requireAuth, getProfile);
+router.post("/edit", requireAuth, updateProfile);
 
 module.exports = router;

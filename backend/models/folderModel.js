@@ -2,21 +2,8 @@ const supabase = require("../config/db.cjs");
 const createFolder = async (req, res) => {
   try {
     const folderData = req.body;
-    const authHeader = req.headers["authorization"];
-    console.log("body", req.body);
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
+
     const { error: folderInsertError } = await supabase
       .from("cartelle")
       .insert([
@@ -36,20 +23,8 @@ const createFolder = async (req, res) => {
 const deleteFolder = async (req, res) => {
   try {
     const { folderId } = req.params;
-    const authHeader = req.headers["authorization"];
-    // 2. Controllo di sicurezza: l'header esiste ed è un token Bearer?
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        error: "Accesso negato. Token mancante o formato non valido.",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
-    if (userError) throw userError;
+    const { user } = req;
+
     const { error: updateError } = await supabase
       .from("documenti")
       .update({ folder_id: null })

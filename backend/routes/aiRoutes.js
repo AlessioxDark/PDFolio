@@ -6,17 +6,30 @@ const {
   markMessageAsModified,
   markMessageAsRejected,
 } = require("../controllers/aiController");
+const requireAuth = require("../middlewares/auth.cjs");
 
 // POST /api/ai/ask/:documentId
-router.post("/ask/:documentId", askAi);
+router.post("/ask/:documentId", requireAuth, askAi);
 
 // PATCH /api/ai/messages/:documentId/mark-saved
-router.patch("/messages/:documentId/mark-saved", markMessagesAsSaved);
+router.patch(
+  "/messages/:documentId/mark-saved",
+  requireAuth,
+  markMessagesAsSaved,
+);
 
 // PATCH /api/ai/messages/:documentId/mark-modified
-router.patch("/messages/:documentId/mark-modified", markMessageAsModified);
+router.patch(
+  "/messages/:documentId/mark-modified",
+  requireAuth,
+  markMessageAsModified,
+);
 
 // PATCH /api/ai/messages/:documentId/mark-rejected
-router.patch("/messages/:documentId/mark-rejected", markMessageAsRejected);
+router.patch(
+  "/messages/:documentId/mark-rejected",
+  requireAuth,
+  markMessageAsRejected,
+);
 
 module.exports = router;

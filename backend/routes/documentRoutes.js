@@ -17,7 +17,7 @@ const {
 } = require("../controllers/documentsController");
 const upload = require("../middlewares/multer");
 const requireAuth = require("../middlewares/auth.cjs");
-router.post("/upload", upload.single("pdfFile"), uploadPdf);
+router.post("/upload", requireAuth, upload.single("pdfFile"), uploadPdf);
 router.get("/getall", requireAuth, getAllDocumentsAndFolders);
 router.get("/deleted", requireAuth, getTrashDocuments);
 router.get("/:pdfId", requireAuth, getSpecificDocument);

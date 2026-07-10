@@ -1,6 +1,5 @@
 import ChevronUpIcon from "@/icons/ChevronUpIcon";
 import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
-import React from "react";
 import HomeDocument from "@/features/home/HomeDocument";
 import UploadButton from "@/components/UploadButton";
 import UploadDialog from "@/features/home/UploadDialog";
@@ -22,40 +21,44 @@ const FolderPage = () => {
   const { session } = useAuth();
   const { executeApiCall, loading } = useApi();
   const handleDeleteFolder = async () => {
-    const prevFoldersData = foldersData;
-    const prevUnorganizedFolderData = unorganizedFolderData;
-    const onSuccess = (data) => {
-      setFoldersData((prev) => {
-        return prev.filter((f) => f.folder_id !== activeFolder.folder_id);
-      });
-      setUnorganizedFolderData((prev) => {
-        return {
-          ...prev,
-          documenti:
-            activeFolder.documenti?.length > 0
-              ? [...prev.documenti, ...activeFolder.documenti]
-              : prev.documenti,
-        };
-      });
-      setActiveFolder(null);
-    };
+    const prevFoldersData = [...foldersData];
+    const prevUnorganizedFolderData = { ...unorganizedFolderData };
+    const folderToDelete = { ...activeFolder };
 
+    setFoldersData((prev) =>
+      prev.filter((f) => f.folder_id !== folderToDelete.folder_id),
+    );
+
+    setUnorganizedFolderData((prev) => ({
+      ...prev,
+      documenti:
+        folderToDelete.documenti?.length > 0
+          ? [...prev.documenti, ...folderToDelete.documenti]
+          : prev.documenti,
+    }));
+
+    // Chiudi subito la pagina della cartella per dare un feedback istantaneo
+    setActiveFolder(null);
+
+    // 3. Esegui la chiamata in background
     await executeApiCall(
       "delete_folder",
-      () => {
-        return apiCalls.folder.deleteFolder(session, activeFolder.folder_id);
-      },
+      () => apiCalls.folder.deleteFolder(session, folderToDelete.folder_id),
       {
-        onSuccess,
+        onSuccess: () => {
+          console.log("Folder deleted successfully on server");
+          toast.success("Cartella eliminata con successo");
+        },
         onError: (error) => {
+          console.error("Errore eliminazione cartella:", error);
+          toast.error(error?.message || "Impossibile eliminare la cartella");
+
           setFoldersData(prevFoldersData);
           setUnorganizedFolderData(prevUnorganizedFolderData);
-          toast.error(error?.message);
+          setActiveFolder(folderToDelete);
         },
       },
     );
-
-    console.log("Folder deleted successfully");
   };
 
   if (loading?.delete_folder) {
@@ -73,7 +76,7 @@ const FolderPage = () => {
             }}
           />
           <span className="font-inter text-neutral-800 font-medium text-xl dark:text-zinc-200">
-            {activeFolder.nome}
+            {activeFolder?.nome}
           </span>
         </div>
 
@@ -95,10 +98,10 @@ const FolderPage = () => {
       <div className="grid grid-cols-4 gap-5 w-full items-stretch">
         <UploadDialog
           icon={<UploadButton />}
-          chosenFolder={activeFolder.folder_id || "UNORGANIZED"}
+          chosenFolder={activeFolder?.folder_id || "UNORGANIZED"}
         />
 
-        {activeFolder.documenti?.map((doc: any) => (
+        {activeFolder?.documenti?.map((doc: any) => (
           <HomeDocument key={doc.id} {...doc} />
         ))}
       </div>

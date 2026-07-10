@@ -270,7 +270,10 @@ const uploadPdf = async (req) => {
     console.log(`[OK] Inserite correttamente ${totalPages} pagine nel DB.`);
     console.log("arrivato senza problemi alla fine");
 
-    return { data: { success: true, document_id: document_id }, error: null };
+    return {
+      data: { success: true, document_id: document_id, file_url: fileUrl },
+      error: null,
+    };
   } catch (error) {
     console.error("=== CRASH MODELLO DOCUMENTI ===", error);
     return { data: null, error: error };

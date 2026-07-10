@@ -8,9 +8,59 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
-import { ApiContext, useApi } from "./ApiContext";
+import { useApi } from "./ApiContext";
 
-const DocumentsAndFolderContext = createContext({
+type Document = {
+  document_id: string;
+  nome: string;
+  file_url: string;
+  created_at: string;
+  folder_id: string | null;
+  tags: string[];
+  edited_at: string;
+};
+
+type Folder = {
+  folder_id: string;
+  nome: string;
+  documenti: Document[];
+  colors: {
+    bg: string;
+    text: string;
+  };
+};
+
+interface DocumentsAndFolderProps {
+  documentsData: Document[];
+  foldersData: Folder[];
+  setDocumentsData: React.Dispatch<React.SetStateAction<Document[]>>;
+  setFoldersData: React.Dispatch<React.SetStateAction<Folder[]>>;
+  unorganizedFolderData: Folder;
+  setUnorganizedFolderData: React.Dispatch<
+    React.SetStateAction<{
+      folder_id: string;
+      documenti: Document[];
+    }>
+  >;
+  activeFolder: Folder | null;
+  setActiveFolder: (folder: Folder | null) => void;
+  activeTag: string | null;
+  setActiveTag: (tag: string | null) => void;
+  tagsList: string[];
+  FolderColors: Array<{ bg: string; text: string }>;
+  handlePdfUpdate: (
+    documentId: string,
+    updatedFields: {
+      nome?: string;
+      folder_id?: string | null;
+      tags?: string[];
+    },
+  ) => Promise<void>;
+  handleTrashFile: (document_id: string) => void;
+  loadDocumentsAndFolders: () => void;
+}
+
+const DocumentsAndFolderContext = createContext<DocumentsAndFolderProps>({
   documentsData: [],
   foldersData: [],
   setDocumentsData: (arg) => {},
@@ -22,8 +72,19 @@ const DocumentsAndFolderContext = createContext({
       folder_id?: string | null;
       tags?: string[];
     },
-  ) => ({ success: false }),
+  ) => {},
+  unorganizedFolderData: { folder_id: "", documenti: [] },
+  activeFolder: null,
+  handleTrashFile: (document_id: string) => {},
+  setActiveFolder: () => {},
+  activeTag: null,
+  setActiveTag: () => {},
+  setUnorganizedFolderData: (arg) => {},
+  FolderColors: [],
+  tagsList: [],
+  loadDocumentsAndFolders: () => {},
 });
+
 export const useDocumentsAndFolders = () => {
   const context = useContext(DocumentsAndFolderContext);
   return context;
@@ -101,6 +162,8 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
     );
   };
   const handleTrashFile = async (documentId: string) => {
+    console.log("trasho");
+
     const onSuccess = (data) => {
       setDocumentsData((prev) =>
         prev.filter((doc) => doc.document_id !== documentId),

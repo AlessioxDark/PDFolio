@@ -24,6 +24,7 @@ interface EditDocumentDialogProps {
   currentNome: string;
   currentFolderId: string | null;
   defaultMode?: "edit" | "move";
+  tags: string[];
 }
 
 const EditDocumentDialog = ({
@@ -250,8 +251,8 @@ const EditDocumentDialog = ({
             className="flex-1 sm:flex-none px-5 h-11 bg-accent dark:bg-purple-600 hover:bg-accent/90 dark:hover:bg-purple-500 border-none text-white font-bold rounded-xl cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm shadow-md shadow-accent/10"
           >
             {isSaving ? (
-              <div className="flex flex-row items-center">
-                <Loader2Icon size={15} className="animate-spin" />
+              <div className="flex flex-row items-center gap-2">
+                <Loader2Icon size={18} className="animate-spin" />
                 Salvataggio...
               </div>
             ) : (
