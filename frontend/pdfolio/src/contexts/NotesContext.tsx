@@ -46,11 +46,7 @@ export const NotesContextProvider = ({ children }) => {
     executeApiCall(
       "delete_note",
       () => {
-        return apiCalls.notes.deleteNoteFromDB(
-          session?.access_token,
-          currentPdfId,
-          id,
-        );
+        return apiCalls.notes.deleteNoteFromDB(session, currentPdfId, id);
       },
       {
         onSuccess: (data) => {

@@ -5,12 +5,16 @@ const FilterPill = ({
   isActive,
   setSelectedFilter,
 }: {
-  label: string;
+  label: {
+    name: string;
+    options?: string[];
+  };
   isActive: boolean;
   setSelectedFilter: React.Dispatch<
     React.SetStateAction<{
       name: string;
-      currentColor: string;
+      options?: string[];
+      // currentColor: string;
     }>
   >;
 }) => {
@@ -24,7 +28,6 @@ const FilterPill = ({
   return label.name == "Colore" ? (
     <div className="relative">
       {" "}
-      {/* Wrapper relative fondamentale per ancorare il dropdown assoluto */}
       <div
         className={`px-4 py-2 rounded-2xl text-sm cursor-pointer font-inter transition-colors duration-200 ${
           isActive
@@ -45,9 +48,7 @@ const FilterPill = ({
       </div>
       {isDropDownOpen && (
         <div className="absolute top-full left-0 mt-2 grid grid-cols-3 bg-white dark:bg-zinc-950 border border-neutral-4 dark:border-zinc-800 p-1.5 rounded-xl shadow-lg z-50 gap-1 min-w-[120px]">
-          {label.options.map((c, index) => {
-            // Se c contiene una classe Tailwind pura (es. "bg-yellow-300"), la usiamo direttamente.
-            // Se invece c è una stringa esadecimale (es. "#fde047"), usiamo lo style inline.
+          {label?.options?.map((c, index) => {
             const isHex = c.startsWith("#");
 
             return (

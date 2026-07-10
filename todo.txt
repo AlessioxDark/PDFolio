@@ -1,3 +1,2 @@
 migliorare interfaccia
-
-finire con uploaddialog
+risolvere errore logout, non posso accedere a logout in apicontext

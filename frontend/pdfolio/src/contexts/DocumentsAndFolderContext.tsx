@@ -73,7 +73,15 @@ const DocumentsAndFolderContext = createContext<DocumentsAndFolderProps>({
       tags?: string[];
     },
   ) => {},
-  unorganizedFolderData: { folder_id: "", documenti: [] },
+  unorganizedFolderData: {
+    folder_id: "UNORGANIZED",
+    documenti: [],
+    nome: "Non Organizzati",
+    colors: {
+      bg: "bg-gray-400 hover:bg-gray-400/85 dark:bg-gray-800  dark:hover:bg-gray-800/60 border border-transparent  dark:border-gray-900/30",
+      text: "text-gray-700  group-hover:text-gray-700/85 dark:text-gray-500 dark:group-hover:text-gray-600",
+    },
+  },
   activeFolder: null,
   handleTrashFile: (document_id: string) => {},
   setActiveFolder: () => {},

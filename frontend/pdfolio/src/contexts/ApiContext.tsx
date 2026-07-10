@@ -223,8 +223,6 @@ export const ApiContextProvider = ({ children }) => {
       }
       if (onError) onError(error);
 
-      // Se l'API fallisce, dobbiamo COMUNQUE spegnere il loading (se era partito)
-      // altrimenti l'app rimane bloccata in uno stato di errore con lo spinner attivo
       if (startLoading) {
         setLoading((prev) => ({ ...prev, [type]: false }));
       }

@@ -12,11 +12,10 @@ import { useSearch } from "@/contexts/SearchContext";
 import LoadingState from "@/components/states/LoadingState";
 import { useApi } from "@/contexts/ApiContext";
 import ErrorState from "@/components/states/ErrorState";
-const FILTERS = ["Recenti", "Note", "Evidenziazioni", "Documenti"];
+
 const Home = () => {
   const { activeFolder, activeTag, documentsData, loadDocumentsAndFolders } =
     useDocumentsAndFolders();
-  const { currentFilter, setCurrentFilter } = useSearch();
   const { loading, error: apiError } = useApi();
   const [query, setQuery] = useState("");
 
@@ -26,10 +25,6 @@ const Home = () => {
     if (!activeTag) return [];
     return documentsData.filter((doc) => doc.tags?.includes(activeTag));
   }, [documentsData, activeTag]);
-
-  const handleFilterClick = (filter) => {
-    setCurrentFilter((prev) => (prev === filter ? "" : filter));
-  };
 
   if (apiError?.home) {
     return (
@@ -57,16 +52,6 @@ const Home = () => {
 
           {isSearching ? (
             <div className="flex flex-col gap-2">
-              <div className="w-full flex flex-row gap-2 pl-3">
-                {FILTERS.map((filter, index) => (
-                  <div onClick={() => handleFilterClick(filter)} key={index}>
-                    <FilterPill
-                      label={filter}
-                      isActive={currentFilter == filter}
-                    />
-                  </div>
-                ))}
-              </div>
               <SearchSection isSearching={isSearching} query={query} />
             </div>
           ) : (

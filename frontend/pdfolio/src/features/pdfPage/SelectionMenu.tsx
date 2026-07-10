@@ -1,3 +1,4 @@
+import { useAiNotesFeatures } from "@/hooks/useAiNotesFeatures";
 import React, { useRef, useState } from "react";
 
 interface SelectionMenuProps {
@@ -20,7 +21,6 @@ const SelectionMenu = ({
   const [showAiDropdown, setShowAiDropdown] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setShowAiDropdown(true);

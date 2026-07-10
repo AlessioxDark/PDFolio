@@ -18,13 +18,8 @@ import {
 } from "lucide-react";
 
 import * as pdfjsLib from "pdfjs-dist";
-import { useDocumentsAndFolders } from "@/contexts/DocumentsAndFolderContext";
-import { apiCalls } from "@/services/api";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { useApi } from "@/contexts/ApiContext";
 import TagInput from "@/components/input/TagInput";
-import { usePdfUpload } from "@/app/hooks/useUploadPdf";
+import { usePdfUpload } from "@/hooks/useUploadPdf";
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 const UploadDialog = ({
@@ -74,10 +69,8 @@ const UploadDialog = ({
       </AlertDialogTrigger>
 
       <AlertDialogContent className="max-w-[440px] p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-neutral-200/60 dark:border-zinc-800 shadow-2xl gap-0 font-sans transition-colors duration-300">
-        {" "}
         <AlertDialogHeader className="pb-4">
           <AlertDialogTitle className="text-xl font-bold text-neutral-900 dark:text-zinc-100 tracking-tight">
-            {" "}
             Importa Documento
           </AlertDialogTitle>
           <p className="text-xs text-neutral-400 dark:text-zinc-500 mt-0.5">

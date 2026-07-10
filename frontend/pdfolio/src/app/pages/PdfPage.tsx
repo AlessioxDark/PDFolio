@@ -15,42 +15,23 @@ import PdfPageAiSidebar from "@/features/pdfPage/PdfPageAiSidebar";
 import LoadingState from "@/components/states/LoadingState";
 import { useApi } from "@/contexts/ApiContext";
 import ErrorState from "@/components/states/ErrorState";
-import { toast } from "sonner";
+import { useNavigationPdf } from "@/hooks/useNavigationPdf";
+import { useTextSelection } from "@/hooks/useTextSelection";
+import { useAiNotesFeatures } from "@/hooks/useAiNotesFeatures";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PdfPage = () => {
   const { pdfId } = useParams();
-  const [searchParams] = useSearchParams();
   const { session } = useAuth();
   const [pdfData, setPdfData] = useState<any>({});
   const [activeSidebar, setActiveSidebar] = useState<"" | "AI" | "NOTES">("");
-  const { notesArray, setNotesArray, fetchNotes } = useNotes();
-  const [selectionData, setSelectionData] = useState<{
-    menuX: number;
-    menuY: number;
-    text: string;
-    textX: number;
-    textY: number;
-    textWidth: number;
-    textHeight: number;
-    pageNum: number;
-  } | null>(null);
+  const { notesArray } = useNotes();
 
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState<number>(1);
-  const scale = 1.2;
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const notesContainerRef = useRef<HTMLDivElement>(null);
   const [aiMessages, setAiMessages] = useState([]);
   const prevNotesRef = useRef(notesArray);
 
   const { executeApiCall, loading, error: apiError } = useApi();
-  const toggleNotesSidebar = () => {
-    setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
-  };
-  const toggleAiSidebar = () => {
-    setActiveSidebar((prev) => (prev === "AI" ? "" : "AI"));
-  };
 
   const getPdfData = async () => {
     if (!session) return;
@@ -62,7 +43,6 @@ const PdfPage = () => {
       },
       {
         onSuccess: (data) => {
-          console.log("Dati ricevuti:", data);
           setPdfData(data);
           setAiMessages([
             {
@@ -80,41 +60,46 @@ const PdfPage = () => {
       },
     );
   };
+  const {
+    numPages,
+    pageNumber,
+    handleInputChange,
+    scale,
+    scrollContainerRef,
+    onDocumentLoadSuccess,
+    handleScroll,
+    scrollToPage,
+    scrollToNoteInPdf,
+  } = useNavigationPdf({ pdfId, getPdfData });
 
-  useEffect(() => {
-    getPdfData();
-    fetchNotes(pdfId as string);
-  }, []);
+  const {
+    handleTextSelection,
+    handleUnderlineAction,
+    handleAddNoteAction,
+    handleCopyAction,
+    selectionData,
+    setSelectionData,
+  } = useTextSelection({
+    pdfId,
+    scrollContainerRef,
+    scale,
+    pageNumber,
+    setActiveSidebar,
+  });
 
-  useEffect(() => {
-    if (!numPages) return;
+  const { onAskAi, onSaveAsNote, onReject, onUpdateNote } = useAiNotesFeatures({
+    setActiveSidebar,
+    selectionData,
+    setSelectionData,
+    setAiMessages,
+    pdfId,
+  });
 
-    const pageParam = searchParams.get("page");
-    const noteParam = searchParams.get("note");
+  const toggleNotesSidebar = () =>
+    setActiveSidebar((prev) => (prev === "NOTES" ? "" : "NOTES"));
 
-    // Caso 1: C'è una nota specifica da raggiungere (Priorità Max)
-    if (noteParam && notesArray.length > 0) {
-      const targetNote = notesArray.find((n) => n.note_id === noteParam);
-      if (targetNote?.position) {
-        const timer = setTimeout(() => {
-          scrollToNoteInPdf(targetNote.position);
-          scrollToNoteInSidebar(targetNote.position);
-        }, 450); // Un leggero delay in più assicura che il layer di testo sia renderizzato nel DOM
-        return () => clearTimeout(timer);
-      }
-    }
-
-    // Caso 2: C'è solo il parametro della pagina
-    if (pageParam) {
-      const pageNum = parseInt(pageParam, 10);
-      if (pageNum >= 1 && pageNum <= numPages) {
-        const timer = setTimeout(() => {
-          scrollToPage(pageNum);
-        }, 300);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [numPages, notesArray, searchParams]); // Dipendenze pulite e sincronizzate
+  const toggleAiSidebar = () =>
+    setActiveSidebar((prev) => (prev === "AI" ? "" : "AI"));
 
   useEffect(() => {
     // Trova le note che c'erano prima ma non ci sono più adesso
@@ -161,209 +146,6 @@ const PdfPage = () => {
     prevNotesRef.current = notesArray;
   }, [notesArray]);
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-    setPageNumber(1);
-  }
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!numPages) return;
-    const container = e.currentTarget;
-    const targetLine = container.scrollTop + container.clientHeight / 3;
-
-    let newPage: number | null = null;
-    for (let i = 1; i <= numPages; i++) {
-      const el = document.getElementById(`page-${i}`);
-      if (el) {
-        // offsetTop ci dice quanto è distante l'elemento dall'inizio del contenitore scrollabile
-        const elTop = el.offsetTop;
-        const elBottom = elTop + el.offsetHeight;
-
-        if (targetLine >= elTop && targetLine <= elBottom) {
-          newPage = i;
-          break;
-        }
-      }
-    }
-
-    if (newPage !== null) {
-      setPageNumber((prev) => (prev !== newPage ? newPage : prev));
-    }
-  };
-
-  const scrollToPage = (pageNum: number) => {
-    if (pageNum < 1 || pageNum > (numPages || 1)) return;
-    setPageNumber(pageNum);
-    const el = document.getElementById(`page-${pageNum}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value, 10);
-    setPageNumber(isNaN(val) ? 1 : val);
-  };
-
-  const handleTextSelection = () => {
-    const selection = window.getSelection();
-    const container = scrollContainerRef.current;
-    if (
-      !selection ||
-      selection.isCollapsed ||
-      !selection.toString().trim() ||
-      !container
-    ) {
-      setSelectionData(null);
-      return;
-    }
-
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-
-    const menuX =
-      rect.left - containerRect.left + rect.width / 2 + container.scrollLeft;
-    const menuY = rect.top - containerRect.top + container.scrollTop - 10;
-
-    let node = selection.anchorNode;
-    let pageElement = null;
-    let selectedPageNum = pageNumber;
-
-    if (node) {
-      if (node.nodeType === 3) node = node.parentNode;
-      const pageDiv = (node as Element).closest('[id^="page-"]');
-      if (pageDiv) {
-        pageElement = pageDiv;
-        selectedPageNum = parseInt(pageDiv.id.replace("page-", ""), 10);
-      }
-    }
-
-    let textX = 0,
-      textY = 0,
-      textWidth = 0,
-      textHeight = 0;
-
-    if (pageElement) {
-      const pageRect = pageElement.getBoundingClientRect();
-      textX = (rect.left - pageRect.left) / scale;
-      textY = (rect.top - pageRect.top) / scale;
-      textWidth = rect.width / scale;
-      textHeight = rect.height / scale;
-    } else {
-      textX = (rect.left - containerRect.left + container.scrollLeft) / scale;
-      textY = (rect.top - containerRect.top + container.scrollTop) / scale;
-      textWidth = rect.width / scale;
-      textHeight = rect.height / scale;
-    }
-
-    setSelectionData({
-      menuX,
-      menuY,
-      text: selection.toString(),
-      textX,
-      textY,
-      textWidth,
-      textHeight,
-      pageNum: selectedPageNum,
-    });
-  };
-
-  const handleUnderlineAction = async (color: string) => {
-    if (!selectionData) return;
-    const highlight: any = {
-      document_id: pdfId,
-      type: "HIGHLIGHT",
-      content: "",
-      text: selectionData.text,
-      position: {
-        page: selectionData.pageNum,
-        x: selectionData.textX,
-        y: selectionData.textY,
-        width: selectionData.textWidth,
-        height: selectionData.textHeight,
-      },
-      color,
-    };
-    const prevNotes = notesArray;
-    // Aggiungi subito all'array locale per reattività immediata
-    setNotesArray((prev) => [...prev, highlight]);
-    window.getSelection()?.removeAllRanges();
-    setSelectionData(null);
-    setActiveSidebar("NOTES");
-
-    await executeApiCall(
-      "save_note",
-      () => {
-        return apiCalls.notes.SaveNoteToDB(
-          session?.access_token,
-          pdfId as string,
-          highlight,
-        );
-      },
-      {
-        onSuccess: (noteData) => {
-          setNotesArray((prev) =>
-            prev.map((n) =>
-              n === highlight ? { ...n, note_id: noteData.noteId } : n,
-            ),
-          );
-        },
-        onError: (error) => {
-          toast.error(error?.message);
-          setNotesArray(prevNotes);
-          window.getSelection()?.removeAllRanges();
-          setActiveSidebar("");
-        },
-      },
-    );
-  };
-
-  const handleAddNoteAction = () => {
-    if (!selectionData) return;
-    const note = {
-      document_id: pdfId,
-      type: "NOTE",
-      text: selectionData.text,
-      content: "",
-      position: {
-        page: selectionData.pageNum,
-        x: selectionData.textX,
-        y: selectionData.textY,
-        width: selectionData.textWidth,
-        height: selectionData.textHeight,
-      },
-    };
-    const newArray = [...notesArray, note];
-    setNotesArray(newArray);
-    window.getSelection()?.removeAllRanges();
-    setSelectionData(null);
-    setActiveSidebar("NOTES");
-  };
-
-  const handleCopyAction = async () => {
-    if (!selectionData) return;
-    try {
-      await navigator.clipboard.writeText(selectionData.text);
-    } catch (err) {
-      console.error("Errore durante la copia:", err);
-    }
-    window.getSelection()?.removeAllRanges();
-    setSelectionData(null);
-  };
-
-  const scrollToNoteInPdf = (notePosition: any) => {
-    const el = document.getElementById(`page-${notePosition.page}`);
-    if (el && scrollContainerRef.current) {
-      const targetScrollTop = el.offsetTop + notePosition.y * scale - 40;
-      scrollContainerRef.current.scrollTo({
-        top: targetScrollTop,
-        behavior: "smooth",
-      });
-      setPageNumber(notePosition.page);
-    }
-  };
-
   const scrollToNoteInSidebar = (notePos: any) => {
     setActiveSidebar("NOTES");
     setTimeout(() => {
@@ -383,366 +165,6 @@ const PdfPage = () => {
     }, 100);
   };
 
-  const onAskAi = async (type) => {
-    if (!selectionData) return;
-    const currentSelection = selectionData;
-    setActiveSidebar("AI");
-    let promptMessage = "";
-    const staticSelectionData = {
-      document_id: pdfId,
-      text: selectionData.text,
-      position: {
-        page: selectionData.pageNum,
-        x: selectionData.textX,
-        y: selectionData.textY,
-        width: selectionData.textWidth,
-        height: selectionData.textHeight,
-      },
-      isSaved: false,
-      isRejected: false,
-      isModified: false,
-    };
-    if (type === "explain") {
-      promptMessage = "Spiegami questo passaggio del documento";
-    }
-    if (type === "simplify") {
-      promptMessage = "Semplifica questo passaggio del documento";
-    }
-    if (type === "example") {
-      promptMessage = "Fammi un esempio di questo passaggio del documento";
-    }
-    const tempId =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).substring(7);
-    const message = {
-      role: "user",
-      message_id: tempId,
-      content: promptMessage + ":\n" + `${currentSelection.text}`,
-      selection_data: staticSelectionData,
-    };
-    console.log("sel data", message.selection_data);
-    setAiMessages((prevMessages) => [...prevMessages, message]);
-    await executeApiCall(
-      "ask_ai",
-      () => {
-        return apiCalls.ai.askAi(
-          session?.access_token,
-          pdfId,
-          message.content,
-          {
-            history: null,
-            isExplaining: type === "explain",
-            isSimplify: type === "simplify",
-            isExample: type === "example",
-            selection_data: staticSelectionData,
-            notes: notesArray,
-          },
-        );
-      },
-      {
-        onSuccess: (data) => {
-          console.log("aidata", data);
-          const aiResponseId =
-            typeof crypto !== "undefined" && crypto.randomUUID
-              ? crypto.randomUUID()
-              : Math.random().toString(36).substring(7);
-          setAiMessages((prev) => {
-            return [
-              ...prev,
-              {
-                role: "assistant",
-                message_id: aiResponseId,
-                content: data.response,
-                selection_data: message.selection_data,
-              },
-            ];
-          });
-        },
-        onError: (error) => {
-          toast.error(error?.message);
-        },
-      },
-    );
-
-    window.getSelection()?.removeAllRanges();
-    setSelectionData(null);
-  };
-
-  const parseSelectionData = (raw: any) => {
-    if (!raw) return null;
-    if (typeof raw === "string") {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    }
-    return { ...raw }; // clona, non muta il riferimento originale
-  };
-
-  const serializeSelectionData = (original: any, updated: any) => {
-    return typeof original === "string" ? JSON.stringify(updated) : updated;
-  };
-
-  const onSaveAsNote = async (
-    messageId: string,
-    selection_data: any,
-    content: string,
-  ) => {
-    if (!selection_data) return;
-    const rawPage = selection_data.pageNum || selection_data.position?.page;
-    const rawX =
-      selection_data.textX !== undefined
-        ? selection_data.textX
-        : selection_data.position?.x;
-    const rawY =
-      selection_data.textY !== undefined
-        ? selection_data.textY
-        : selection_data.position?.y;
-    const rawWidth =
-      selection_data.textWidth !== undefined
-        ? selection_data.textWidth
-        : selection_data.position?.width;
-    const rawHeight =
-      selection_data.textHeight !== undefined
-        ? selection_data.textHeight
-        : selection_data.position?.height;
-
-    const page = Number(rawPage || 0);
-    const x = parseFloat(rawX);
-    const y = parseFloat(rawY);
-    const width = parseFloat(rawWidth);
-    const height = parseFloat(rawHeight);
-
-    const tempId =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).substring(7);
-
-    const note = {
-      note_id: tempId,
-      document_id: pdfId,
-      type: "NOTE",
-      text: selection_data.text,
-      content: content,
-      position: { page, x, y, width, height },
-    };
-
-    const previousNotes = [...notesArray];
-    setNotesArray([...notesArray, note]);
-    window.getSelection()?.removeAllRanges();
-    setSelectionData(null);
-
-    // Aggiorna SOLO il messaggio con questo id, senza mutare nulla
-    const updateMessageSavedStatus = (saved: boolean) => {
-      setAiMessages((prev) =>
-        prev.map((msg) => {
-          if (msg.message_id !== messageId) return msg;
-          const parsedSd = parseSelectionData(msg.selection_data);
-          if (!parsedSd) return msg;
-          const updatedSd = { ...parsedSd, isSaved: saved };
-          return {
-            ...msg,
-            selection_data: serializeSelectionData(
-              msg.selection_data,
-              updatedSd,
-            ),
-          };
-        }),
-      );
-    };
-
-    try {
-      await executeApiCall(
-        "save_note",
-        () => apiCalls.notes.SaveNoteToDB(session?.access_token, pdfId, note),
-        {
-          onSuccess: (noteData) => {
-            toast.success("Nota salvata e collegata alla chat!");
-            setNotesArray((prev) =>
-              prev.map((n) =>
-                n === note ? { ...n, note_id: noteData?.note_id || tempId } : n,
-              ),
-            );
-          },
-          onError: (error) => {
-            setNotesArray(previousNotes);
-            toast.error(error?.message);
-          },
-        },
-      );
-
-      await executeApiCall(
-        "mark_messages_as_saved",
-        () =>
-          apiCalls.ai.markMessagesAsSaved(
-            session?.access_token,
-            pdfId,
-            selection_data.text,
-          ),
-        {
-          onSuccess: () => updateMessageSavedStatus(true),
-          onError: (err) =>
-            console.error("Errore sincronizzazione messaggi:", err),
-        },
-      );
-    } catch (err) {
-      console.error("Errore globale durante il salvataggio:", err);
-      setNotesArray(previousNotes);
-      updateMessageSavedStatus(false);
-      toast.error(err?.message || "Impossibile salvare la nota nel database.", {
-        action: {
-          label: "Riprova",
-          onClick: () => onSaveAsNote(messageId, selection_data, content),
-        },
-      });
-    }
-  };
-
-  const onUpdateNote = async (
-    messageId: string,
-    noteId: string,
-    newContent: string,
-  ) => {
-    const targetNote = notesArray.find((n) => n.note_id === noteId);
-    const selectionText = targetNote?.text;
-    const previousNotes = [...notesArray];
-    setNotesArray(
-      notesArray.map((n) =>
-        n.note_id === noteId ? { ...n, content: newContent } : n,
-      ),
-    );
-
-    const applyMessageState = (isSaved: boolean, isModified: boolean) => {
-      setAiMessages((prev) =>
-        prev.map((msg) => {
-          const matchById = msg.message_id && msg.message_id === messageId;
-          const parsedSd = parseSelectionData(msg.selection_data);
-          const matchByText =
-            selectionText && parsedSd && parsedSd.text === selectionText;
-
-          if (!matchById && !matchByText) return msg;
-
-          const baseSd = parsedSd || {
-            text: selectionText,
-            isSaved: false,
-            isModified: false,
-            isRejected: false,
-          };
-          const updatedSd = { ...baseSd, isSaved, isModified };
-
-          return {
-            ...msg,
-            selection_data: serializeSelectionData(
-              msg.selection_data,
-              updatedSd,
-            ),
-          };
-        }),
-      );
-    };
-    try {
-      await executeApiCall(
-        "update_note",
-        () =>
-          apiCalls.notes.UpdateNoteInDB(
-            session?.access_token,
-            pdfId,
-            noteId,
-            newContent,
-          ),
-        {
-          onSuccess: () => {},
-          onError: (err) => {
-            throw err;
-          },
-        },
-      );
-
-      if (selectionText) {
-        await executeApiCall(
-          "mark_message_as_modified",
-          () =>
-            apiCalls.ai.markMessageAsModified(
-              session?.access_token,
-              pdfId,
-              selectionText,
-            ),
-          {
-            onSuccess: () => {
-              applyMessageState(true, true);
-              toast.success("Nota modificata e sincronizzata!");
-            },
-            onError: (err) => {
-              throw err;
-            },
-          },
-        );
-      } else {
-        applyMessageState(true, true);
-      }
-    } catch (error) {
-      console.error(error);
-      setNotesArray(previousNotes);
-      applyMessageState(true, false);
-      toast.error(error?.message || "Impossibile salvare la nota. Riprova.", {
-        action: {
-          label: "Riprova",
-          onClick: () => onUpdateNote(messageId, noteId, newContent),
-        },
-      });
-    }
-  };
-  const onReject = async (messageId: string, selectionText: string) => {
-    await executeApiCall(
-      "mark_message_as_rejected",
-      () =>
-        apiCalls.ai.markMessageAsRejected(
-          session?.access_token,
-          pdfId,
-          selectionText,
-        ),
-      {
-        onSuccess: () => {
-          setAiMessages((prev) =>
-            prev.map((msg) => {
-              // Match per message_id O per testo della selezione
-              const matchById = msg.message_id && msg.message_id === messageId;
-              const parsedSd = parseSelectionData(msg.selection_data);
-              const matchByText = parsedSd && parsedSd.text === selectionText;
-
-              if (!matchById && !matchByText) return msg;
-              const baseSd = parsedSd || {
-                text: selectionText,
-                isSaved: false,
-                isModified: false,
-                isRejected: false,
-              };
-              const updatedSd = { ...baseSd, isRejected: true };
-
-              return {
-                ...msg,
-                selection_data: serializeSelectionData(
-                  msg.selection_data,
-                  updatedSd,
-                ),
-              };
-            }),
-          );
-          toast.success("Suggerimento scartato con successo!");
-        },
-        onError: (err) => {
-          toast.error(err?.message || "Impossibile scartare il suggerimento.", {
-            action: {
-              label: "Riprova",
-              onClick: () => onReject(messageId, selectionText),
-            },
-          });
-        },
-      },
-    );
-  };
   if (apiError?.get_pdf) {
     return (
       <div className="w-screen h-screen flex items-center justify-center bg-neutral-2 dark:bg-zinc-900">
