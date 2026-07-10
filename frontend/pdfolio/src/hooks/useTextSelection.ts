@@ -148,6 +148,7 @@ export const useTextSelection = ({
         },
       },
     );
+    setSelectionData(null);
   };
 
   const handleAddNoteAction = () => {

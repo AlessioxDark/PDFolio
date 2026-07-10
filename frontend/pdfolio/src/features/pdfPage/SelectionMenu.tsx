@@ -184,6 +184,7 @@ const SelectionMenu = ({
                   e.stopPropagation();
                   onAskAi("explain");
                   setShowAiDropdown(false);
+                  setshow;
                 }}
                 className="w-full text-left px-3 py-2 text-xs font-medium text-neutral-800 dark:text-zinc-300 hover:bg-neutral-2 dark:hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
               >

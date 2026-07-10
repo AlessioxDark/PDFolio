@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useSearchParams } from "react-router";
+import { useParams } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { apiCalls } from "../../services/api";
 import PdfPageHeader from "../../features/pdfPage/pdfPageHeader";

@@ -22,7 +22,6 @@ const PdfPageHeader = ({
   toggleNotesSidebar: () => void;
   documentId: string;
 }) => {
-  const { session } = useAuth();
   const navigate = useNavigate();
   const { handleTrashFile } = useDocumentsAndFolders();
   const handlePdfShare = () => {

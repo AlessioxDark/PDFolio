@@ -32,8 +32,9 @@ const NotesSidebarElement = ({
   const [noteInput, setNoteInput] = useState(note.content || "");
   const [savedContent, setSavedContent] = useState(note.content || "");
   const [isSent, setIsSent] = useState(note.content && note.content.length > 0);
-  const { loading, executeApiCall } = useApi();
+  const { executeApiCall } = useApi();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { setNotesArray } = useNotes();
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     setNoteInput(e.currentTarget.textContent || "");
   };
@@ -66,9 +67,10 @@ const NotesSidebarElement = ({
         <div className="flex flex-row items-center w-full justify-between">
           <div className="flex flex-row items-center gap-2">
             <div
-              className={`aspect-square h-4 rounded-md ${
-                note.type === "HIGHLIGHT" ? `bg-[${note.color}]` : "bg-accent"
-              }`}
+              className="aspect-square h-4 rounded-md"
+              style={{
+                backgroundColor: note.type === "NOTE" ? "#9333ea" : note.color,
+              }}
             />
             <span className="font-semibold text-[10px] font-inter text-text-1 dark:text-zinc-400">
               {" "}
@@ -176,7 +178,18 @@ const NotesSidebarElement = ({
                               setIsSent(false);
                             },
                             onSuccess: (data) => {
-                              note.note_id = data?.noteId; // Assegni l'ID reale
+                              const realNoteId = data?.noteId || data?.note_id;
+                              setNotesArray((prev: any[]) =>
+                                prev.map((n) =>
+                                  n.text === note.text && !n.note_id
+                                    ? {
+                                        ...n,
+                                        note_id: realNoteId,
+                                        content: noteInput,
+                                      }
+                                    : n,
+                                ),
+                              );
                               setSavedContent(noteInput); // Confermi il testo a schermo
                               setIsSent(true); // Chiudi il box di input
                             },

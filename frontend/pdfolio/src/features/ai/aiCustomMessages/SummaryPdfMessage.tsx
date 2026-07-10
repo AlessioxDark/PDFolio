@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const SummaryPdfMessage = ({ extractedText }) => {
   const { loading, executeApiCall } = useApi();
   const { session } = useAuth();
-  const { pdfId: documentId } = useParams();
+  const { pdfId } = useParams();
   const isExporting = loading?.export_summary;
   const handleExportPdf = async (summaryText) => {
     executeApiCall(
@@ -18,7 +18,7 @@ const SummaryPdfMessage = ({ extractedText }) => {
       () => {
         return apiCalls.pdf.exportSummaryPdf(
           session?.access_token,
-          documentId,
+          pdfId,
           summaryText,
         );
       },
@@ -31,7 +31,7 @@ const SummaryPdfMessage = ({ extractedText }) => {
           const downloadUrl = window.URL.createObjectURL(data);
           const link = document.createElement("a");
           link.href = downloadUrl;
-          link.setAttribute("download", `Riassunto_${documentId}.pdf`);
+          link.setAttribute("download", `Riassunto_${pdfId}.pdf`);
 
           document.body.appendChild(link);
           link.click();
@@ -59,8 +59,6 @@ const SummaryPdfMessage = ({ extractedText }) => {
             </p>
           </div>
         </div>
-
-        {/* Bottone di Download */}
         <button
           disabled={isExporting}
           className="flex items-center gap-2 text-white bg-accent hover:bg-accent/90 dark:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-60 px-4 py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 shadow-xs hover:shadow-md active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed select-none whitespace-nowrap ml-auto sm:ml-0"

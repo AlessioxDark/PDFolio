@@ -1,2 +1,3 @@
 migliorare interfaccia
 risolvere errore logout, non posso accedere a logout in apicontext
+aggiungere offset per richiesta documenti

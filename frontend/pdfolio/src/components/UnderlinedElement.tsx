@@ -1,5 +1,3 @@
-import React from "react";
-
 const UnderlinedElement = ({
   sotto,
   pos,
@@ -21,10 +19,7 @@ const UnderlinedElement = ({
         width: `${pos.width * scale}px`,
         height: `${pos.height * scale}px`,
         backgroundColor:
-          sotto.type === "HIGHLIGHT"
-            ? // ? "rgba(253, 224, 71, 0.4)"
-              sotto.color
-            : "rgba(147, 51, 234, 0.3)",
+          sotto.type === "HIGHLIGHT" ? sotto.color : "rgba(147, 51, 234, 0.3)",
         mixBlendMode: "multiply",
         cursor: "pointer",
         pointerEvents: "auto",

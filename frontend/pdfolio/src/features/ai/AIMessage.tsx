@@ -25,7 +25,6 @@ const AIMessage = ({
   onReject: (messageId: string, selectionText: string) => Promise<void>;
 }) => {
   const isUser = m.role === "user";
-  // Stato di loading locale per ogni messaggio (evita lo spinner su tutti i messaggi insieme)
   const [isUpdatingLocal, setIsUpdatingLocal] = useState(false);
   const [isSavingLocal, setIsSavingLocal] = useState(false);
   const [isRejectingLocal, setIsRejectingLocal] = useState(false);
@@ -70,6 +69,7 @@ const AIMessage = ({
         } dark:prose-invert`}
       >
         <Markdown
+          key={m.message_id}
           rehypePlugins={[rehypeRaw]}
           components={{
             strong: ({ ...props }) => (

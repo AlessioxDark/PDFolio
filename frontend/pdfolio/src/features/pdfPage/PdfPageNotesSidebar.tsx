@@ -150,7 +150,7 @@ const PdfPageNotesSidebar = ({
                 />
                 <div className="flex flex-row gap-2 mt-2">
                   {FILTERS.map((filter, index) => (
-                    <div key={index}>
+                    <div key={filter.name}>
                       <FilterPill
                         label={filter}
                         isActive={selectedFilter.name === filter.name}
@@ -178,7 +178,7 @@ const PdfPageNotesSidebar = ({
                     {filteredResults.map((note, index) => (
                       <NotesSidebarElement
                         setActiveNote={setActiveNote}
-                        key={index}
+                        key={note.note_id}
                         note={note}
                         scrollToNoteInPdf={scrollToNoteInPdf}
                       />
