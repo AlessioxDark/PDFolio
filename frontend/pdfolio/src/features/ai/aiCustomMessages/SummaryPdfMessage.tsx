@@ -24,7 +24,6 @@ const SummaryPdfMessage = ({ extractedText }) => {
       },
       {
         onError: (error) => {
-          console.error("Errore esportazione PDF:", error);
           toast.error(error?.message);
         },
         onSuccess: (data) => {

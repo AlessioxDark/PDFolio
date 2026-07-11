@@ -64,7 +64,6 @@ const FilterPill = ({
                   onClick={() => {
                     // Se passi classi tipo "bg-yellow-300", prendi solo la tinta pura o l'hex estratto per il filtro logico
                     const colorValue = isHex ? c : c.replace("bg-", "");
-                    console.log("click color:", colorValue);
 
                     setSelectedFilter((prev) => {
                       return { ...prev, currentColor: colorValue };

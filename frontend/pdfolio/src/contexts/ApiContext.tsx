@@ -1,8 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../../config/db.js";
-import { apiCalls } from "../services/api.js";
+import React, { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router";
-import { useAuth } from "./AuthContext.js";
 
 interface ApiInterface {
   loading: {
@@ -60,6 +57,7 @@ interface ApiInterface {
     log_out: null;
     delete_note: null;
   };
+  registerAuthErrorHandler: (handler: () => void) => void;
   executeApiCall: (
     type: string,
     apiCall: () => Promise<any>,
@@ -77,6 +75,7 @@ interface ApiInterface {
   ) => void;
 }
 export const ApiContext = createContext<ApiInterface>({
+  registerAuthErrorHandler: () => {},
   executeApiCall: () => {},
   loading: {
     delete_folder: false,
@@ -139,7 +138,11 @@ export const useApi = () => {
   return context;
 };
 
-export const ApiContextProvider = ({ children }) => {
+export const ApiContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [loading, setLoading] = useState({
     delete_folder: false,
     home: false,
@@ -195,14 +198,21 @@ export const ApiContextProvider = ({ children }) => {
     log_out: null,
     delete_note: null,
   });
-  const { LogOut } = useAuth();
+  const [authErrorHandler, setAuthErrorHandler] = useState<() => void>(
+    () => {},
+  );
+
+  const registerAuthErrorHandler = (handler: () => void) => {
+    setAuthErrorHandler(() => handler);
+  };
+
   const navigate = useNavigate();
   const executeApiCall = async (
     type: string,
     apiCall: () => Promise<any>,
     {
-      onSuccess = (arg: any) => {},
-      onError = (arg: any) => {},
+      onSuccess = (_arg: any) => {},
+      onError = (_arg: any) => {},
       startLoading = true, // Di default mostra il loading
       endLoading = true, // Di default spegne il loading alla fine
     } = {},
@@ -216,9 +226,8 @@ export const ApiContextProvider = ({ children }) => {
       if (onSuccess) onSuccess(result.data);
     } catch (error: any) {
       setError((prev) => ({ ...prev, [type]: error }));
-      console.log("ERRR", error);
       if (error.status === 403) {
-        await LogOut();
+        await authErrorHandler();
         navigate("/login");
       }
       if (onError) onError(error);
@@ -233,7 +242,14 @@ export const ApiContextProvider = ({ children }) => {
     }
   };
   return (
-    <ApiContext.Provider value={{ executeApiCall, error, loading }}>
+    <ApiContext.Provider
+      value={{
+        executeApiCall,
+        error,
+        loading,
+        registerAuthErrorHandler,
+      }}
+    >
       {children}
     </ApiContext.Provider>
   );

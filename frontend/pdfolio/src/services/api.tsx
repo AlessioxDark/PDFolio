@@ -26,18 +26,10 @@ export const apiCalls = {
         // Se tutto va bene, ritorniamo i dati. executeApiCall leggerà questo in 'result.data'
         return { data, error: null };
       } catch (err) {
-        // Logga l'errore per debugging nel backend/servizio
-        console.error("Errore nel servizio signUp:", err);
-
-        // 🔥 IMPORTANTE: Dobbiamo fare l'asymmetric return o rilanciare l'errore?
-        // Visto che executeApiCall si aspetta che l'API fallisca lanciando un'eccezione
-        // per entrare nel blocco catch(error), dobbiamo fare THROW anche qui!
         throw err;
       }
     },
     async loginUser({ email, password }) {
-      console.log("email", email);
-      console.log("password", password);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -80,7 +72,6 @@ export const apiCalls = {
   },
   home: {
     async getHomeFoldersAndFiles(session) {
-      console.log("oi");
       try {
         const response = await fetch(`${API_BASE_URL}/api/documents/getall`, {
           method: "GET",
@@ -124,7 +115,6 @@ export const apiCalls = {
   },
   pdf: {
     async getPdfFile(session, documentId: string) {
-      console.log("Documet", documentId);
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}`,
@@ -167,7 +157,6 @@ export const apiCalls = {
     },
     async trashPdfFile(session, documentId) {
       try {
-        console.log("faccio richiesta");
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}/trash`,
           {
@@ -189,7 +178,6 @@ export const apiCalls = {
     },
     async deletePdfFile(session, documentId) {
       try {
-        console.log("faccio richiesta");
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}`,
           {
@@ -211,7 +199,6 @@ export const apiCalls = {
     },
     async restorePdfFile(session, documentId) {
       try {
-        console.log("faccio richiesta");
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}/restore`,
           {
@@ -342,7 +329,6 @@ export const apiCalls = {
   },
   notes: {
     async getNotesByDocumentId(session, documentId: string) {
-      console.log("Documet", documentId);
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/documents/${documentId}/notes`,
@@ -449,7 +435,6 @@ export const apiCalls = {
         selection_data: any;
       },
     ) {
-      console.log("Context", context);
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/ai/ask/${documentId}`,
@@ -462,7 +447,6 @@ export const apiCalls = {
             },
           },
         );
-        console.log("inviata ai");
         if (!response.ok) {
           const errorData = await response.json();
           throw errorData;
@@ -558,7 +542,6 @@ export const apiCalls = {
   profile: {
     async getProfile(session) {
       try {
-        console.log(session);
         const response = await fetch(`${API_BASE_URL}/api/profile`, {
           method: "GET",
           headers: {

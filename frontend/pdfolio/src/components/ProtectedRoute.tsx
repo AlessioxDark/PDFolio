@@ -9,9 +9,7 @@ const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
   const { loading } = useApi();
   useEffect(() => {
-    console.log("qui ci arriva?", session);
     if (!session && !isAuthLoading) {
-      console.log("non hai session", session, isAuthLoading);
       navigate("/login");
     }
   }, [session, isAuthLoading]);

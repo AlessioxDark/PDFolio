@@ -60,11 +60,8 @@ const FolderSection = () => {
           color_index: colorIndex,
         }),
       {
-        onSuccess: (data) => {
-          console.log("Cartella salvata con successo:", data);
-        },
+        onSuccess: (data) => {},
         onError: (error) => {
-          console.error("Errore durante il salvataggio:", error);
           toast.error(error?.message);
           setFoldersData((prev) =>
             prev.filter((f) => f.folder_id !== newFolderId),

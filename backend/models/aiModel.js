@@ -95,13 +95,11 @@ const askAi = async (req, res) => {
     ]);
     if (insertError) throw insertError;
 
-    console.log("risposta", responseText);
     return {
       data: { response: responseText },
       error: null,
     };
   } catch (error) {
-    console.error("=== ERRORE NEL MODELLO AI ===", error);
     return { data: null, error: error };
   }
 };
@@ -155,7 +153,6 @@ const markMessagesAsSaved = async (req, res) => {
 
     return { data: { updated: toUpdate.length }, error: null };
   } catch (error) {
-    console.error("=== ERRORE markMessagesAsSaved ===", error);
     return { data: null, error };
   }
 };
@@ -209,7 +206,6 @@ const markMessageAsModified = async (req, res) => {
 
     return { data: { updated: toUpdate.length }, error: null };
   } catch (error) {
-    console.error("=== ERRORE markMessageAsModified ===", error);
     return { data: null, error };
   }
 };
@@ -263,7 +259,6 @@ const markMessageAsRejected = async (req, res) => {
 
     return { data: { updated: toUpdate.length }, error: null };
   } catch (error) {
-    console.error("=== ERRORE markMessageAsRejected ===", error);
     return { data: null, error };
   }
 };

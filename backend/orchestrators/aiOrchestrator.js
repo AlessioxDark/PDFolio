@@ -133,14 +133,10 @@ const isAllowed = (provider) => {
   if (breaker.state === "OPEN") {
     if (Date.now() > breaker.nextAttempt) {
       breaker.state = "HALF-OPEN";
-      console.log(
-        `[ORCHESTRATOR] ${provider} entra in HALF-OPEN. Tento il ripristino...`,
-      );
+
       return true;
     }
-    console.warn(
-      `[ORCHESTRATOR] Circuito ${provider} aperto (OPEN). Salto il modello.`,
-    );
+
     return false;
   }
   return true;
@@ -148,31 +144,21 @@ const isAllowed = (provider) => {
 const handleFailure = (provider, error) => {
   const breaker = breakerStates[provider];
   breaker.failures++;
-  console.warn(
-    `[ORCHESTRATOR] Fallimento su ${provider} (#${breaker.failures}): ${error.message}`,
-  );
 
   if (breaker.state === "HALF-OPEN" || breaker.failures >= FAILURE_THRESHOLD) {
     breaker.state = "OPEN";
     breaker.nextAttempt = Date.now() + COOLDOWN_PERIOD;
-    console.error(
-      `[ORCHESTRATOR] !!! CIRCUITO ${provider} APERTO (OPEN) !!! Isolato per 5 minuti.`,
-    );
   }
 };
 const handleSuccess = (provider) => {
   const breaker = breakerStates[provider];
   if (breaker.state === "HALF-OPEN" || breaker.failures > 0) {
-    console.log(
-      `[ORCHESTRATOR] ${provider} si è ripreso con successo! Reset dei contatori.`,
-    );
     breaker.state = "CLOSED";
     breaker.failures = 0;
   }
 };
 
 const callGemini = async (history, fullPrompt) => {
-  console.log("[ORCHESTRATOR] Chiamata a Gemini...");
   const formattedHistory = (history || [])
     .filter((msg) => msg.content?.trim())
     .map((msg) => ({
@@ -195,7 +181,6 @@ const callGemini = async (history, fullPrompt) => {
 };
 
 const callCohere = async (history, fullPrompt) => {
-  console.log("[ORCHESTRATOR] Fallback in corso su Cohere...");
   const formattedHistory = (history || [])
     .filter((msg) => msg.content?.trim())
     .map((msg) => ({
@@ -219,15 +204,12 @@ const callCohere = async (history, fullPrompt) => {
 };
 
 const callGroq = async (history, fullPrompt) => {
-  console.log("[ORCHESTRATOR] Fallback estremo in corso su Groq...");
   const formattedHistory = (history || [])
     .filter((msg) => msg.content?.trim())
     .map((msg) => ({
       role: msg.role === "user" ? "user" : "assistant",
       content: msg.content.trim(),
     }));
-  console.log("formattedHistory", formattedHistory);
-  console.log("fullPrompt", fullPrompt);
   const promise = groq.chat.completions.create({
     model: "openai/gpt-oss-20b",
     messages: [
@@ -251,7 +233,6 @@ const getChatResponse = async ({
   notes,
   isExample,
 }) => {
-  console.log("sto exp", isExplaining);
   const formattedNotes =
     notes && notes.length > 0
       ? notes

@@ -24,9 +24,7 @@ const TrashBin = () => {
         onSuccess: (data) => {
           setDeletedDocumentsData(data);
         },
-        onError: (error) => {
-          console.error("ERRORE TRASH", error);
-        },
+        onError: (error) => {},
       },
     );
   };
@@ -53,7 +51,6 @@ const TrashBin = () => {
         },
         onError: (error) => {
           toast.error(error?.message);
-          console.error("ERRORE TRASH", error);
         },
       },
     );

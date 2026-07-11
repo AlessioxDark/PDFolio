@@ -18,7 +18,6 @@ const getAll = async (req, res) => {
     if (documentsError) throw documentsError;
     return { data: { documentsData, foldersData }, error: null };
   } catch (error) {
-    console.log("errore", error);
     return { data: null, error: error };
   }
 };
@@ -43,7 +42,6 @@ const getSpecificDocument = async (req, res) => {
           "Accesso negato. Non hai i permessi per visualizzare questo documento.",
       });
     }
-    console.log("docerr", documentError);
     // if (documentData.user_id !== user.id) throw { message: "Accesso Negato" };
     const { data: aiData, error: aiError } = await supabase
       .from("messaggi_ai")
@@ -81,7 +79,6 @@ const addNote = async (req) => {
       .from("note")
       .insert([{ ...noteData, user_id: user.id }])
       .select("*");
-    console.log("noteError", noteError);
 
     if (noteError) throw noteError;
     return {
@@ -186,7 +183,6 @@ const updateNote = async (req) => {
 
     return { data: { success: true }, error: null };
   } catch (error) {
-    console.error("Errore nell'aggiornamento della nota:", error);
     return { data: null, error: error };
   }
 };
@@ -241,10 +237,6 @@ const uploadPdf = async (req) => {
         // Unisce i frammenti di testo della pagina inserendo uno spazio
         return textContent.items.map((item) => item.str).join(" ");
       } catch (error) {
-        console.error(
-          `Errore durante l'estrazione del testo dalla pagina ${pageNumber}:`,
-          error,
-        );
         return "";
       }
     }
@@ -267,15 +259,11 @@ const uploadPdf = async (req) => {
 
     if (pagesError) throw pagesError;
 
-    console.log(`[OK] Inserite correttamente ${totalPages} pagine nel DB.`);
-    console.log("arrivato senza problemi alla fine");
-
     return {
       data: { success: true, document_id: document_id, file_url: fileUrl },
       error: null,
     };
   } catch (error) {
-    console.error("=== CRASH MODELLO DOCUMENTI ===", error);
     return { data: null, error: error };
   }
 };
@@ -290,7 +278,6 @@ const trashPdfFile = async (req) => {
       .update({ is_deleted: true })
       .eq("document_id", pdfId)
       .eq("user_id", user.id);
-    console.log("dbError", dbError);
     if (dbError) throw dbError;
 
     return { data: { success: true, deletedPdfId: pdfId }, error: null };
@@ -307,7 +294,6 @@ const deletePdfFile = async (req) => {
       .delete()
       .eq("document_id", pdfId)
       .eq("user_id", user.id);
-    console.log("dbError", dbError);
     if (dbError) throw dbError;
 
     const { data: bucketFiles, error: listError } = await supabase.storage
@@ -395,8 +381,6 @@ const exportSummaryPdf = async (req, res) => {
     cleanMarkdown = cleanMarkdown.replace(/(##+ .+) \n([^\n])/g, "$1\n\n$2");
 
     const htmlContent = marked.parse(cleanMarkdown);
-
-    console.log("HTML GENERATO E SANIFICATO:\n", htmlContent); // Controlla i log adesso!
 
     const fullHtml = `
   <!DOCTYPE html>
@@ -589,7 +573,6 @@ const getTrashDocuments = async (req, res) => {
 
     return { data: data, error: null };
   } catch (error) {
-    console.error("Errore nel recupero dei documenti eliminati:", error);
     return { data: null, error: error };
   }
 };

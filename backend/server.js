@@ -27,10 +27,6 @@ app.use("/api/search", searchRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/profile", profileRoutes);
 
-app.get("/", (req, res) => {
-  res.send("<h1>Funziona!</h1>");
-});
-
 app.listen(3000, () => {
   console.log("listening on port 3000");
 });

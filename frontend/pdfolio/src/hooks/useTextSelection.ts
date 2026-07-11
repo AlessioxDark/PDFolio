@@ -177,9 +177,7 @@ export const useTextSelection = ({
     if (!selectionData) return;
     try {
       await navigator.clipboard.writeText(selectionData.text);
-    } catch (err) {
-      console.error("Errore durante la copia:", err);
-    }
+    } catch (err) {}
     window.getSelection()?.removeAllRanges();
     setSelectionData(null);
   };

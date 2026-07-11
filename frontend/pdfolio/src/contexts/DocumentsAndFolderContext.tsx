@@ -166,12 +166,10 @@ export const DocumentsAndFoldersContextProvider = ({ children }) => {
       () => {
         return apiCalls.home.getHomeFoldersAndFiles(session);
       },
-      { onSuccess, onError: (e) => console.log("erroe frontend", e) },
+      { onSuccess, onError: (e) => {} },
     );
   };
   const handleTrashFile = async (documentId: string) => {
-    console.log("trasho");
-
     const onSuccess = (data) => {
       setDocumentsData((prev) =>
         prev.filter((doc) => doc.document_id !== documentId),

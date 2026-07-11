@@ -53,7 +53,6 @@ export const useAiNotesFeatures = ({
       content: promptMessage + ":\n" + `${currentSelection.text}`,
       selection_data: staticSelectionData,
     };
-    console.log("sel data", message.selection_data);
     setAiMessages((prevMessages) => [...prevMessages, message]);
     await executeApiCall(
       "ask_ai",
@@ -74,7 +73,6 @@ export const useAiNotesFeatures = ({
       },
       {
         onSuccess: (data) => {
-          console.log("aidata", data);
           const aiResponseId =
             typeof crypto !== "undefined" && crypto.randomUUID
               ? crypto.randomUUID()
@@ -215,11 +213,9 @@ export const useAiNotesFeatures = ({
         {
           onSuccess: () => updateMessageSavedStatus(true),
           onError: (err) =>
-            console.error("Errore sincronizzazione messaggi:", err),
         },
       );
     } catch (err) {
-      console.error("Errore globale durante il salvataggio:", err);
       setNotesArray(previousNotes);
       updateMessageSavedStatus(false);
       toast.error(err?.message || "Impossibile salvare la nota nel database.", {
@@ -314,7 +310,6 @@ export const useAiNotesFeatures = ({
         applyMessageState(true, true);
       }
     } catch (error) {
-      console.error(error);
       setNotesArray(previousNotes);
       applyMessageState(true, false);
       toast.error(error?.message || "Impossibile salvare la nota. Riprova.", {

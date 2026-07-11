@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { useAuth } from "../../contexts/AuthContext";
-import FormInput from "../../components/FormInput";
 import { Link, useNavigate } from "react-router";
 import Step1 from "../../features/register/Step1";
 import Step2 from "../../features/register/Step2";
@@ -59,7 +58,6 @@ const SignUp = () => {
       return;
     }
 
-    // Mappo user_email su email perché AuthContext si aspetta 'email'
     const payload = {
       ...data,
       email: data.user_email,
@@ -68,7 +66,6 @@ const SignUp = () => {
     const response = await SignUpUser(payload);
     // Gestione dell'errore
     if (response.error) {
-      console.error("Errore ritornato:", response.error);
       setError("root", {
         message:
           response.error.message || "Errore durante la registrazione. Riprova.",
@@ -76,7 +73,6 @@ const SignUp = () => {
       return;
     }
 
-    console.log("Sign up fatto e profilo creato con successo!");
     setProfileData({
       handle: data.handle,
       email: data.email,
@@ -109,12 +105,12 @@ const SignUp = () => {
       <div className="relative z-10 flex flex-col items-center border border-white/60 rounded-[2rem] px-6 py-8 sm:p-10 w-full max-w-md bg-white/70 backdrop-blur-xl shadow-2xl shadow-purple-900/10 gap-6 transition-all duration-300">
         <div className="flex flex-col items-center text-center">
           {/* Fake Logo Placeholder */}
-          <div className="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 mb-4">
+          <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center shadow-lg shadow-accent/30 mb-4">
             <span className="text-2xl font-bold text-white">P</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
             PDF
-            <span className="bg-clip-text text-transparent bg-purple-600">
+            <span className="bg-clip-text text-transparent bg-accent">
               olio
             </span>
           </h1>
@@ -138,6 +134,7 @@ const SignUp = () => {
               errors={errors}
               register={register}
               onPrev={() => setCurrentStep(1)}
+              isSubmitting={isSubmitting}
             />
           )}{" "}
         </form>
@@ -147,7 +144,7 @@ const SignUp = () => {
               Hai già un account?{" "}
               <Link
                 to="/login"
-                className="text-purple-600 font-bold hover:underline transition-all"
+                className="text-accent font-bold hover:underline transition-all"
               >
                 Accedi qui
               </Link>

@@ -15,12 +15,8 @@ const SearchSection = ({
   query: string;
   isSearching: boolean;
 }) => {
-  const {
-    handleGlobalSearch,
-
-    globalSearchData,
-    setGlobalSearchData,
-  } = useSearch();
+  const { handleGlobalSearch, globalSearchData, setGlobalSearchData } =
+    useSearch();
 
   useEffect(() => {
     if (!isSearching) {

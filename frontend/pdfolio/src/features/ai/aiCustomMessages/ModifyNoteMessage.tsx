@@ -21,7 +21,6 @@ const ModifyNoteMessage = ({
     (note) => note.note_id === props.note_id,
   );
 
-  console.log("sel", selectionDataToUse);
   const isRejected = !!selectionDataToUse?.isRejected;
   const isModified =
     !!selectionDataToUse?.isModified == true ||

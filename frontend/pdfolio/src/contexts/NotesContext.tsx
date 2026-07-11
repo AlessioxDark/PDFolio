@@ -30,9 +30,7 @@ export const NotesContextProvider = ({ children }) => {
         onSuccess: (data) => {
           setNotesArray(data);
         },
-        onError: (error) => {
-          console.error("Errore nel caricamento delle note:", error);
-        },
+        onError: (error) => {},
       },
     );
   };
@@ -50,8 +48,6 @@ export const NotesContextProvider = ({ children }) => {
           setNotesArray((prev) => prev.filter((note) => note.note_id !== id));
         },
         onError: (error) => {
-          console.log("errore", error);
-
           toast.error(error?.message);
         },
       },

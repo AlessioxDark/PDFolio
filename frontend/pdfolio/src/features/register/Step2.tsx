@@ -1,7 +1,18 @@
 import React from "react";
 import FormInput from "../../components/FormInput";
+import { type FieldErrors, type UseFormRegister } from "react-hook-form";
 
-const Step2 = ({ errors, register, onPrev }) => {
+const Step2 = ({
+  errors,
+  register,
+  onPrev,
+  isSubmitting,
+}: {
+  errors: FieldErrors<any>;
+  register: UseFormRegister<any>;
+  onPrev: () => void;
+  isSubmitting: boolean;
+}) => {
   return (
     <>
       <FormInput
@@ -42,7 +53,7 @@ const Step2 = ({ errors, register, onPrev }) => {
           type="submit"
           className="w-1/2 py-4 cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
         >
-          Invia
+          {isSubmitting ? "Registrazione in corso..." : "Registrati"}
         </button>
       </div>
     </>

@@ -46,11 +46,9 @@ const FolderPage = () => {
       () => apiCalls.folder.deleteFolder(session, folderToDelete.folder_id),
       {
         onSuccess: () => {
-          console.log("Folder deleted successfully on server");
           toast.success("Cartella eliminata con successo");
         },
         onError: (error) => {
-          console.error("Errore eliminazione cartella:", error);
           toast.error(error?.message || "Impossibile eliminare la cartella");
 
           setFoldersData(prevFoldersData);

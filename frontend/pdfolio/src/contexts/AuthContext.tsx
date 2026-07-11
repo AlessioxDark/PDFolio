@@ -4,19 +4,29 @@ import { apiCalls } from "../services/api.js";
 import { useApi } from "./ApiContext.js";
 export const AuthContext = createContext({
   session: null,
-  LoginUser: (arg) => {},
-  SignUpUser: (arg) => {},
+  LoginUser: (_arg: any) => {},
+  SignUpUser: (_arg: any) => {},
+  LogOut: () => {},
+  isAuthLoading: true,
 });
 export const useAuth = () => {
   const context = useContext(AuthContext);
   return context;
 };
 
-export const AuthContextProvider = ({ children }) => {
+export const AuthContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [session, setSession] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const { executeApiCall } = useApi();
-  const LoginUser = async (formData) => {
+  const { executeApiCall, registerAuthErrorHandler } = useApi();
+  const LoginUser = async (formData: {
+    email: string;
+    password: string;
+    rememberMe: boolean;
+  }) => {
     const { email, password, rememberMe } = formData;
     localStorage.setItem("remember", rememberMe.toString());
     return new Promise((resolve) => {
@@ -42,7 +52,12 @@ export const AuthContextProvider = ({ children }) => {
       );
     });
   };
-  const SignUpUser = async (payloadData) => {
+  const SignUpUser = async (payloadData: {
+    email: string;
+    password: string;
+    full_name: string;
+    handle: string;
+  }) => {
     const { email, password, full_name, handle } = payloadData;
 
     // 1. Eseguiamo il SignUp
@@ -72,11 +87,6 @@ export const AuthContextProvider = ({ children }) => {
               return;
             }
 
-            console.log(
-              "Sign up completato. Ora creo il profilo per:",
-              freshUserId,
-            );
-
             // 3. Secondo Step: Creazione Profilo nel DB (dentro l'onSuccess del primo)
             executeApiCall(
               "create_profile",
@@ -97,7 +107,6 @@ export const AuthContextProvider = ({ children }) => {
                   resolve({ data: signUpData.session, error: null });
                 },
                 onError: (profileError) => {
-                  console.error("Errore durante create_profile:", profileError);
                   // Se fallisce il profilo, rispondiamo a onSubmit con l'errore del profilo
                   resolve({ data: null, error: profileError });
                 },
@@ -105,7 +114,6 @@ export const AuthContextProvider = ({ children }) => {
             );
           },
           onError: (signUpError) => {
-            console.error("Errore durante il sign_up:", signUpError);
             // Se fallisce il sign-up iniziale, rispondiamo subito a onSubmit con l'errore
             resolve({ data: null, error: signUpError });
           },
@@ -128,7 +136,6 @@ export const AuthContextProvider = ({ children }) => {
             resolve({ data: { success: true }, error: null });
           },
           onError: (error) => {
-            console.error("Errore durante il log_out:", error);
             resolve({ data: null, error: error });
           },
         },
@@ -163,6 +170,12 @@ export const AuthContextProvider = ({ children }) => {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    registerAuthErrorHandler(async () => {
+      await LogOut();
+    });
   }, []);
   return (
     <AuthContext.Provider

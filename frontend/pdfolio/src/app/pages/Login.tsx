@@ -1,11 +1,9 @@
 import React from "react";
 import FormInput from "../../components/FormInput";
-import { email, z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { Eye, EyeOff, UserCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm, type SubmitHandler } from "react-hook-form";
-import { Link, Navigate, useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useApi } from "@/contexts/ApiContext";
 import LoadingState from "@/components/states/LoadingState";
@@ -16,7 +14,6 @@ const Login = () => {
     password: z.string().min(1, "il campo è obbligatorio"),
     rememberMe: z.boolean().optional(),
   });
-  type FormFields = z.infer<typeof schema>;
   const methods = useForm({
     resolver: zodResolver(schema),
     mode: "onTouched",
@@ -47,7 +44,6 @@ const Login = () => {
       setError("root", { message: `${authError.message}` });
       return;
     }
-    console.log("loginnato");
     navigate("/");
   };
 
@@ -68,12 +64,12 @@ const Login = () => {
       <div className="relative z-10 flex flex-col items-center border border-white/60 rounded-[2rem] px-6 py-8 sm:p-10 w-full max-w-md bg-white/70 backdrop-blur-xl shadow-2xl shadow-purple-900/10 gap-8">
         <div className="flex flex-col items-center text-center">
           {/* Fake Logo Placeholder */}
-          <div className="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 mb-4">
+          <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center shadow-lg shadow-accent/30 mb-4">
             <span className="text-2xl font-bold text-white">P</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
             PDF
-            <span className="bg-clip-text text-transparent bg-purple-600">
+            <span className="bg-clip-text text-transparent bg-accent">
               olio
             </span>
           </h1>
@@ -121,7 +117,7 @@ const Login = () => {
                 Sei nuovo da queste parti?{" "}
                 <Link
                   to="/signup"
-                  className="text-purple-600 font-bold  hover:underline"
+                  className="text-accent font-bold  hover:underline"
                 >
                   Crea un account ora{" "}
                 </Link>
@@ -133,9 +129,9 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full py-4 mt-2 cursor-pointer bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-purple-500/30"
+            className="w-full py-4 mt-2 cursor-pointer bg-accent hover:bg-accent/80 text-white rounded-2xl font-bold text-lg transition-all duration-300 active:scale-[0.98] shadow-lg shadow-accent/30"
           >
-            Entra in PDFolio
+            {isSubmitting ? "Accesso in corso..." : "Accedi a PDFolio"}
           </button>
         </form>
         {}

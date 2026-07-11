@@ -32,9 +32,7 @@ export const ProfileContextProvider = ({ children }) => {
         onSuccess: (data) => {
           setProfileData(data);
         },
-        onError: (error) => {
-          console.error(error);
-        },
+        onError: (error) => {},
       },
     );
   };

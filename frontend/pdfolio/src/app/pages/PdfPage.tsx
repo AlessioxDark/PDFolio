@@ -54,9 +54,7 @@ const PdfPage = () => {
             ...data?.aiMessages,
           ]);
         },
-        onError: (error) => {
-          console.error("Errore nel caricamento:", error);
-        },
+        onError: (error) => {},
       },
     );
   };

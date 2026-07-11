@@ -31,7 +31,6 @@ const requireAuth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.log("Error", error);
     return res.status(500).json({
       success: false,
       message: "Errore interno durante la verifica dell'identità.",
