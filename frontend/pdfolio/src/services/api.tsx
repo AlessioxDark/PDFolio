@@ -1,6 +1,7 @@
 import { supabase } from "../../config/db.js";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://pdfolio-zc2o.onrender.com";
+// const API_BASE_URL = "http://localhost:3000";
 export const apiCalls = {
   authService: {
     async signUp({ email, password, handle }) {
