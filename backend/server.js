@@ -13,7 +13,6 @@ const app = express();
 const corsOptions = {
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"], // Fondamentale se usi i token di Supabase!
 };
 
