@@ -41,12 +41,13 @@ export const AuthContextProvider = ({
         {
           onSuccess: (data) => {
             setSession(data.session);
-            // resolve fa sbloccare l'await in onSubmit e passa i dati
             resolve({ data: data.session, error: null });
           },
           onError: (error) => {
-            // resolve passa l'errore a onSubmit senza far crashare l'app
-            resolve({ data: null, error: error });
+            resolve({
+              data: null,
+              error: { message: "Credenziali non corrette" },
+            });
           },
         },
       );
@@ -136,7 +137,7 @@ export const AuthContextProvider = ({
             resolve({ data: { success: true }, error: null });
           },
           onError: (error) => {
-            resolve({ data: null, error: error });
+            resolve({ data: null, error: { message: "logout fallito" } });
           },
         },
       );

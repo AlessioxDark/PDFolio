@@ -11,7 +11,7 @@ const globalSearch = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento dei documenti",
+      message: "Errore durante la ricerca",
       details: error.message,
     });
   }

@@ -5,7 +5,7 @@ const getAllDocumentsAndFolders = async (req, res) => {
     if (error) throw error;
     res.status(200).json({
       data: data,
-      message: "documenti ottenuti con successo",
+      message: "Documenti ottenuti con successo",
       success: true,
     });
   } catch (error) {
@@ -62,7 +62,7 @@ const getNotesByDocumentId = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento del documento",
+      message: "Errore durante l'ottenimento delle note",
       details: error.message,
     });
   }
@@ -79,7 +79,7 @@ const deleteNote = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento del documento",
+      message: "Errore durante l'eliminazione della nota",
       details: error.message,
     });
   }
@@ -96,7 +96,7 @@ const updateNote = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento del documento",
+      message: "Errore durante l'aggiornamento della nota",
       details: error.message,
     });
   }
@@ -113,7 +113,7 @@ const uploadPdf = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Errore durante l'ottenimento del documento",
+      message: "Errore durante l'upload del pdf",
       details: error.message,
     });
   }
@@ -156,11 +156,6 @@ const exportSummaryPdf = async (req, res) => {
   try {
     const { data, error } = await Documents.exportSummaryPdf(req, res);
     if (error) throw error;
-    // res.status(200).json({
-    //   data: data,
-    //   message: "documento esportato con successo",
-    //   success: true,
-    // });
   } catch (error) {
     res.status(500).json({
       success: false,
