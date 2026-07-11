@@ -1,4 +1,3 @@
-import React from "react";
 import FormInput from "../../components/FormInput";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
