@@ -27,6 +27,6 @@ app.use("/api/search", searchRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/profile", profileRoutes);
 
-app.listen(3000, () => {
-  console.log("listening on port 3000");
+app.listen("0.0.0.0", () => {
+  console.log("listening on port 0.0.0.0");
 });
