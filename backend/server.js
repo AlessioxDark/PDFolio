@@ -5,6 +5,7 @@ const folderRoutes = require("./routes/folderRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const port = process.env.PORT || 3000;
 
 const cors = require("cors");
 const app = express();
@@ -27,6 +28,6 @@ app.use("/api/search", searchRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/profile", profileRoutes);
 
-app.listen("0.0.0.0", () => {
-  console.log("listening on port 0.0.0.0");
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
