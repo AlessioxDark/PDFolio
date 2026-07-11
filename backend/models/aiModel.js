@@ -13,6 +13,25 @@ const askAi = async (req, res) => {
     }
 
     const { user } = req;
+    const ventiquattroOreFa = new Date(
+      Date.now() - 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const { count: aiMessagesCount, error: aiMessagesError } = await supabase
+      .from("messaggi_ai")
+      .select("message_id", { count: "exact", head: true })
+      .eq("role", "assistant")
+      .gte("created_at", ventiquattroOreFa);
+
+    if (aiMessagesError) throw aiMessagesError;
+
+    if (aiMessagesCount && aiMessagesCount >= 10) {
+      return res.status(401).json({
+        success: false,
+        details: "limit_reached",
+        message:
+          "Hai raggiunto il limite massimo di 10 messaggi nelle ultime 24 ore.",
+      });
+    }
     // Recupera le pagine del documento associate a questo utente
     const { data: pages, error: pagesError } = await supabase
       .from("pagine_documenti")
@@ -162,18 +181,7 @@ const markMessageAsModified = async (req, res) => {
     const { documentId } = req.params;
     const { selectionText } = req.body;
     const { user } = req;
-    const { data: aiMessagesData, error: aiMessagesError } = await supabase
-      .from("messaggi_ai")
-      .select("*")
-      .eq("role", "assistant")
-      .order("created_at", { ascending: false })
-      .limit(10);
 
-    if (aiMessagesError) throw aiMessagesError;
-
-    if (aiMessagesData.length == 10) {
-      throw new Error("Hai raggiunto il limite massimo di messaggi.");
-    }
     // Recupera tutti i messaggi con selection_data non nulla per quel documento
     const { data: messages, error: fetchError } = await supabase
       .from("messaggi_ai")
