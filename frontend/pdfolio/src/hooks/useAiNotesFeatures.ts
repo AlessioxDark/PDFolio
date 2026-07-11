@@ -212,7 +212,6 @@ export const useAiNotesFeatures = ({
           ),
         {
           onSuccess: () => updateMessageSavedStatus(true),
-          onError: (err) =>
         },
       );
     } catch (err) {

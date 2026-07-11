@@ -162,7 +162,18 @@ const markMessageAsModified = async (req, res) => {
     const { documentId } = req.params;
     const { selectionText } = req.body;
     const { user } = req;
+    const { data: aiMessagesData, error: aiMessagesError } = await supabase
+      .from("messaggi_ai")
+      .select("*")
+      .eq("role", "assistant")
+      .order("created_at", { ascending: false })
+      .limit(10);
 
+    if (aiMessagesError) throw aiMessagesError;
+
+    if (aiMessagesData.length == 10) {
+      throw new Error("Hai raggiunto il limite massimo di messaggi.");
+    }
     // Recupera tutti i messaggi con selection_data non nulla per quel documento
     const { data: messages, error: fetchError } = await supabase
       .from("messaggi_ai")

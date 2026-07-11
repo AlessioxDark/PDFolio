@@ -229,6 +229,7 @@ export const ApiContextProvider = ({
       if (error.status === 403) {
         await authErrorHandler();
         navigate("/login");
+        return;
       }
       if (onError) onError(error);
 

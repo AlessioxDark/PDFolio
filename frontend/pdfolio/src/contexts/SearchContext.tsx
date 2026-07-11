@@ -1,21 +1,26 @@
 import { apiCalls } from "@/services/api";
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useEffectEvent,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useContext, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useApi } from "./ApiContext";
+import React from "react";
 
 const SearchContext = createContext({
-  globalSearchData: [],
+  globalSearchData: {
+    foldersData: [],
+    documentsData: [],
+    notesData: [],
+    textData: [],
+  },
   isGlobalQueryLoading: false,
   handleGlobalSearch: (query: string) => {},
-  setCurrentFilter: (filter: string) => {},
-  currentFilter: "",
+  setGlobalSearchData: React.Dispatch<
+    React.SetStateAction<{
+      foldersData: any[];
+      documentsData: any[];
+      notesData: any[];
+      textData: any[];
+    }>
+  >,
 });
 export const useSearch = () => {
   const context = useContext(SearchContext);
